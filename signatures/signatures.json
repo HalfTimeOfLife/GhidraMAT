@@ -1,0 +1,56 @@
+{
+    "anti_debug": {
+        "imports": {},
+        "strings": {},
+        "byte_patterns": {},
+        "combinations": []
+    },
+    "anti_vm": {
+        "imports": {
+            "GetPwrCapabilities": {
+                "severity": "MEDIUM",
+                "description": "Uses thermal zones to check if hardware components exist."
+            }
+        },
+        "strings": {},
+        "byte_patterns": {},
+        "combinations": []
+    },
+    "packer": {
+        "imports": {},
+        "strings": {},
+        "byte_patterns": {},
+        "combinations": []
+    },
+    "network": {
+        "imports": {},
+        "strings": {},
+        "byte_patterns": {},
+        "combinations": []
+    },
+    "crypto": {
+        "imports": {},
+        "strings": {},
+        "byte_patterns": {},
+        "combinations": []
+    },
+    "injection": {
+        "imports": {},
+        "strings": {},
+        "byte_patterns": {},
+        "combinations": []
+    },
+    "persistence": {
+        "imports": {},
+        "strings": {},
+        "byte_patterns": {},
+        "combinations": []
+    },
+    "evasion": {
+        "imports": {},
+        "strings": {},
+        "byte_patterns": {},
+        "combinations": []
+    },
+
+}
