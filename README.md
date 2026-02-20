@@ -45,7 +45,7 @@ GhidraMAT produces a structured report per binary with findings grouped by categ
 
 1. Open your target binary in Ghidra and run auto-analysis
 2. Go to **Window > Script Manager**
-3. Add the `ghidra-malware-analyzer/` folder to your script directories
+3. Add the `GhidraMAT/` folder to your script directories
 4. Run `analyzer.py`
 
 Requires Ghidra 10.x or later. No external dependencies.

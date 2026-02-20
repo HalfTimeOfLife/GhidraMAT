@@ -3,33 +3,32 @@
 # @author HalfTimeOfLife
 # @category GhidraMAT
 # @keybinding
-# @menupath Analysis.GhidraMAT.analyzer
+# @menupath Analysis.GhidraMAT
 # @toolbar
 
 # Import necessary modules
-import sys, os
+import sys
+import os
+import importlib
+
+script_dir = os.path.dirname(os.path.realpath(__file__))
+if script_dir not in sys.path:
+    sys.path.insert(0, script_dir)
+
+# Purge AVANT les imports
+for name_mod in list(sys.modules.keys()):
+    if name_mod.startswith(("modules.", "core.", "utils.")):
+        del sys.modules[name_mod]
 
 from core.context import Context
+from core.finding import Finding
 from core.report import generate_report
+from utils.utils import get_imports, print_banner
 from modules import anti_vm
 
-# Modules list
 MODULES = [
     anti_vm
 ]
-
-
-# Banner
-print(r"""
-=======================================================
-   _____ _     _     _           __  __       _______ 
-  / ____| |   (_)   | |         |  \/  |   /\|__   __|
- | |  __| |__  _  __| |_ __ __ _| \  / |  /  \  | |   
- | | |_ | '_ \| |/ _` | '__/ _` | |\/| | / /\ \ | |   
- | |__| | | | | | (_| | | | (_| | |  | |/ ____ \| |   
-  \_____|_| |_|_|\__,_|_|  \__,_|_|  |_/_/    \_\_|               
-=======================================================
-""")
 
 # Extract basic information about the current program
 name = currentProgram.getName()
@@ -40,18 +39,20 @@ program_md5 = currentProgram.getExecutableMD5()
 program_sha256 = currentProgram.getExecutableSHA256()
 base_image = currentProgram.getImageBase()
 
-
-# Display basic information about the current program
-print("Analyzing program: " + name)
-print("Executable path: " + path)
-print("Creation date: " + str(creation_date))
-print("Executable format: " + format)
-print("MD5: " + program_md5)
-print("SHA256: " + program_sha256)
-print("Base image address: " + str(base_image))
-
 # Start of analysis
 def run():
+  
+  # Display banner
+  print_banner()
+  
+  # Display basic information about the current program
+  print("Analyzing program: " + name)
+  print("Executable path: " + path)
+  print("Creation date: " + str(creation_date))
+  print("Executable format: " + format)
+  print("MD5: " + program_md5)
+  print("SHA256: " + program_sha256)
+  print("Base image address: " + str(base_image))
   print("\n[GhidraMAT] Starting analysis of " + name + "...\n")
   
   context = Context(currentProgram)
@@ -60,15 +61,21 @@ def run():
   for module in MODULES:
     print("GhidraMAT: running {}".format(module.__name__))
     try:
-      findings = module.run(context)
-      findings.extend(findings)
-      print("[{}] {} finding(s)".format(module.__name__, len(findings)))
+      mod_findings = module.analyze(context)
+      findings.extend(mod_findings)
+      print("[{}] {} finding(s)".format(module.__name__, len(mod_findings)))
     except Exception as e:
       print("[ERROR] {} failed: {}".format(module.__name__, str(e)))
-
-blocks = currentProgram.getMemory().getBlocks()
-for block in blocks:
-	print("Name: {}, Size: {}".format(block.getName(), block.getSize()))
+      
+  program_info = {
+    "name": name,
+    "path": str(path),
+    "md5": program_md5,
+    "sha256": program_sha256,
+    "format": format,
+    "date": creation_date
+  }
+  generate_report(findings, program_info)
 
 
 # Launch main analysis loop
