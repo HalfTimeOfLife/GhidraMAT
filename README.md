@@ -1,4 +1,4 @@
-# GhidraMAT — Malware Analysis Toolkit for Ghidra
+# GhidraMAT -- Malware Analysis Toolkit for Ghidra
 
 Ghidra script framework for automated static detection of malware behaviors: anti-debug, anti-VM, packing, C2 indicators, process injection, persistence and sandbox evasion.
 
@@ -15,7 +15,7 @@ In the directory [modules/](modules), there is all the file used for detecting s
 | `packer.py` | Section entropy (Shannon > 7.2), malformed PE headers, abnormal section names, TLS callbacks, low import count |
 | `network.py` | C2 indicators, hardcoded IPs/URLs, suspicious User-Agents, DGA-like strings, raw socket usage |
 | `crypto.py` | AES S-box constants, RC4 key scheduling patterns, rolling XOR, custom magic constants |
-| `injection.py` | Classic DLL injection, Process Hollowing, APC injection, Thread Hijacking — detected via dangerous API combinations |
+| `injection.py` | Classic DLL injection, Process Hollowing, APC injection, Thread Hijacking -- detected via dangerous API combinations |
 | `persistence.py` | Run registry keys, scheduled tasks, service installation, startup folder writes |
 | `evasion.py` | Timing-based sandbox evasion, sleep acceleration, environment fingerprinting, uptime checks |
 

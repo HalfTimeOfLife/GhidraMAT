@@ -8,6 +8,7 @@ import os
 
 from core.finding import Finding
 from utils.utils import get_imports, load_signatures, get_strings
+from utils.xrefs import get_xrefs_to_symbol, get_xrefs_to_string
 
 # Chemin absolu vers signatures.json
 SIG_PATH = os.path.join(os.path.dirname(__file__), "../signatures/signatures.json")
@@ -22,6 +23,7 @@ def analyze(context):
     # imports    
     for api_name, data in anti_vm_signatures["imports"].items():
         if api_name in imports:
+            xrefs = get_xrefs_to_symbol(context, api_name)
             is_combo_only = data.get("combo_only", False)
             findings.append(Finding(
                 category=CATEGORY,
@@ -30,19 +32,22 @@ def analyze(context):
                 severity=data["severity"],
                 address=imports[api_name],
                 description=data["description"],
-                combo_only=is_combo_only
+                combo_only=is_combo_only,
+                xrefs=xrefs
             ))
     
     # strings      
     for string_val, data in anti_vm_signatures["strings"].items():
         if string_val in strings:
+            xrefs = get_xrefs_to_string(context, string_val)
             findings.append(Finding(
                 category=CATEGORY,
                 type_of_technique="strings",
                 name=string_val,
                 severity=data["severity"],
                 address=None,
-                description=data["description"]
+                description=data["description"],
+                xrefs=xrefs
             ))
 
     # combinations

@@ -15,10 +15,9 @@ script_dir = os.path.dirname(os.path.realpath(__file__))
 if script_dir not in sys.path:
     sys.path.insert(0, script_dir)
 
-# Purge AVANT les imports
-for name_mod in list(sys.modules.keys()):
-    if name_mod.startswith(("modules.", "core.", "utils.")):
-        del sys.modules[name_mod]
+for _mod_name in list(sys.modules.keys()):
+    if _mod_name.startswith(("modules.", "core.", "utils.")):
+        del sys.modules[_mod_name]
 
 from core.context import Context
 from core.finding import Finding

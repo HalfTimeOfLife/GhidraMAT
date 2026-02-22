@@ -1,5 +1,5 @@
 class Finding:
-    def __init__(self, category, type_of_technique, name, severity, address, description, combo_only=False):
+    def __init__(self, category, type_of_technique, name, severity, address, description, combo_only=False, xrefs=None):
         self.category = category
         self.type = type_of_technique
         self.name = name
@@ -7,18 +7,25 @@ class Finding:
         self.address = address
         self.description = description
         self.combo_only = combo_only
+        self.xrefs = xrefs or []
     
     def __str__(self):
         addr_str = ""
         if self.address and "EXTERNAL" not in str(self.address):
             addr_str = f"\n   @ {str(self.address)}"
 
-        note = "\n   [!] Standalone indicator weak — meaningful only in combination" if self.combo_only else ""
+        note = "\n   [!] Standalone indicator weak -- meaningful only in combination" if self.combo_only else ""
+
+        xrefs_str = ""
+        if self.xrefs:
+            xrefs_formatted = ", ".join(str(x) for x in self.xrefs)
+            xrefs_str = f"\n   Called from : {xrefs_formatted}"
 
         return (
-            f"{self.name}"
-            f"[{self.severity}] [{self.category.upper()}] [{self.type}] "
+            f"{self.name} "
+            f"[{self.severity}] [{self.category.upper()}] [{self.type}]"
             f"{addr_str}"
             f"\n   -> {self.description}"
+            f"{xrefs_str}"
             f"{note}"
-        ).encode('ascii', errors='replace').decode('ascii')
+        )

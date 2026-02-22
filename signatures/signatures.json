@@ -25,7 +25,7 @@
             },
             "DeviceIoControl": {
                 "severity": "MEDIUM",
-                "description": "Sends IOCTLs to physical drives to check Vendor ID or disk size — small disk is a VM indicator."
+                "description": "Sends IOCTLs to physical drives to check Vendor ID or disk size -- small disk is a VM indicator."
             },
             "GetAdaptersAddresses": {
                 "severity": "MEDIUM",
@@ -172,7 +172,7 @@
         "strings": {
             "VMware, Inc.": {
                 "severity": "HIGH",
-                "description": "VMware vendor string — registry or SMBIOS VM artifact."
+                "description": "VMware vendor string -- registry or SMBIOS VM artifact."
             },
             "VMware": {
                 "severity": "HIGH",
@@ -280,7 +280,7 @@
             "rdtsc_timing": {
                 "pattern": "0F 31 ?? ?? ?? ?? 0F 31",
                 "severity": "HIGH",
-                "description": "Two consecutive RDTSC instructions — timing delta check for VM/sandbox detection."
+                "description": "Two consecutive RDTSC instructions -- timing delta check for VM/sandbox detection."
             }
         },
         "combinations": [
@@ -288,37 +288,37 @@
                 "name": "Registry-based VM detection",
                 "requires": ["RegOpenKeyEx", "RegQueryValueEx"],
                 "severity": "HIGH",
-                "description": "Opens and queries registry keys — likely reading VM-specific paths (VMware Tools, VBoxGuest, Hyper-V)."
+                "description": "Opens and queries registry keys -- likely reading VM-specific paths (VMware Tools, VBoxGuest, Hyper-V)."
             },
             {
                 "name": "Registry enumeration VM detection",
                 "requires": ["RegOpenKeyEx", "RegEnumKeyEx"],
                 "severity": "HIGH",
-                "description": "Opens and enumerates registry sub-keys — likely scanning for VM-related service names."
+                "description": "Opens and enumerates registry sub-keys -- likely scanning for VM-related service names."
             },
             {
                 "name": "Dynamic API resolution VM check",
                 "requires": ["GetModuleHandle", "GetProcAddress"],
                 "severity": "HIGH",
-                "description": "Dynamically resolves APIs at runtime — likely checking for Wine-exclusive or sandbox-specific exports."
+                "description": "Dynamically resolves APIs at runtime -- likely checking for Wine-exclusive or sandbox-specific exports."
             },
             {
                 "name": "Mutex-based VM/sandbox detection",
                 "requires": ["CreateMutexA", "OpenMutexA"],
                 "severity": "HIGH",
-                "description": "Creates and opens mutexes — likely probing for VM/sandbox-specific mutex names."
+                "description": "Creates and opens mutexes -- likely probing for VM/sandbox-specific mutex names."
             },
             {
                 "name": "Device path VM detection",
                 "requires": ["CreateFileA", "DeviceIoControl"],
                 "severity": "HIGH",
-                "description": "Opens device paths and sends IOCTLs — likely probing VM-specific paths (\\\\.\\VBoxMiniRdrDN, \\\\.\\vmci)."
+                "description": "Opens device paths and sends IOCTLs -- likely probing VM-specific paths (\\\\.\\VBoxMiniRdrDN, \\\\.\\vmci)."
             },
             {
                 "name": "Sleep-skipping sandbox detection",
                 "requires": ["GetTickCount", "Sleep"],
                 "severity": "HIGH",
-                "description": "Measures elapsed time around a Sleep call — sandboxes that accelerate Sleep show an anomalously short delta."
+                "description": "Measures elapsed time around a Sleep call -- sandboxes that accelerate Sleep show an anomalously short delta."
             },
             {
                 "name": "High-resolution timing anomaly detection",
@@ -330,31 +330,31 @@
                 "name": "Hardware fingerprinting",
                 "requires": ["GetSystemInfo", "GlobalMemoryStatusEx"],
                 "severity": "MEDIUM",
-                "description": "Reads CPU count and total RAM — low values (1 CPU, < 2 GB RAM) are classic VM/sandbox indicators."
+                "description": "Reads CPU count and total RAM -- low values (1 CPU, < 2 GB RAM) are classic VM/sandbox indicators."
             },
             {
                 "name": "Headless environment detection",
                 "requires": ["GetSystemMetrics", "GetCursorPos"],
                 "severity": "MEDIUM",
-                "description": "Checks screen resolution and cursor position — static cursor in low-res environment = headless sandbox."
+                "description": "Checks screen resolution and cursor position -- static cursor in low-res environment = headless sandbox."
             },
             {
                 "name": "User activity absence check",
                 "requires": ["GetLastInputInfo", "GetSystemMetrics"],
                 "severity": "MEDIUM",
-                "description": "Combines input idle time with screen metrics — no activity in low-resolution environment = sandbox."
+                "description": "Combines input idle time with screen metrics -- no activity in low-resolution environment = sandbox."
             },
             {
                 "name": "Window enumeration sandbox detection",
                 "requires": ["FindWindowA", "EnumWindows"],
                 "severity": "MEDIUM",
-                "description": "Searches for specific windows and enumerates all — low count or VM class names indicate sandbox."
+                "description": "Searches for specific windows and enumerates all -- low count or VM class names indicate sandbox."
             },
             {
                 "name": "Process enumeration VM detection",
                 "requires": ["CreateToolhelp32Snapshot", "OpenProcess"],
                 "severity": "HIGH",
-                "description": "Enumerates processes and attempts to open them — likely scanning for VM/sandbox-specific process names."
+                "description": "Enumerates processes and attempts to open them -- likely scanning for VM/sandbox-specific process names."
             }
         ]
     },
