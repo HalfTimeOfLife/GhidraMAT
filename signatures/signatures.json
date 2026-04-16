@@ -167,6 +167,10 @@
                 "severity": "LOW",
                 "combo_only": true,
                 "description": "Common; meaningful only in combination with CreateToolhelp32Snapshot for sandbox privilege detection."
+            },
+            "EnumDisplayDevicesA": {
+                "severity": "MEDIUM",
+                "description": "Enumerates display devices to read GPU name -- VM-specific strings (VMware SVGA, VirtualBox Graphics Adapter) confirm virtualized environment."
             }
         },
         "strings": {
@@ -272,15 +276,15 @@
             }
         },
         "byte_patterns": {
-            "cpuid_hypervisor_check": {
-                "pattern": "0F A2 F7 C1 00 00 01 00",
+            "cpuid_check": {
+                "pattern": "0F A2",
                 "severity": "HIGH",
-                "description": "CPUID followed by hypervisor present bit check (ECX bit 31)."
+                "description": "CPUID instruction, used to detect hypervisor presence via ECX bit 31."
             },
             "rdtsc_timing": {
-                "pattern": "0F 31 ?? ?? ?? ?? 0F 31",
-                "severity": "HIGH",
-                "description": "Two consecutive RDTSC instructions -- timing delta check for VM/sandbox detection."
+                "pattern": "0F 31",
+                "severity": "HIGH", 
+                "description": "RDTSC instruction, used for timing-based VM/sandbox detection."
             }
         },
         "combinations": [

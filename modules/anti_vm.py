@@ -9,6 +9,7 @@ import os
 from core.finding import Finding
 from utils.utils import get_imports, load_signatures, get_strings
 from utils.xrefs import get_xrefs_to_symbol, get_xrefs_to_string
+from utils.pattern import scan_byte_pattern
 
 # Chemin absolu vers signatures.json
 SIG_PATH = os.path.join(os.path.dirname(__file__), "../signatures/signatures.json")
@@ -49,6 +50,20 @@ def analyze(context):
                 description=data["description"],
                 xrefs=xrefs
             ))
+            
+    # patterns
+    for sig_name, data in anti_vm_signatures["byte_patterns"].items():
+        addresses = scan_byte_pattern(context, data["pattern"])
+        for addr in addresses:
+            findings.append(Finding(
+                category=CATEGORY,
+                type_of_technique="byte_patterns",
+                name=sig_name,
+                severity=data["severity"],
+                address=addr,
+                description=data["description"]
+            ))
+
 
     # combinations
     for combo in anti_vm_signatures["combinations"]:

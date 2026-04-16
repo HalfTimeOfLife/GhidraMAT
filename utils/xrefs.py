@@ -2,9 +2,7 @@ def get_xrefs_to_symbol(context, api_name):
     xrefs = []
     for symbol in context.symbol_table.getExternalSymbols():
         if symbol.getName() == api_name:
-            print(f"[DEBUG] Found symbol: {symbol.getName()} @ {symbol.getAddress()}")
             for ref in context.ref_manager.getReferencesTo(symbol.getAddress()):
-                print(f"[DEBUG] XREF: {ref.getFromAddress()}")
                 xrefs.append(ref.getFromAddress())
     return xrefs
 

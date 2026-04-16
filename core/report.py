@@ -7,10 +7,6 @@ from datetime import datetime
 VERSION = "0.1"
 REPORTS_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "reports")
 
-MODULES = [
-    anti_vm
-]
-
 SEVERITY_ORDER = [
     "CRITICAL",
     "HIGH",
@@ -71,7 +67,7 @@ def build_header(program_info, findings):
     
     return lines
 
-def generate_report(findings, program_info):
+def generate_report(findings, program_info, modules):
     # Placeholder for report generation logic
     print("\nGenerating report...")
     
@@ -93,7 +89,7 @@ def generate_report(findings, program_info):
     SUBSUBSEP  = "*" * 40
 
     # Display per module (anti-vm, anti-debug, etc)
-    for module in MODULES:
+    for module in modules:
         module_name = module.__name__.replace("modules.", "").upper()
         lines.append("")
         lines.append(SEPARATOR)

@@ -74,7 +74,7 @@ def run():
     "format": format,
     "date": creation_date
   }
-  generate_report(findings, program_info)
+  generate_report(findings, program_info, MODULES)
 
 
 # Launch main analysis loop
