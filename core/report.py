@@ -18,6 +18,13 @@ SEVERITY_ORDER = [
     "LOW"
 ]
 
+TYPES = [
+    "imports",
+    "strings",
+    "byte_patterns",
+    "combinations"
+]
+
 def build_header(program_info, findings):
     lines = []
     
@@ -83,7 +90,9 @@ def generate_report(findings, program_info):
     
     SEPARATOR  = "=" * 60
     SUBSEP     = "-" * 40
+    SUBSUBSEP  = "*" * 40
 
+    # Display per module (anti-vm, anti-debug, etc)
     for module in MODULES:
         module_name = module.__name__.replace("modules.", "").upper()
         lines.append("")
@@ -97,37 +106,46 @@ def generate_report(findings, program_info):
             lines.append("  No findings detected.")
             continue
         
-        for severity in SEVERITY_ORDER:
-            severity_findings = [f for f in module_findings if f.severity == severity]
-            if not severity_findings:
-                continue
-                
+        # Dipslay per types (imports, strings, byte patterns, combinations)
+        for sign_type in TYPES:
             lines.append("")
-            lines.append(f"  [ {severity} ]")
             lines.append(SUBSEP)
+            lines.append(f"TYPE : {sign_type}")
+            lines.append(SUBSEP)
+            type_findings = [f for f in module_findings if f.type == sign_type]
+            if not type_findings:
+                continue
             
-            normal   = [f for f in severity_findings if not f.combo_only]
-            combonly = [f for f in severity_findings if f.combo_only]
-            
-            for f in normal:
-                lines.append(f"  {f.__str__()}")
-            
-            if combonly:
+            # Display per severity (LOW, MEDIUM, HIGH, CRITICAL)
+            for severity in SEVERITY_ORDER:
+                severity_findings = [f for f in type_findings if f.severity == severity]
+                if not severity_findings:
+                    continue
+                    
                 lines.append("")
-                lines.append("  -- Weak standalone indicators --")
-                for f in combonly:
+                lines.append(f"  [ {severity} ]")
+                lines.append(SUBSUBSEP)
+                
+                normal   = [f for f in severity_findings if not f.combo_only]
+                combonly = [f for f in severity_findings if f.combo_only]
+                
+                for f in normal:
                     lines.append(f"  {f.__str__()}")
+                
+                if combonly:
+                    lines.append("")
+                    lines.append("  -- Weak standalone indicators --")
+                    for f in combonly:
+                        lines.append(f"  {f.__str__()}")
         
         lines.append("")
-                
-        
     
     output = "\n".join(lines)
     
     # Console
     print(output)
     
-    # Fichier
+    # File
     with open(filename, "w", encoding="utf-8") as f:
         f.write(output)
             

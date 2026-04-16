@@ -48,6 +48,6 @@ GhidraMAT produces a structured report per binary with findings grouped by categ
 3. Add the `GhidraMAT/` folder to your script directories
 4. Run `analyzer.py`
 
-Requires Ghidra 10.x or later. No external dependencies.
+Requires Ghidra 10.x or later.
 
 ---

@@ -59,7 +59,8 @@ def analyze(context):
                 name=combo["name"],
                 severity=combo["severity"],
                 address=None,
-                description=combo["description"]
+                description=combo["description"],
+                requirements=combo["requires"]
             ))
     
     return findings

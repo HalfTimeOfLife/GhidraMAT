@@ -32,3 +32,7 @@ def get_strings(context):
 def load_signatures(path, name):
     with open(path) as f:
         return json.load(f)[name]
+    
+    
+def apply_visual_marking(findings):
+    return

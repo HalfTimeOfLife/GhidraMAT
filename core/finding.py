@@ -1,5 +1,5 @@
 class Finding:
-    def __init__(self, category, type_of_technique, name, severity, address, description, combo_only=False, xrefs=None):
+    def __init__(self, category, type_of_technique, name, severity, address, description, combo_only=False, xrefs=None, requirements=None):
         self.category = category
         self.type = type_of_technique
         self.name = name
@@ -8,6 +8,7 @@ class Finding:
         self.description = description
         self.combo_only = combo_only
         self.xrefs = xrefs or []
+        self.requirements = requirements
     
     def __str__(self):
         addr_str = ""
@@ -21,11 +22,17 @@ class Finding:
             xrefs_formatted = ", ".join(str(x) for x in self.xrefs)
             xrefs_str = f"\n   Called from : {xrefs_formatted}"
 
+        requirements_str = ""
+        if self.requirements:
+            requirements_formatted = ", ".join(str(x) for x in self.requirements)
+            requirements_str = f"\n   Requires     : {requirements_formatted}"
+
         return (
             f"{self.name} "
             f"[{self.severity}] [{self.category.upper()}] [{self.type}]"
             f"{addr_str}"
             f"\n   -> {self.description}"
+            f"{requirements_str}"
             f"{xrefs_str}"
             f"{note}"
         )
