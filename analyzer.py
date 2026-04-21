@@ -9,7 +9,6 @@
 # Import necessary modules
 import sys
 import os
-import importlib
 
 script_dir = os.path.dirname(os.path.realpath(__file__))
 if script_dir not in sys.path:
@@ -23,10 +22,17 @@ from core.context import Context
 from core.finding import Finding
 from core.report import generate_report
 from utils.utils import get_imports, print_banner
-from modules import anti_vm
+from utils.detection import analyze
 
-MODULES = [
-    anti_vm
+CATEGORIES = [
+    "anti_vm",
+    "anti_debug",
+    "packer",
+    "network",
+    "crypto",
+    "injection",
+    "persistence",
+    "evasion"
 ]
 
 # Extract basic information about the current program
@@ -57,14 +63,14 @@ def run():
   context = Context(currentProgram)
   findings = []
   
-  for module in MODULES:
-    print("GhidraMAT: running {}".format(module.__name__))
-    try:
-      mod_findings = module.analyze(context)
-      findings.extend(mod_findings)
-      print("[{}] {} finding(s)".format(module.__name__, len(mod_findings)))
-    except Exception as e:
-      print("[ERROR] {} failed: {}".format(module.__name__, str(e)))
+  for category in CATEGORIES:
+      print("GhidraMAT: running {}".format(category))
+      try:
+          mod_findings = analyze(context, category)
+          findings.extend(mod_findings)
+          print("[{}] {} finding(s)".format(category, len(mod_findings)))
+      except Exception as e:
+          print("[ERROR] {} failed: {}".format(category, str(e)))
       
   program_info = {
     "name": name,
@@ -74,7 +80,7 @@ def run():
     "format": format,
     "date": creation_date
   }
-  generate_report(findings, program_info, MODULES)
+  generate_report(findings, program_info, CATEGORIES)
 
 
 # Launch main analysis loop

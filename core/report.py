@@ -1,6 +1,4 @@
-from core.finding import Finding
 import os
-from modules import anti_vm
 from utils.utils import *
 from datetime import datetime
 
@@ -67,7 +65,7 @@ def build_header(program_info, findings):
     
     return lines
 
-def generate_report(findings, program_info, modules):
+def generate_report(findings, program_info, categories):
     # Placeholder for report generation logic
     print("\nGenerating report...")
     
@@ -88,17 +86,17 @@ def generate_report(findings, program_info, modules):
     SUBSEP     = "-" * 40
     SUBSUBSEP  = "*" * 40
 
-    # Display per module (anti-vm, anti-debug, etc)
-    for module in modules:
-        module_name = module.__name__.replace("modules.", "").upper()
+    # Display per category (anti-vm, anti-debug, etc)
+    for category in categories:
+        category_name = category.upper()
         lines.append("")
         lines.append(SEPARATOR)
-        lines.append(f"  MODULE : {module_name}")
+        lines.append(f"  CATEGORY : {category_name}")
         lines.append(SEPARATOR)
         
-        module_findings = [f for f in findings if f.category == module_name.lower()]
+        category_findings = [f for f in findings if f.category == category_name.lower()]
         
-        if not module_findings:
+        if not category_findings:
             lines.append("  No findings detected.")
             continue
         
@@ -108,7 +106,7 @@ def generate_report(findings, program_info, modules):
             lines.append(SUBSEP)
             lines.append(f"TYPE : {sign_type}")
             lines.append(SUBSEP)
-            type_findings = [f for f in module_findings if f.type == sign_type]
+            type_findings = [f for f in category_findings if f.type == sign_type]
             if not type_findings:
                 continue
             
@@ -135,6 +133,11 @@ def generate_report(findings, program_info, modules):
                         lines.append(f"  {f.__str__()}")
         
         lines.append("")
+    
+    lines.append("")
+    lines.append(SEPARATOR)
+    lines.append("  END OF REPORT")
+    lines.append(SEPARATOR)
     
     output = "\n".join(lines)
     

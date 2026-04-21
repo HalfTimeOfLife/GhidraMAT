@@ -1,48 +1,43 @@
-# This module provides functionality for detecting and analyzing anti-virtual machine (anti-VM) or anti-emulation techniques.
-
+# This module provides the generic detection logic for all GhidraMAT categories.
+# It loads signatures from signatures.json and matches imports, strings,
+# byte patterns and combinations against the analyzed binary.
 # @author HalfTimeOfLife
-# @category GhidraMAT.modules
-
-import json
-import os
+# @category GhidraMAT.utils
 
 from core.finding import Finding
 from utils.utils import get_imports, load_signatures, get_strings
 from utils.xrefs import get_xrefs_to_symbol, get_xrefs_to_string
 from utils.pattern import scan_byte_pattern
+import os
 
-# Chemin absolu vers signatures.json
-SIG_PATH = os.path.join(os.path.dirname(__file__), "../signatures/signatures.json")
-CATEGORY = "anti_vm"
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SIG_PATH = os.path.join(PROJECT_ROOT, "signatures", "signatures.json")
 
-def analyze(context):
+def analyze(context, category):
     findings = []
-    anti_vm_signatures = load_signatures(SIG_PATH, CATEGORY)
+    signatures = load_signatures(SIG_PATH, category)
     imports = get_imports(context)
     strings = get_strings(context)
-    
-    # imports    
-    for api_name, data in anti_vm_signatures["imports"].items():
+
+    for api_name, data in signatures["imports"].items():
         if api_name in imports:
             xrefs = get_xrefs_to_symbol(context, api_name)
-            is_combo_only = data.get("combo_only", False)
             findings.append(Finding(
-                category=CATEGORY,
+                category=category,
                 type_of_technique="imports",
                 name=api_name,
                 severity=data["severity"],
                 address=imports[api_name],
                 description=data["description"],
-                combo_only=is_combo_only,
+                combo_only=data.get("combo_only", False),
                 xrefs=xrefs
             ))
-    
-    # strings      
-    for string_val, data in anti_vm_signatures["strings"].items():
+
+    for string_val, data in signatures["strings"].items():
         if string_val in strings:
             xrefs = get_xrefs_to_string(context, string_val)
             findings.append(Finding(
-                category=CATEGORY,
+                category=category,
                 type_of_technique="strings",
                 name=string_val,
                 severity=data["severity"],
@@ -50,13 +45,11 @@ def analyze(context):
                 description=data["description"],
                 xrefs=xrefs
             ))
-            
-    # patterns
-    for sig_name, data in anti_vm_signatures["byte_patterns"].items():
-        addresses = scan_byte_pattern(context, data["pattern"])
-        for addr in addresses:
+
+    for sig_name, data in signatures["byte_patterns"].items():
+        for addr in scan_byte_pattern(context, data["pattern"]):
             findings.append(Finding(
-                category=CATEGORY,
+                category=category,
                 type_of_technique="byte_patterns",
                 name=sig_name,
                 severity=data["severity"],
@@ -64,12 +57,10 @@ def analyze(context):
                 description=data["description"]
             ))
 
-
-    # combinations
-    for combo in anti_vm_signatures["combinations"]:
+    for combo in signatures["combinations"]:
         if set(combo["requires"]).issubset(imports):
             findings.append(Finding(
-                category=CATEGORY,
+                category=category,
                 type_of_technique="combinations",
                 name=combo["name"],
                 severity=combo["severity"],
@@ -77,5 +68,5 @@ def analyze(context):
                 description=combo["description"],
                 requirements=combo["requires"]
             ))
-    
+
     return findings

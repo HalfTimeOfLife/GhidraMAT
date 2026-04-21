@@ -8,7 +8,7 @@ Ghidra script framework for automated static detection of malware behaviors: ant
 
 In the directory [modules/](modules), there is all the file used for detecting suspicious behavior in the analyzed executable. This directory contains the following files :
 
-| Module | What it detects | Status |
+| Category | What it detects | Status |
 |---|---|---|
 | `anti_vm.py` | `CPUID` VM checks, VMware/VirtualBox registry artifacts, VBOX/VMWARE strings, RDTSC delta | UP |
 | `anti_debug.py` | `RDTSC`, `IsDebuggerPresent`, `NtQueryInformationProcess`, breakpoint scanning, SEH tricks | WIP |
@@ -32,11 +32,10 @@ GhidraMAT/
 │   ├── context.py           # Wraps Ghidra program object
 │   ├── finding.py           # Finding data model
 │   └── report.py            # Report generation (plaintext)
-├── modules/
-│   └── anti_vm.py           # Anti-VM detection module
 ├── signatures/
 │   └── signatures.json      # All signatures (imports, strings, byte_patterns, combinations)
 └── utils/
+    ├── detection.py         # Detection module  
     ├── utils.py             # Shared helpers (imports, strings, signatures loading)
     ├── xrefs.py             # Cross-reference resolution
     └── pattern.py           # Byte pattern scanner
