@@ -18,6 +18,10 @@ def analyze(context, category):
     signatures = load_signatures(SIG_PATH, category)
     imports = get_imports(context)
     strings = get_strings(context)
+    
+    if context.monitor:
+        context.monitor.setMessage("[GhidraMAT] Searching for {} ...".format(category))
+
 
     for api_name, data in signatures["imports"].items():
         if api_name in imports:

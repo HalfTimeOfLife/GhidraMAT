@@ -19,9 +19,8 @@ for _mod_name in list(sys.modules.keys()):
         del sys.modules[_mod_name]
 
 from core.context import Context
-from core.finding import Finding
 from core.report import generate_report
-from utils.utils import get_imports, print_banner
+from utils.utils import print_banner
 from utils.detection import analyze
 
 CATEGORIES = [
@@ -60,17 +59,19 @@ def run():
   print("Base image address: " + str(base_image))
   print("\n[GhidraMAT] Starting analysis of " + name + "...\n")
   
-  context = Context(currentProgram)
+  context = Context(currentProgram, monitor)
   findings = []
   
   for category in CATEGORIES:
-      print("GhidraMAT: running {}".format(category))
-      try:
-          mod_findings = analyze(context, category)
-          findings.extend(mod_findings)
-          print("[{}] {} finding(s)".format(category, len(mod_findings)))
-      except Exception as e:
-          print("[ERROR] {} failed: {}".format(category, str(e)))
+    if context.monitor:
+        context.monitor.setMessage("[GhidraMAT] Running {}...".format(category))
+    print("GhidraMAT: running {}".format(category))
+    try:
+        mod_findings = analyze(context, category)
+        findings.extend(mod_findings)
+        print("[{}] {} finding(s)".format(category, len(mod_findings)))
+    except Exception as e:
+        print("[ERROR] {} failed: {}".format(category, str(e)))
       
   program_info = {
     "name": name,

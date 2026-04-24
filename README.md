@@ -6,24 +6,24 @@ Ghidra script framework for automated static detection of malware behaviors: ant
 
 ## Detection Modules
 
-In the directory [modules/](modules), there is all the file used for detecting suspicious behavior in the analyzed executable. This directory contains the following files :
+The file `detection.py` provides the generic detection engine for all GhidraMAT categories: it loads category-specific signatures from [signatures.json](signatures/signatures.json) and identifies suspicious imports, strings, byte patterns and import combinations in the analyzed binary, returning them as Finding objects. Here is the category supported :
 
 | Category | What it detects | Status |
 |---|---|---|
-| `anti_vm.py` | `CPUID` VM checks, VMware/VirtualBox registry artifacts, VBOX/VMWARE strings, RDTSC delta | UP |
-| `anti_debug.py` | `RDTSC`, `IsDebuggerPresent`, `NtQueryInformationProcess`, breakpoint scanning, SEH tricks | WIP |
-| `packer.py` | Section entropy (Shannon > 7.2), malformed PE headers, abnormal section names, TLS callbacks, low import count | WIP |
-| `network.py` | C2 indicators, hardcoded IPs/URLs, suspicious User-Agents, DGA-like strings, raw socket usage | WIP |
-| `crypto.py` | AES S-box constants, RC4 key scheduling patterns, rolling XOR, custom magic constants | WIP |
-| `injection.py` | Classic DLL injection, Process Hollowing, APC injection, Thread Hijacking -- detected via dangerous API combinations | WIP |
-| `persistence.py` | Run registry keys, scheduled tasks, service installation, startup folder writes | WIP |
-| `evasion.py` | Timing-based sandbox evasion, sleep acceleration, environment fingerprinting, uptime checks | WIP |
+| `anti-vm` | `CPUID` VM checks, VMware/VirtualBox registry artifacts, VBOX/VMWARE strings, RDTSC delta | UP |
+| `anti-debug` | `RDTSC`, `IsDebuggerPresent`, `NtQueryInformationProcess`, breakpoint scanning, SEH tricks | WIP |
+| `packer` | Section entropy (Shannon > 7.2), malformed PE headers, abnormal section names, TLS callbacks, low import count | WIP |
+| `network` | C2 indicators, hardcoded IPs/URLs, suspicious User-Agents, DGA-like strings, raw socket usage | WIP |
+| `crypto` | AES S-box constants, RC4 key scheduling patterns, rolling XOR, custom magic constants | WIP |
+| `injection` | Classic DLL injection, Process Hollowing, APC injection, Thread Hijacking -- detected via dangerous API combinations | WIP |
+| `persistence` | Run registry keys, scheduled tasks, service installation, startup folder writes | WIP |
+| `evasion` | Timing-based sandbox evasion, sleep acceleration, environment fingerprinting, uptime checks | WIP |
 
 ---
 
 ## Architecture of the project
 
-Signatures are fully **decoupled from detection logic**. API names, byte patterns and suspicious strings live in JSON files under [signatures/](signatures).
+Signatures are fully **decoupled from detection logic**. API names, byte patterns and suspicious strings live in JSON files under [signatures/](signatures/).
 
 ```
 GhidraMAT/
