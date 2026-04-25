@@ -18,9 +18,11 @@ for _mod_name in list(sys.modules.keys()):
     if _mod_name.startswith(("modules.", "core.", "utils.")):
         del sys.modules[_mod_name]
 
+from ghidra.app.plugin.core.colorizer import ColorizingService
+
 from core.context import Context
 from core.report import generate_report
-from utils.utils import print_banner
+from utils.utils import print_banner, apply_visual_marking, create_bookmark
 from utils.detection import analyze
 
 CATEGORIES = [
@@ -72,6 +74,16 @@ def run():
         print("[{}] {} finding(s)".format(category, len(mod_findings)))
     except Exception as e:
         print("[ERROR] {} failed: {}".format(category, str(e)))
+        
+    service = state.getTool().getService(ColorizingService)
+    transaction = currentProgram.startTransaction("GhidraMAT markings")
+    try:
+        for finding in findings:
+            create_bookmark(currentProgram, finding)
+            
+            apply_visual_marking(service, finding)
+    finally:
+        currentProgram.endTransaction(transaction, True)
       
   program_info = {
     "name": name,
