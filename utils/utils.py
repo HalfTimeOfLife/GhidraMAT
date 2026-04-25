@@ -1,4 +1,5 @@
 import json
+import os
 
 BANNER = r"""
 =======================================================
@@ -28,11 +29,11 @@ def get_strings(context):
         if s.hasStringValue():
             strings.add(str(s.getValue()))
     return strings
-
-def load_signatures(path, name):
-    with open(path) as f:
-        return json.load(f)[name]
     
+def load_signatures(signatures_dir, name):
+    path = os.path.join(signatures_dir, "{}.json".format(name))
+    with open(path) as f:
+        return json.load(f)
     
 def apply_visual_marking(findings):
     return

@@ -1,21 +1,33 @@
 # Signatures Format
 
-GhidraMAT's detection logic is fully driven by `signatures.json`. This document explains the structure and available fields.
+GhidraMAT's detection logic is fully driven by the JSON files in this directory. This document explains the structure and available fields.
 
 ---
 
-## Top-level Structure
+## File Structure
 
-Signatures are organized by **category**, each containing four detection types:
+Signatures are split into **one file per category**. Each file is named after its category and contains four detection types:
+
+```
+signatures/
+├── anti_vm.json
+├── anti_debug.json
+├── packer.json
+├── network.json
+├── crypto.json
+├── injection.json
+├── persistence.json
+└── evasion.json
+```
+
+Each file follows this structure:
 
 ```json
 {
-    "<category>": {
-        "imports": {},
-        "strings": {},
-        "byte_patterns": {},
-        "combinations": []
-    }
+    "imports": {},
+    "strings": {},
+    "byte_patterns": {},
+    "combinations": []
 }
 ```
 
@@ -55,22 +67,22 @@ Matches against the binary's **import table**. Each key is the exact API name as
 | Field | Type | Required | Description |
 |---|---|---|---|
 | `severity` | string | yes | `LOW`, `MEDIUM`, `HIGH`, or `CRITICAL` |
-| `combo_only` | boolean | no | If `true`, the API is not flagged alone --it is noted as a weak indicator and only escalates via a `combinations` match |
+| `combo_only` | boolean | no | If `true`, the API is not flagged alone -- it is noted as a weak indicator and only escalates via a `combinations` match |
 | `description` | string | yes | Why this API is suspicious, and in what context |
 
-**`combo_only` behavior:** The API still appears in the report when found, but is tagged as *"Standalone indicator weak --meaningful only in combination"*. It will never appear alone as a `HIGH` or `CRITICAL` finding. Use `combo_only: true` when the API is so common in legitimate software that a standalone match would generate too many false positives.
+**`combo_only` behavior:** The API still appears in the report when found, but is tagged as *"Standalone indicator weak -- meaningful only in combination"*. It will never appear alone as a `HIGH` or `CRITICAL` finding. Use `combo_only: true` when the API is so common in legitimate software that a standalone match would generate too many false positives.
 
 ---
 
 ### `strings`
 
-Matches against **printable strings** found in the binary (ASCII and Unicode). This is the primary way to confirm *what* a suspicious API is actually doing --an API like `RegOpenKeyEx` is generic, but the string `HKLM\SOFTWARE\VMware, Inc.\VMware Tools` found alongside is conclusive.
+Matches against **printable strings** found in the binary (ASCII and Unicode). This is the primary way to confirm *what* a suspicious API is actually doing -- an API like `RegOpenKeyEx` is generic, but the string `HKLM\SOFTWARE\VMware, Inc.\VMware Tools` found alongside is conclusive.
 
 ```json
 "strings": {
     "VMware, Inc.": {
         "severity": "HIGH",
-        "description": "VMware vendor string --registry or SMBIOS VM artifact."
+        "description": "VMware vendor string -- registry or SMBIOS VM artifact."
     },
     "\\\\.\\VBoxMiniRdrDN": {
         "severity": "HIGH",
@@ -95,16 +107,16 @@ Matches raw **byte sequences** in executable sections. Used for opcodes and inst
 ```json
 "byte_patterns": {
     "rdtsc_timing": {
-        "pattern": "0F 31 ?? ?? ?? ?? 0F 31",
-        "severity": "HIGH",
-        "description": "Two consecutive RDTSC instructions --timing delta check for VM/sandbox detection."
+        "pattern": "0F 31",
+        "severity": "HIGH", 
+        "description": "RDTSC instruction, used for timing-based VM/sandbox detection."
     }
 }
 ```
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `pattern` | string | yes | Space-separated hex bytes. Use `??` for wildcard bytes |
+| `pattern` | string | yes | Space-separated hex bytes. |
 | `severity` | string | yes | `LOW`, `MEDIUM`, `HIGH`, or `CRITICAL` |
 | `description` | string | yes | What this byte sequence indicates |
 
@@ -112,7 +124,7 @@ Matches raw **byte sequences** in executable sections. Used for opcodes and inst
 
 ### `combinations`
 
-Triggers only when **all APIs listed in `requires`** are present in the import table simultaneously. This detects behavioral patterns --individual APIs may be innocent, but their co-presence reveals intent.
+Triggers only when **all APIs listed in `requires`** are present in the import table simultaneously. This detects behavioral patterns -- individual APIs may be innocent, but their co-presence reveals intent.
 
 Combination findings override the individual `combo_only` findings for the same APIs: instead of N weak individual findings, a single named finding is emitted at the combination's severity.
 
@@ -122,13 +134,13 @@ Combination findings override the individual `combo_only` findings for the same 
         "name": "Sleep-skipping sandbox detection",
         "requires": ["GetTickCount", "Sleep"],
         "severity": "HIGH",
-        "description": "Measures elapsed time around a Sleep call --sandboxes that accelerate Sleep show an anomalously short delta."
+        "description": "Measures elapsed time around a Sleep call -- sandboxes that accelerate Sleep show an anomalously short delta."
     },
     {
         "name": "Registry-based VM detection",
         "requires": ["RegOpenKeyEx", "RegQueryValueEx"],
         "severity": "HIGH",
-        "description": "Opens and queries registry keys --likely reading VM-specific paths (VMware Tools, VBoxGuest)."
+        "description": "Opens and queries registry keys -- likely reading VM-specific paths (VMware Tools, VBoxGuest)."
     }
 ]
 ```
@@ -140,7 +152,7 @@ Combination findings override the individual `combo_only` findings for the same 
 | `severity` | string | yes | Typically `HIGH` or `CRITICAL` for combinations |
 | `description` | string | yes | What the combination of APIs indicates |
 
-**Important:** `combinations` only match on APIs from the import table. They do not cross-reference strings. If you want to confirm that `RegOpenKeyEx` is probing a *specific* VM path, that confirmation comes from the `strings` section independently --the combination only tells you the mechanism is present.
+**Important:** `combinations` only match on APIs from the import table. They do not cross-reference strings. If you want to confirm that `RegOpenKeyEx` is probing a *specific* VM path, that confirmation comes from the `strings` section independently -- the combination only tells you the mechanism is present.
 
 ---
 
@@ -156,6 +168,25 @@ A complete detection for registry-based VMware detection would produce three ind
 | `strings` | `HKLM\SOFTWARE\VMware, Inc.\VMware Tools` | [HIGH] VMware registry path confirmed |
 
 The combination tells you *how*, the string tells you *what target*.
+
+---
+
+## Adding a New Category
+
+If you need to add a new detection category:
+
+1. Create a new file `signatures/<category>.json` with the base skeleton:
+
+```json
+{
+    "imports": {},
+    "strings": {},
+    "byte_patterns": {},
+    "combinations": []
+}
+```
+
+2. Add the category name to `CATEGORIES` in `analyzer.py`.
 
 ---
 

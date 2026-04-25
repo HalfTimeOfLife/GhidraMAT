@@ -1,5 +1,5 @@
 # This module provides the generic detection logic for all GhidraMAT categories.
-# It loads signatures from signatures.json and matches imports, strings,
+# It loads signatures from the directory signatures/ and matches imports, strings,
 # byte patterns and combinations against the analyzed binary.
 # @author HalfTimeOfLife
 # @category GhidraMAT.utils
@@ -9,9 +9,10 @@ from utils.utils import get_imports, load_signatures, get_strings
 from utils.xrefs import get_xrefs_to_symbol, get_xrefs_to_string
 from utils.pattern import scan_byte_pattern
 import os
+import time
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SIG_PATH = os.path.join(PROJECT_ROOT, "signatures", "signatures.json")
+SIG_PATH = os.path.join(PROJECT_ROOT, "signatures")
 
 def analyze(context, category):
     findings = []
@@ -21,6 +22,7 @@ def analyze(context, category):
     
     if context.monitor:
         context.monitor.setMessage("[GhidraMAT] Searching for {} ...".format(category))
+        
 
 
     for api_name, data in signatures["imports"].items():
