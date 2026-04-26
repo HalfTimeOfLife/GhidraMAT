@@ -1,4 +1,8 @@
-# GhidraMAT -- Malware Analysis Toolkit for Ghidra
+<div align="center">
+  <img src="ghidramat_icon.png" width="128" height="128"/>
+  
+  # GhidraMAT -- Malware Analysis Toolkit for Ghidra
+</div>
 
 Ghidra script framework for automated static detection of malware behaviors: anti-debug, anti-VM, packing, C2 indicators, process injection, persistence and sandbox evasion.
 
@@ -76,5 +80,11 @@ Run the main script in the script manager of Ghidra:
 Once the scripts directory is added, the analyzer is also available directly from:
 
 `Analysis → GhidraMAT`
+
+### Option 3 — Toolbar
+The analyzer can be launched using the toolbar icon: ![GhidraMAT](ghidramat_icon_small.png)
+
+### Option 4 — Key Binding
+By default, the analyzer can be launched using the key binding `Ctrl+Shift+A`.
 
 ---

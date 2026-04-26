@@ -20,6 +20,19 @@ TYPES = [
 ]
 
 def build_header(program_info, findings):
+    """Build the report header lines with program metadata and a findings summary.
+
+    Produces a formatted header block containing the banner, program information,
+    and a per-category breakdown of findings grouped by detection type.
+
+    Args:
+        program_info (dict): Metadata about the analyzed program, expected keys:
+            name, path, format, md5, sha256, date.
+        findings (list[Finding]): All findings from the analysis.
+
+    Returns:
+        list[str]: Lines of the report header, ready to be joined and written.
+    """
     lines = []
     
     lines.append(BANNER)
@@ -66,7 +79,24 @@ def build_header(program_info, findings):
     return lines
 
 def generate_report(findings, program_info, categories):
-    # Placeholder for report generation logic
+    """Generate and write a formatted analysis report to disk and console.
+
+    Builds a full text report by combining a header with a per-category
+    breakdown of findings, organized by detection type and severity.
+    Within each severity level, combo-only findings are separated from
+    regular ones and flagged as weak standalone indicators.
+
+    The report is printed to the console and saved as a .txt file in
+    REPORTS_DIR, with a timestamped filename.
+
+    Args:
+        findings (list[Finding]): All findings from the analysis.
+        program_info (dict): Metadata about the analyzed program, expected
+            keys: name, path, format, md5, sha256, date.
+        categories (list[str]): Ordered list of categories to include
+            in the report (e.g. ["anti-vm", "anti-debug"]).
+    """
+    
     print("\nGenerating report...")
     
     os.makedirs(REPORTS_DIR, exist_ok=True)
@@ -77,16 +107,11 @@ def generate_report(findings, program_info, categories):
     
     lines = []
     lines.extend(build_header(program_info, findings))
-
-    
-    # Might be adding new banner for the report
-    #lines.append(BANNER)
     
     SEPARATOR  = "=" * 60
     SUBSEP     = "-" * 40
     SUBSUBSEP  = "*" * 40
 
-    # Display per category (anti-vm, anti-debug, etc)
     for category in categories:
         category_name = category.upper()
         lines.append("")
@@ -100,7 +125,6 @@ def generate_report(findings, program_info, categories):
             lines.append("  No findings detected.")
             continue
         
-        # Dipslay per types (imports, strings, byte patterns, combinations)
         for sign_type in TYPES:
             lines.append("")
             lines.append(SUBSEP)
@@ -110,7 +134,6 @@ def generate_report(findings, program_info, categories):
             if not type_findings:
                 continue
             
-            # Display per severity (LOW, MEDIUM, HIGH, CRITICAL)
             for severity in SEVERITY_ORDER:
                 severity_findings = [f for f in type_findings if f.severity == severity]
                 if not severity_findings:
@@ -141,10 +164,8 @@ def generate_report(findings, program_info, categories):
     
     output = "\n".join(lines)
     
-    # Console
     print(output)
     
-    # File
     with open(filename, "w", encoding="utf-8") as f:
         f.write(output)
             

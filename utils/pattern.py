@@ -1,6 +1,24 @@
 from ghidra.program.model.mem import MemoryAccessException
 
 def scan_byte_pattern(context, pattern_str):
+    """Scan executable memory blocks for a byte pattern.
+
+    Parses a space-separated hex pattern string where "??" acts as a wildcard,
+    then searches all executable memory blocks for matching sequences.
+    Blocks larger than 50 MB are truncated to that limit. The scan can be
+    interrupted at any time via the context monitor.
+
+    Args:
+        context (Context): Analysis context of the target program.
+        pattern_str (str): Space-separated hex byte pattern to search for.
+
+    Returns:
+        list[Address]: List of addresses where the pattern was found.
+
+    Raises:
+        MemoryAccessException: Caught internally — blocks that raise this
+            exception are skipped and a warning is printed.
+    """
     pattern = []
     for byte in pattern_str.split():
         if byte == "??":

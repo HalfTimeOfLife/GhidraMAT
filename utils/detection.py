@@ -1,9 +1,3 @@
-# This module provides the generic detection logic for all GhidraMAT categories.
-# It loads signatures from the directory signatures/ and matches imports, strings,
-# byte patterns and combinations against the analyzed binary.
-# @author HalfTimeOfLife
-# @category GhidraMAT.utils
-
 from core.finding import Finding
 from utils.utils import get_imports, load_signatures, get_strings
 from utils.xrefs import get_xrefs_to_symbol, get_xrefs_to_string
@@ -15,6 +9,23 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SIG_PATH = os.path.join(PROJECT_ROOT, "signatures")
 
 def analyze(context, category):
+    """Run all signature-based detections for a given category.
+
+    Loads the signature file for the given category and matches it against
+    the binary using four detection methods in order: imported symbols,
+    defined strings, byte patterns, and import combinations.
+
+    A Finding is created for each match. Combination findings are only
+    produced when all required imports are present simultaneously.
+
+    Args:
+        context (Context): Analysis context of the target program.
+        category (str): Name of the category to analyze, used to locate
+            the corresponding signature file in signatures/.
+
+    Returns:
+        list[Finding]: All findings detected across the four detection methods.
+    """
     findings = []
     signatures = load_signatures(SIG_PATH, category)
     imports = get_imports(context)
