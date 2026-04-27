@@ -3,7 +3,6 @@ from utils.utils import get_imports, load_signatures, get_strings
 from utils.xrefs import get_xrefs_to_symbol, get_xrefs_to_string
 from utils.pattern import scan_byte_pattern
 import os
-import time
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SIG_PATH = os.path.join(PROJECT_ROOT, "signatures")
@@ -63,16 +62,20 @@ def analyze(context, category):
                 xrefs=xrefs
             ))
 
+    # All occurrences of the same byte pattern are grouped into a single Finding.
     for sig_name, data in signatures["byte_patterns"].items():
-        for addr in scan_byte_pattern(context, data["pattern"]):
+        matches = scan_byte_pattern(context, data["pattern"])
+        if matches:
             findings.append(Finding(
                 category=category,
                 type_of_technique="byte_patterns",
                 name=sig_name,
                 severity=data["severity"],
-                address=addr,
-                description=data["description"]
+                address=None,
+                description=data["description"],
+                xrefs=matches
             ))
+
 
     for combo in signatures["combinations"]:
         if set(combo["requires"]).issubset(imports):

@@ -53,8 +53,12 @@ class Finding:
 
         xrefs_str = ""
         if self.xrefs:
-            xrefs_formatted = ", ".join(str(x) for x in self.xrefs)
-            xrefs_str = f"\n   Called from : {xrefs_formatted}"
+            if self.type == "byte_patterns":
+                addrs_formatted = ", ".join(str(x) for x in self.xrefs)
+                xrefs_str = f"\n   Occurrences ({len(self.xrefs)}) : {addrs_formatted}"
+            else:
+                xrefs_formatted = ", ".join(str(x) for x in self.xrefs)
+                xrefs_str = f"\n   Called from : {xrefs_formatted}"
 
         requirements_str = ""
         if self.requirements:
