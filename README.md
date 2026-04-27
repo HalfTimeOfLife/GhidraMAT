@@ -36,8 +36,16 @@ GhidraMAT/
 │   ├── context.py           # Wraps Ghidra program object
 │   ├── finding.py           # Finding data model
 │   └── report.py            # Report generation (plaintext)
-├── signatures/
-│   └── signatures.json      # All signatures (imports, strings, byte_patterns, combinations)
+├── signatures               # Declarative JSON signatures grouped by family
+│   ├── README.md
+│   ├── anti_debug.json     
+│   ├── anti_vm.json
+│   ├── crypto.json
+│   ├── evasion.json
+│   ├── injection.json
+│   ├── network.json
+│   ├── packer.json
+│   └── persistence.json
 └── utils/
     ├── detection.py         # Detection module  
     ├── utils.py             # Shared helpers (imports, strings, signatures loading)
