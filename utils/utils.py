@@ -118,3 +118,26 @@ def create_bookmark(program, finding):
 
     for xref in finding.xrefs:
         bm.setBookmark(xref, BookmarkType.ANALYSIS, finding.category.upper(), finding.description)
+        
+        
+def resolve_function_context(func_manager, addr):
+    """Resolve a memory address to its containing function name and offset.
+
+    Args:
+        func_manager (FunctionManager): The function manager of the analyzed program.
+        addr (Address): Address to resolve, typically a cross-reference origin.
+
+    Returns:
+        str: Human-readable location string. If the address falls inside a known
+            function, returns 'func_name+0xOFFSET (0xADDR)' or 'func_name (0xADDR)'
+            if the address is the function entry point. Falls back to the raw
+            address string if no containing function is found.
+    """
+    func =  func_manager.getFunctionContaining (addr)
+    if func is None:
+        return str(addr)
+    name = func.getName()
+    offset = addr.subtract(func.getEntryPoint())
+    if offset == 0:
+        return f"{str(addr)} ({name})"
+    return f"{str(addr)} ({name}+0x{offset:x})"

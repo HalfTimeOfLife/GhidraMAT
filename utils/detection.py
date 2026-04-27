@@ -1,8 +1,10 @@
+import os
+
 from core.finding import Finding
-from utils.utils import get_imports, load_signatures, get_strings
+from utils.utils import get_imports, load_signatures, get_strings, resolve_function_context
 from utils.xrefs import get_xrefs_to_symbol, get_xrefs_to_string
 from utils.pattern import scan_byte_pattern
-import os
+
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SIG_PATH = os.path.join(PROJECT_ROOT, "signatures")
@@ -38,6 +40,7 @@ def analyze(context, category):
     for api_name, data in signatures["imports"].items():
         if api_name in imports:
             xrefs = get_xrefs_to_symbol(context, api_name)
+            xref_labels = [resolve_function_context(context.func_manager, addr) for addr in xrefs]
             findings.append(Finding(
                 category=category,
                 type_of_technique="imports",
@@ -46,12 +49,14 @@ def analyze(context, category):
                 address=imports[api_name],
                 description=data["description"],
                 combo_only=data.get("combo_only", False),
-                xrefs=xrefs
+                xrefs=xrefs,
+                xref_labels=xref_labels
             ))
 
     for string_val, data in signatures["strings"].items():
         if string_val in strings:
             xrefs = get_xrefs_to_string(context, string_val)
+            xref_labels = [resolve_function_context(context.func_manager, addr) for addr in xrefs]
             findings.append(Finding(
                 category=category,
                 type_of_technique="strings",
@@ -59,13 +64,15 @@ def analyze(context, category):
                 severity=data["severity"],
                 address=None,
                 description=data["description"],
-                xrefs=xrefs
+                xrefs=xrefs,
+                xref_labels=xref_labels
             ))
 
     # All occurrences of the same byte pattern are grouped into a single Finding.
     for sig_name, data in signatures["byte_patterns"].items():
         matches = scan_byte_pattern(context, data["pattern"])
         if matches:
+            xref_labels = [resolve_function_context(context.func_manager, addr) for addr in matches]
             findings.append(Finding(
                 category=category,
                 type_of_technique="byte_patterns",
@@ -73,7 +80,8 @@ def analyze(context, category):
                 severity=data["severity"],
                 address=None,
                 description=data["description"],
-                xrefs=matches
+                xrefs=matches,
+                xref_labels=xref_labels
             ))
 
 

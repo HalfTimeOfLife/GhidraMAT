@@ -19,13 +19,15 @@ class Finding:
             and is only meaningful when part of a combination. Defaults to False.
         xrefs (list[Address]): Addresses that reference the matched symbol or
             string. Defaults to an empty list.
+        func_offset (str): String of the function + offset where the finding 
+            is located.
         requirements (list[str]): Imports required for a combination finding.
             Defaults to None.
 
     Attributes:
         type (str): Detection method, stored from type_of_technique.
     """
-    def __init__(self, category, type_of_technique, name, severity, address, description, combo_only=False, xrefs=None, requirements=None):
+    def __init__(self, category, type_of_technique, name, severity, address, description, combo_only=False, xrefs=None, xref_labels=None, requirements=None):
         self.category = category
         self.type = type_of_technique
         self.name = name
@@ -34,6 +36,7 @@ class Finding:
         self.description = description
         self.combo_only = combo_only
         self.xrefs = xrefs or []
+        self.xref_labels = xref_labels or []
         self.requirements = requirements
     
     def __str__(self):
@@ -52,13 +55,14 @@ class Finding:
         note = "\n   [!] Standalone indicator weak -- meaningful only in combination" if self.combo_only else ""
 
         xrefs_str = ""
-        if self.xrefs:
+        if self.xref_labels:
             if self.type == "byte_patterns":
-                addrs_formatted = ", ".join(str(x) for x in self.xrefs)
-                xrefs_str = f"\n   Occurrences ({len(self.xrefs)}) : {addrs_formatted}"
+                labels_formatted = ", ".join(self.xref_labels)
+                xrefs_str = f"\n   Occurrences ({len(self.xref_labels)}) : {labels_formatted}"
             else:
-                xrefs_formatted = ", ".join(str(x) for x in self.xrefs)
-                xrefs_str = f"\n   Called from : {xrefs_formatted}"
+                labels_formatted = ", ".join(self.xref_labels)
+                xrefs_str = f"\n   Called from : {labels_formatted}"
+                
 
         requirements_str = ""
         if self.requirements:
