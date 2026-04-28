@@ -72,6 +72,12 @@ def build_header(program_info, findings):
             f"{n_bytes} byte_patterns, {n_combos} combinations, "
             f"{n_combo_only} combo_only)"
         )
+        
+        mitre_ids = sorted(set(
+            f.mitre for f in cat_findings if f.mitre
+        ))
+        if mitre_ids:
+            lines.append(f"  {'MITRE':<20} :  {', '.join(mitre_ids)}")
     
     lines.append("-" * 60)
     lines.append("")

@@ -19,15 +19,16 @@ class Finding:
             and is only meaningful when part of a combination. Defaults to False.
         xrefs (list[Address]): Addresses that reference the matched symbol or
             string. Defaults to an empty list.
-        func_offset (str): String of the function + offset where the finding 
+        xref_labels (str): String of the function + offset where the finding 
             is located.
+        mitre (str): Technique: Sub-technique
         requirements (list[str]): Imports required for a combination finding.
             Defaults to None.
 
     Attributes:
         type (str): Detection method, stored from type_of_technique.
     """
-    def __init__(self, category, type_of_technique, name, severity, address, description, combo_only=False, xrefs=None, xref_labels=None, requirements=None):
+    def __init__(self, category, type_of_technique, name, severity, address, description, combo_only=False, xrefs=None, xref_labels=None, mitre=None, requirements=None):
         self.category = category
         self.type = type_of_technique
         self.name = name
@@ -37,6 +38,7 @@ class Finding:
         self.combo_only = combo_only
         self.xrefs = xrefs or []
         self.xref_labels = xref_labels or []
+        self.mitre = mitre if isinstance(mitre, str) else None
         self.requirements = requirements
     
     def __str__(self):

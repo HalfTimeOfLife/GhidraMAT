@@ -31,16 +31,16 @@ Each file follows this structure:
 }
 ```
 
-| Category | Description |
-|---|---|
-| `anti_debug` | Techniques used to detect or hinder debuggers |
-| `anti_vm` | Techniques used to detect virtualized environments |
-| `packer` | Indicators of packed or protected binaries |
-| `network` | C2 communication, DNS, socket usage |
-| `crypto` | Cryptographic constants and key scheduling patterns |
-| `injection` | Process injection and code injection techniques |
-| `persistence` | Mechanisms used to survive reboots |
-| `evasion` | Sandbox evasion and timing-based tricks |
+| Category | Description | MITRE Technique |
+|---|---|---|
+| `anti_debug` | Techniques used to detect or hinder debuggers | `T1622` — Debugger Evasion |
+| `anti_vm` | Techniques used to detect virtualized environments | `T1497` — Virtualization/Sandbox Evasion |
+| `packer` | Indicators of packed or protected binaries | `T1027` — Obfuscated Files or Information |
+| `network` | C2 communication, DNS, socket usage | `T1071` — Application Layer Protocol |
+| `crypto` | Cryptographic constants and key scheduling patterns | `T1027` — Obfuscated Files or Information |
+| `injection` | Process injection and code injection techniques | `T1055` — Process Injection |
+| `persistence` | Mechanisms used to survive reboots | `T1547` — Boot or Logon Autostart Execution |
+| `evasion` | Sandbox evasion and timing-based tricks | `T1497` — Virtualization/Sandbox Evasion, `T1562` — Impair Defenses |
 
 ---
 
@@ -54,11 +54,13 @@ Matches against the binary's **import table**. Each key is the exact API name as
 "imports": {
     "GetSystemFirmwareTable": {
         "severity": "HIGH",
+        "mitre": "T1497.001",
         "description": "Reads raw SMBIOS/ACPI tables to scan for VM artifact strings."
     },
     "GetTickCount": {
         "severity": "LOW",
         "combo_only": true,
+        "mitre": "T1497.003",
         "description": "Ubiquitous; meaningful only in combination with Sleep for timing-based sandbox detection."
     }
 }
@@ -68,6 +70,7 @@ Matches against the binary's **import table**. Each key is the exact API name as
 |---|---|---|---|
 | `severity` | string | yes | `LOW`, `MEDIUM`, `HIGH`, or `CRITICAL` |
 | `combo_only` | boolean | no | If `true`, the API is not flagged alone -- it is noted as a weak indicator and only escalates via a `combinations` match |
+| `mitre` | string | no | MITRE ATT&CK sub-technique ID (e.g. `T1497.001`). Used in report findings and summary. |
 | `description` | string | yes | Why this API is suspicious, and in what context |
 
 **`combo_only` behavior:** The API still appears in the report when found, but is tagged as *"Standalone indicator weak -- meaningful only in combination"*. It will never appear alone as a `HIGH` or `CRITICAL` finding. Use `combo_only: true` when the API is so common in legitimate software that a standalone match would generate too many false positives.
@@ -82,10 +85,12 @@ Matches against **printable strings** found in the binary (ASCII and Unicode). T
 "strings": {
     "VMware, Inc.": {
         "severity": "HIGH",
+        "mitre": "T1497.001",
         "description": "VMware vendor string -- registry or SMBIOS VM artifact."
     },
     "\\\\.\\VBoxMiniRdrDN": {
         "severity": "HIGH",
+        "mitre": "T1497.001",
         "description": "VirtualBox device path used with CreateFileA for VM detection."
     }
 }
@@ -94,6 +99,7 @@ Matches against **printable strings** found in the binary (ASCII and Unicode). T
 | Field | Type | Required | Description |
 |---|---|---|---|
 | `severity` | string | yes | `LOW`, `MEDIUM`, `HIGH`, or `CRITICAL` |
+| `mitre` | string | no | MITRE ATT&CK sub-technique ID (e.g. `T1497.001`). Used in report findings and summary. |
 | `description` | string | yes | What this string reveals about the binary's intent |
 
 **Note on string detection vs API detection:** APIs tell you *what mechanism* is used. Strings tell you *what target* is being probed. Both together give a complete picture. Example: `RegOpenKeyEx` alone is noise, but `RegOpenKeyEx` + the string `VBoxGuest` in the same binary confirms registry-based VirtualBox detection.
@@ -108,7 +114,8 @@ Matches raw **byte sequences** in executable sections. Used for opcodes and inst
 "byte_patterns": {
     "rdtsc_timing": {
         "pattern": "0F 31",
-        "severity": "HIGH", 
+        "severity": "HIGH",
+        "mitre": "T1497.003",
         "description": "RDTSC instruction, used for timing-based VM/sandbox detection."
     }
 }
@@ -118,6 +125,7 @@ Matches raw **byte sequences** in executable sections. Used for opcodes and inst
 |---|---|---|---|
 | `pattern` | string | yes | Space-separated hex bytes. |
 | `severity` | string | yes | `LOW`, `MEDIUM`, `HIGH`, or `CRITICAL` |
+| `mitre` | string | no | MITRE ATT&CK sub-technique ID (e.g. `T1497.003`). Used in report findings and summary. |
 | `description` | string | yes | What this byte sequence indicates |
 
 ---
@@ -134,12 +142,14 @@ Combination findings override the individual `combo_only` findings for the same 
         "name": "Sleep-skipping sandbox detection",
         "requires": ["GetTickCount", "Sleep"],
         "severity": "HIGH",
+        "mitre": "T1497.003",
         "description": "Measures elapsed time around a Sleep call -- sandboxes that accelerate Sleep show an anomalously short delta."
     },
     {
         "name": "Registry-based VM detection",
         "requires": ["RegOpenKeyEx", "RegQueryValueEx"],
         "severity": "HIGH",
+        "mitre": "T1497.001",
         "description": "Opens and queries registry keys -- likely reading VM-specific paths (VMware Tools, VBoxGuest)."
     }
 ]
@@ -150,6 +160,7 @@ Combination findings override the individual `combo_only` findings for the same 
 | `name` | string | yes | Human-readable name of the detected technique |
 | `requires` | array | yes | All API names that must be present to trigger |
 | `severity` | string | yes | Typically `HIGH` or `CRITICAL` for combinations |
+| `mitre` | string | no | MITRE ATT&CK sub-technique ID (e.g. `T1497.001`). Used in report findings and summary. |
 | `description` | string | yes | What the combination of APIs indicates |
 
 **Important:** `combinations` only match on APIs from the import table. They do not cross-reference strings. If you want to confirm that `RegOpenKeyEx` is probing a *specific* VM path, that confirmation comes from the `strings` section independently -- the combination only tells you the mechanism is present.
@@ -198,5 +209,11 @@ If you need to add a new detection category:
 | `MEDIUM` | Uncommon in legitimate software; warrants investigation |
 | `HIGH` | Strongly indicative of malicious or evasive behavior |
 | `CRITICAL` | Near-certain indicator, typically from a multi-API combination |
+
+---
+## MITRE ATT&CK Version
+
+Signatures in this project are mapped against **MITRE ATT&CK v16** (Enterprise, Windows platform).
+Reference : https://attack.mitre.org
 
 ---
