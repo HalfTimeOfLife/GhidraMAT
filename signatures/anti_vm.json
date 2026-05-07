@@ -70,6 +70,11 @@
             "mitre": "T1497.001",
             "description": "Initializes Direct3D 9 to query physical display adapter properties via GetAdapterIdentifier."
         },
+        "MulDiv": {
+            "severity": "LOW",
+            "mitre": "T1497.001",
+            "description": "Uses MulDiv API inconsistencies to detect Wine execution."
+        },
         "RegOpenKeyEx": {
             "severity": "LOW",
             "combo_only": true,
@@ -183,12 +188,6 @@
             "combo_only": true,
             "mitre": "T1497.001",
             "description": "Meaningful only in combination with FindWindowA; low window count = sandbox indicator."
-        },
-        "MulDiv": {
-            "severity": "LOW",
-            "combo_only": true,
-            "mitre": "T1497.001",
-            "description": "Meaningful only in combination with GetProcAddress for Wine detection via non-standard MulDiv behavior."
         },
         "OpenProcess": {
             "severity": "LOW",

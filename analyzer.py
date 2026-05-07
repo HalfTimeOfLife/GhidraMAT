@@ -41,7 +41,7 @@ CATEGORIES = [
 name = currentProgram.getName()
 path = currentProgram.getExecutablePath()
 creation_date = currentProgram.getCreationDate()
-format = currentProgram.getExecutableFormat()
+exec_format = currentProgram.getExecutableFormat()
 program_md5 = currentProgram.getExecutableMD5()
 program_sha256 = currentProgram.getExecutableSHA256()
 base_image = currentProgram.getImageBase()
@@ -53,7 +53,7 @@ def run():
     print("Analyzing program: " + name)
     print("Executable path: " + path)
     print("Creation date: " + str(creation_date))
-    print("Executable format: " + format)
+    print("Executable format: " + exec_format)
     print("MD5: " + program_md5)
     print("SHA256: " + program_sha256)
     print("Base image address: " + str(base_image))
@@ -73,22 +73,21 @@ def run():
         except Exception as e:
             print("[ERROR] {} failed: {}".format(category, str(e)))
             
-        service = state.getTool().getService(ColorizingService)
-        transaction = currentProgram.startTransaction("GhidraMAT markings")
-        try:
-            for finding in findings:
-                create_bookmark(currentProgram, finding)
-                
-                apply_visual_marking(service, finding)
-        finally:
-            currentProgram.endTransaction(transaction, True)
+    service = state.getTool().getService(ColorizingService)
+    transaction = currentProgram.startTransaction("GhidraMAT markings")
+    try:
+        for finding in findings:
+            create_bookmark(currentProgram, finding)
+            apply_visual_marking(service, finding)
+    finally:
+        currentProgram.endTransaction(transaction, True)
         
     program_info = {
     "name": name,
     "path": str(path),
     "md5": program_md5,
     "sha256": program_sha256,
-    "format": format,
+    "format": exec_format,
     "date": creation_date
     }
     generate_report(findings, program_info, CATEGORIES)

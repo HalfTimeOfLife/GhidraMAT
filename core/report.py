@@ -131,13 +131,14 @@ def generate_report(findings, program_info, categories):
             continue
         
         for sign_type in TYPES:
+            type_findings = [f for f in category_findings if f.type == sign_type]
+            if not type_findings:
+                continue
             lines.append("")
             lines.append(SUBSEP)
             lines.append(f"TYPE : {sign_type}")
             lines.append(SUBSEP)
-            type_findings = [f for f in category_findings if f.type == sign_type]
-            if not type_findings:
-                continue
+            
             
             for severity in SEVERITY_ORDER:
                 severity_findings = [f for f in type_findings if f.severity == severity]
