@@ -4,24 +4,24 @@
   # GhidraMAT -- Malware Analysis Toolkit for Ghidra
 </div>
 
-Ghidra script framework for automated static detection of malware behaviors: anti-debug, anti-VM, packing, C2 indicators, process injection, persistence and sandbox evasion.
+Ghidra script framework for automated static detection of malware behaviors: anti-debug, anti-VM, packing, C2 indicators, process injection, persistence and defense impairment.
 
 ---
 
 ## Detection Modules
 
-The file `detection.py` provides the generic detection engine for all GhidraMAT categories: it loads category-specific signatures from [signatures.json](signatures/signatures.json) and identifies suspicious imports, strings, byte patterns and import combinations in the analyzed binary, returning them as Finding objects. Here is the category supported :
+The file `detection.py` provides the generic detection engine for all GhidraMAT categories: it loads category-specific signatures from [signatures/](signatures/) and identifies suspicious imports, strings, byte patterns and import combinations in the analyzed binary, returning them as Finding objects. Here is the category supported :
 
 | Category | What it detects | Status |
 |---|---|---|
-| `anti-vm` | `CPUID` VM checks, VMware/VirtualBox registry artifacts, VBOX/VMWARE strings, RDTSC delta | UP |
-| `anti-debug` | `RDTSC`, `IsDebuggerPresent`, `NtQueryInformationProcess`, breakpoint scanning, SEH tricks | WIP |
+| `anti_vm` | VM environment detection — `CPUID` hypervisor checks, firmware/SMBIOS table scanning, hardware fingerprinting, timing anomalies (`RDTSC`, sleep-skipping), user activity absence, VM-specific registry keys, device paths and process names | UP |
+| `anti_debug` | `IsDebuggerPresent`, `NtQueryInformationProcess`, breakpoint scanning, SEH tricks | WIP |
 | `packer` | Section entropy (Shannon > 7.2), malformed PE headers, abnormal section names, TLS callbacks, low import count | WIP |
 | `network` | C2 indicators, hardcoded IPs/URLs, suspicious User-Agents, DGA-like strings, raw socket usage | WIP |
 | `crypto` | AES S-box constants, RC4 key scheduling patterns, rolling XOR, custom magic constants | WIP |
 | `injection` | Classic DLL injection, Process Hollowing, APC injection, Thread Hijacking -- detected via dangerous API combinations | WIP |
 | `persistence` | Run registry keys, scheduled tasks, service installation, startup folder writes | WIP |
-| `evasion` | Timing-based sandbox evasion, sleep acceleration, environment fingerprinting, uptime checks | WIP |
+| `impair_defenses` | Active defense neutralization — disabling Windows Defender, clearing event logs, patching AMSI, firewall tampering, security tool termination | WIP |
 
 ---
 
@@ -41,7 +41,7 @@ GhidraMAT/
 │   ├── anti_debug.json     
 │   ├── anti_vm.json
 │   ├── crypto.json
-│   ├── evasion.json
+│   ├── impair_defenses.json
 │   ├── injection.json
 │   ├── network.json
 │   ├── packer.json

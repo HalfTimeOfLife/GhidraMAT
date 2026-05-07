@@ -5,6 +5,8 @@ from ghidra.program.model.listing import BookmarkType
 from ghidra.app.plugin.core.colorizer import ColorizingService
 from java.awt import Color
 
+VERSION = "0.1"
+
 # Background colors applied to findings based on their severity level.
 SEVERITY_COLORS = {
     "CRITICAL": Color(220, 50,  50),
@@ -13,7 +15,7 @@ SEVERITY_COLORS = {
     "LOW":      Color(150, 200, 100)
 }
 
-BANNER = r"""
+BANNER = rf"""
 =======================================================
  _____ _     _     _            __  __       _______ 
 / ____| |   (_)   | |          |  \/  |   /\|__   __|
@@ -21,6 +23,8 @@ BANNER = r"""
 | | |_ | '_ \| |/ _` | '__/ _` | |\/| | / /\ \ | |   
 | |__| | | | | | (_| | | | (_| | |  | |/ ____ \| |   
  \_____|_| |_|_|\__,_|_|  \__,_|_|  |_/_/    \_\_|               
+
+                         v{VERSION}
 =======================================================
 """
 
@@ -129,7 +133,7 @@ def resolve_function_context(func_manager, addr):
 
     Returns:
         str: Human-readable location string. If the address falls inside a known
-            function, returns 'func_name+0xOFFSET (0xADDR)' or 'func_name (0xADDR)'
+            function, returns '0xADDR (func_name+0xOFFSET)' or '0xADDR (func_name)'
             if the address is the function entry point. Falls back to the raw
             address string if no containing function is found.
     """

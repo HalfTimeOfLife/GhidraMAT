@@ -19,7 +19,7 @@ class Finding:
             and is only meaningful when part of a combination. Defaults to False.
         xrefs (list[Address]): Addresses that reference the matched symbol or
             string. Defaults to an empty list.
-        xref_labels (str): String of the function + offset where the finding 
+        xref_labels (list[str]): String of the function + offset where the finding 
             is located.
         mitre (str): Technique: Sub-technique
         requirements (list[str]): Imports required for a combination finding.

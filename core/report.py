@@ -2,7 +2,6 @@ import os
 from utils.utils import *
 from datetime import datetime
 
-VERSION = "0.1"
 REPORTS_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "reports")
 
 SEVERITY_ORDER = [

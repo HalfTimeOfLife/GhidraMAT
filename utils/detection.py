@@ -51,7 +51,7 @@ def analyze(context, category):
                 combo_only=data.get("combo_only", False),
                 xrefs=xrefs,
                 xref_labels=xref_labels,
-                mitre=data["mitre"]
+                mitre=data.get("mitre")
             ))
 
     for string_val, data in signatures["strings"].items():
@@ -67,7 +67,7 @@ def analyze(context, category):
                 description=data["description"],
                 xrefs=xrefs,
                 xref_labels=xref_labels,
-                mitre=data["mitre"]
+                mitre=data.get("mitre")
             ))
 
     # All occurrences of the same byte pattern are grouped into a single Finding.
@@ -84,7 +84,7 @@ def analyze(context, category):
                 description=data["description"],
                 xrefs=matches,
                 xref_labels=xref_labels,
-                mitre=data["mitre"]
+                mitre=data.get("mitre")
             ))
 
 

@@ -34,7 +34,7 @@ CATEGORIES = [
     "crypto",
     "injection",
     "persistence",
-    "evasion"
+    "impair_defenses"
 ]
 
 # Basic metadata extracted from the current Ghidra program at load time.

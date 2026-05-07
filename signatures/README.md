@@ -17,7 +17,7 @@ signatures/
 ├── crypto.json
 ├── injection.json
 ├── persistence.json
-└── evasion.json
+└── impair_defenses.json
 ```
 
 Each file follows this structure:
@@ -33,14 +33,14 @@ Each file follows this structure:
 
 | Category | Description | MITRE Technique |
 |---|---|---|
+| `anti_vm` | Techniques used to detect virtualized or sandboxed environments — system checks, timing anomalies, user activity absence | `T1497` — Virtualization/Sandbox Evasion |
 | `anti_debug` | Techniques used to detect or hinder debuggers | `T1622` — Debugger Evasion |
-| `anti_vm` | Techniques used to detect virtualized environments | `T1497` — Virtualization/Sandbox Evasion |
 | `packer` | Indicators of packed or protected binaries | `T1027` — Obfuscated Files or Information |
 | `network` | C2 communication, DNS, socket usage | `T1071` — Application Layer Protocol |
 | `crypto` | Cryptographic constants and key scheduling patterns | `T1027` — Obfuscated Files or Information |
 | `injection` | Process injection and code injection techniques | `T1055` — Process Injection |
 | `persistence` | Mechanisms used to survive reboots | `T1547` — Boot or Logon Autostart Execution |
-| `evasion` | Sandbox evasion and timing-based tricks | `T1497` — Virtualization/Sandbox Evasion, `T1562` — Impair Defenses |
+| `impair_defenses` | Techniques used to actively disable or modify security tools and defenses | `T1562` — Impair Defenses |
 
 ---
 
