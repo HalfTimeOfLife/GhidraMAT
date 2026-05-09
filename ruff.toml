@@ -1,0 +1,4 @@
+[lint]
+# E402/F821 in analyzer.py: Ghidra runtime injects currentProgram, monitor,
+# state at script load time; sys.path must be configured before local imports.
+per-file-ignores = { "analyzer.py" = ["E402", "F821"] }

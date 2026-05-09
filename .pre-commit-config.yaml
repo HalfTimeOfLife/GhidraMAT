@@ -1,0 +1,14 @@
+repos:
+  - repo: local
+    hooks:
+      - id: validate-signatures
+        name: Validate signatures JSON
+        entry: python scripts/validate_signatures.py
+        language: python
+        pass_filenames: false
+        files: ^signatures/.*\.json$
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.4.4
+    hooks:
+      - id: ruff

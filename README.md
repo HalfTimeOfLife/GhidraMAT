@@ -65,6 +65,7 @@ GhidraMAT produces a structured report per binary with findings grouped by categ
 
 - Ghidra 10.x or later
 - PyGhidra — [Installation guide](https://github.com/NationalSecurityAgency/ghidra/blob/master/Ghidra/Features/PyGhidra/src/main/py/README.md)
+- `pre-commit` and `ruff` — `pip install pre-commit ruff && pre-commit install`
 
 ---
 

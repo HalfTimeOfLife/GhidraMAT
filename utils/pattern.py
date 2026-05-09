@@ -49,7 +49,7 @@ def scan_byte_pattern(context, pattern_str):
         try:
             for i in range(size):
                 data[i] = block.getByte(start.add(i)) & 0xFF
-        except MemoryAccessException as e:
+        except MemoryAccessException:
             print("[WARNING] MemoryAccessException on block : ", start)
             continue
         

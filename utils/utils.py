@@ -2,7 +2,6 @@ import json
 import os
 
 from ghidra.program.model.listing import BookmarkType
-from ghidra.app.plugin.core.colorizer import ColorizingService
 from java.awt import Color
 
 VERSION = "0.1"

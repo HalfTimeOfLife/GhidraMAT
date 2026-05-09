@@ -1,5 +1,5 @@
 import os
-from utils.utils import *
+from utils.utils import BANNER
 from datetime import datetime
 
 REPORTS_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "reports")

@@ -217,3 +217,13 @@ Signatures in this project are mapped against **MITRE ATT&CK v16** (Enterprise, 
 Reference : https://attack.mitre.org
 
 ---
+
+## Signature Sources
+
+Signatures in this project are based on and cross-referenced against the following resources:
+ 
+- [CheckPoint Evasions](https://evasions.checkpoint.com/)
+- [Unprotect Project](https://www.unprotect.it/)
+- [al-khaser](https://github.com/ayoubfaouzi/al-khaser)
+
+---
