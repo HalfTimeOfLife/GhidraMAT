@@ -97,7 +97,7 @@ def analyze(context, category):
                 severity=combo["severity"],
                 address=None,
                 description=combo["description"],
-                mitre=data.get("mitre"),
+                mitre=combo.get("mitre"),
                 requirements=combo["requires"]
             ))
 
