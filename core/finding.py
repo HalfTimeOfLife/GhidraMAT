@@ -13,7 +13,6 @@ class Finding:
         name (str): Name of the matched signature (e.g. API name, string value).
         severity (str): Severity level of the finding ("LOW", "MEDIUM", "HIGH",
             "CRITICAL").
-        address (Address): Memory address of the match, or None if not applicable.
         description (str): Human-readable description of the finding.
         combo_only (bool): If True, this finding is a weak standalone indicator
             and is only meaningful when part of a combination. Defaults to False.
@@ -28,18 +27,30 @@ class Finding:
     Attributes:
         type (str): Detection method, stored from type_of_technique.
     """
-    def __init__(self, category, type_of_technique, name, severity, address, description, combo_only=False, xrefs=None, xref_labels=None, mitre=None, requirements=None):
+    def __init__(self, category, type_of_technique, name, severity, description, combo_only=False, xrefs=None, xref_labels=None, mitre=None, requirements=None):
         self.category = category
         self.type = type_of_technique
         self.name = name
         self.severity = severity
-        self.address = address
         self.description = description
         self.combo_only = combo_only
         self.xrefs = xrefs or []
         self.xref_labels = xref_labels or []
         self.mitre = mitre if isinstance(mitre, str) else None
         self.requirements = requirements
+        
+    def to_dict(self):
+        return {
+            "category": self.category,
+            "type": self.type,
+            "name": self.name,
+            "severity": self.severity,
+            "mitre": self.mitre,
+            "description": self.description,
+            "combo_only": self.combo_only,
+            "xrefs": self.xref_labels,
+            "requirements": self.requirements
+        }
     
     def __str__(self):
         """Format the finding as a human-readable report block.
@@ -49,10 +60,6 @@ class Finding:
                 type, address, description, cross-references, requirements,
                 and a combo-only warning if applicable.
         """
-        
-        addr_str = ""
-        if self.address and "EXTERNAL" not in str(self.address):
-            addr_str = f"\n   @ {str(self.address)}"
 
         note = "\n   [!] Standalone indicator weak -- meaningful only in combination" if self.combo_only else ""
 
@@ -74,7 +81,6 @@ class Finding:
         return (
             f"{self.name} "
             f"[{self.severity}] [{self.category.upper()}] [{self.type}]"
-            f"{addr_str}"
             f"\n   -> {self.description}"
             f"{requirements_str}"
             f"{xrefs_str}"

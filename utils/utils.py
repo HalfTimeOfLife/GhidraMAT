@@ -4,7 +4,7 @@ import os
 from ghidra.program.model.listing import BookmarkType
 from java.awt import Color
 
-VERSION = "0.1"
+VERSION = "0.2"
 
 # Background colors applied to findings based on their severity level.
 SEVERITY_COLORS = {
@@ -13,6 +13,8 @@ SEVERITY_COLORS = {
     "MEDIUM":   Color(220, 200, 50),
     "LOW":      Color(150, 200, 100)
 }
+
+TOOL = "GhidraMAT"
 
 BANNER = rf"""
 =======================================================
@@ -96,8 +98,6 @@ def apply_visual_marking(service, finding):
     if not color:
         return
 
-    if finding.address and "EXTERNAL" not in str(finding.address):
-        service.setBackgroundColor(finding.address, finding.address, color)
     for xref in finding.xrefs:
         service.setBackgroundColor(xref, xref, color)
 
@@ -115,9 +115,6 @@ def create_bookmark(program, finding):
             attributes.
     """
     bm = program.getBookmarkManager()
-
-    if finding.address and "EXTERNAL" not in str(finding.address):
-        bm.setBookmark(finding.address, BookmarkType.ANALYSIS, finding.category.upper(), finding.description)
 
     for xref in finding.xrefs:
         bm.setBookmark(xref, BookmarkType.ANALYSIS, finding.category.upper(), finding.description)

@@ -1,8 +1,10 @@
+import json
 import os
-from utils.utils import BANNER
+from utils.utils import BANNER, TOOL, VERSION
 from datetime import datetime
 
 REPORTS_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "reports")
+
 
 SEVERITY_ORDER = [
     "CRITICAL",
@@ -172,9 +174,83 @@ def generate_report(findings, program_info, categories):
     
     print(output)
     
-    with open(filename, "w", encoding="utf-8") as f:
+    with open(filename, "w", encoding="utf-8", newline='\n') as f:
         f.write(output)
             
             
 
+def generate_json(findings, program_info, categories):
+    data = {
+        "meta": {},
+        "program": {},
+        "summary": {
+            "total_findings": 0,
+            "by_severity": {"CRITICAL": 0, "HIGH": 0, "MEDIUM": 0, "LOW": 0},
+            "by_category": {}
+        },
+        "findings": []
+    }
     
+    now = datetime.now().astimezone()
+    timestamp = now.strftime("%d-%m-%Y_%Hh%Mmin%Ss")
+    filename = os.path.join(REPORTS_DIR, f"report_{program_info['name']}_{timestamp}.json")
+    
+    by_severity = {"CRITICAL": 0, "HIGH": 0, "MEDIUM": 0, "LOW": 0}
+    for f in findings:
+        by_severity[f.severity] += 1
+        
+    by_category = {}
+    for cat in categories:
+        cat_findings = [f for f in findings if f.category == cat]
+        
+        if not cat_findings:
+            by_category[cat] = {
+                "total": 0,
+                "mitre": [],
+                "by_severity": {"CRITICAL": 0, "HIGH": 0, "MEDIUM": 0, "LOW": 0},
+                "by_type": {"imports": 0, "strings": 0, "byte_patterns": 0, "combinations": 0, "combo_only": 0}
+            }
+            continue
+        
+        by_category[cat] = {
+            "total": len(cat_findings),
+            "mitre": sorted(set(f.mitre for f in cat_findings if f.mitre)),
+            "by_severity": {
+                sev: len([f for f in cat_findings if f.severity == sev])
+                for sev in ("CRITICAL", "HIGH", "MEDIUM", "LOW")        
+            },
+            "by_type": {
+                "imports":      len([f for f in cat_findings if f.type == "imports" and not f.combo_only]),
+                "strings":      len([f for f in cat_findings if f.type == "strings"]),
+                "byte_patterns":len([f for f in cat_findings if f.type == "byte_patterns"]),
+                "combinations": len([f for f in cat_findings if f.type == "combinations"]),
+                "combo_only":   len([f for f in cat_findings if f.combo_only])
+            }
+        }
+    
+    data = {
+        "meta": {
+            "tool": TOOL,
+            "version": VERSION,
+            "generated_at": now.isoformat()
+        },
+        "program": {
+            "name": program_info["name"],
+            "path": program_info["path"],
+            "format": program_info["format"],
+            "md5": program_info["md5"],
+            "sha256": program_info["sha256"]
+        },
+        "summary": {
+            "total_findings": len(findings),
+            "by_severity": by_severity,
+            "by_category": by_category
+        },
+        "findings": [f.to_dict() for f in findings]
+    }
+    
+    os.makedirs(REPORTS_DIR, exist_ok=True)
+    with open(filename, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=4)
+    
+    return

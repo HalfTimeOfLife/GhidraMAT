@@ -22,7 +22,7 @@ for _mod_name in list(sys.modules.keys()):
 from ghidra.app.plugin.core.colorizer import ColorizingService
 
 from core.context import Context
-from core.report import generate_report
+from core.report import generate_report, generate_json
 from utils.utils import print_banner, apply_visual_marking, create_bookmark
 from utils.detection import analyze
 
@@ -91,6 +91,7 @@ def run():
     "date": creation_date
     }
     generate_report(findings, program_info, CATEGORIES)
+    generate_json(findings, program_info, CATEGORIES)
 
 
 run()

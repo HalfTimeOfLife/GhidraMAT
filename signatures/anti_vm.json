@@ -75,6 +75,196 @@
             "mitre": "T1497.001",
             "description": "Uses MulDiv API inconsistencies to detect Wine execution."
         },
+        "NtQueryLicenseValue": {
+            "severity": "HIGH",
+            "mitre": "T1497.001",
+            "description": "Queries the license value 'Kernel-VMDetection-Private'; returns 1 on Hyper-V environments including Windows Server VMs."
+        },
+        "IsNativeVhdBoot": {
+            "severity": "HIGH",
+            "mitre": "T1497.001",
+            "description": "Checks if the OS was booted from a VHD file -- strong indicator of a sandbox or cloud-hosted analysis environment."
+        },
+        "GetFileAttributesA": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1497.001",
+            "description": "Too generic alone; meaningful only in combination with FindFirstFileA for checking VM driver file existence."
+        },
+        "GetFileAttributesW": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1497.001",
+            "description": "Too generic alone; meaningful only in combination with FindFirstFileW for checking VM driver file existence."
+        },
+        "FindFirstFileA": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1497.001",
+            "description": "Too generic alone; meaningful only in combination with GetFileAttributesA for scanning VM artifact paths."
+        },
+        "FindFirstFileW": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1497.001",
+            "description": "Too generic alone; meaningful only in combination with GetFileAttributesW for scanning VM artifact paths."
+        },
+        "GetUserNameA": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1497.001",
+            "description": "Too generic alone; meaningful only in combination with GetComputerNameA -- used to compare against known sandbox usernames."
+        },
+        "GetUserNameW": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1497.001",
+            "description": "Too generic alone; meaningful only in combination with GetComputerNameW -- used to compare against known sandbox usernames."
+        },
+        "GetComputerNameA": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1497.001",
+            "description": "Too generic alone; meaningful only in combination with GetUserNameA -- used to compare against known sandbox hostnames."
+        },
+        "GetComputerNameW": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1497.001",
+            "description": "Too generic alone; meaningful only in combination with GetUserNameW -- used to compare against known sandbox hostnames."
+        },
+        "GetComputerNameExW": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1497.001",
+            "description": "Native variant of GetComputerNameW; meaningful only alongside username or other environment checks."
+        },
+        "GetDiskFreeSpaceExA": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1497.001",
+            "description": "Too generic alone; meaningful only alongside DeviceIoControl -- disk < 80 GB total or < 10 GB free signals a VM."
+        },
+        "GetDiskFreeSpaceExW": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1497.001",
+            "description": "Too generic alone; meaningful only alongside DeviceIoControl -- disk < 80 GB total or < 10 GB free signals a VM."
+        },
+        "GetVolumeInformationA": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1497.001",
+            "description": "Too generic alone; meaningful only with GetDiskFreeSpaceExA -- volume label 'VirtualBox Shared Folders' confirms VM."
+        },
+        "GetVolumeInformationW": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1497.001",
+            "description": "Too generic alone; meaningful only with GetDiskFreeSpaceExW -- volume label 'VirtualBox Shared Folders' confirms VM."
+        },
+        "Process32First": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1497.001",
+            "description": "Iterates over a Toolhelp32 snapshot; meaningful only in combination with CreateToolhelp32Snapshot and Process32Next."
+        },
+        "Process32Next": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1497.001",
+            "description": "Iterates over a Toolhelp32 snapshot; meaningful only in combination with CreateToolhelp32Snapshot and Process32First."
+        },
+        "Process32FirstW": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1497.001",
+            "description": "Unicode variant of Process32First; meaningful only alongside the full Toolhelp32 snapshot combo."
+        },
+        "Process32NextW": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1497.001",
+            "description": "Unicode variant of Process32Next; meaningful only alongside the full Toolhelp32 snapshot combo."
+        },
+        "Module32First": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1497.001",
+            "description": "Enumerates loaded modules via a Toolhelp32 snapshot; meaningful only combined with CreateToolhelp32Snapshot to detect sandbox DLLs."
+        },
+        "Module32Next": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1497.001",
+            "description": "Iterates loaded modules; meaningful only combined with CreateToolhelp32Snapshot and Module32First."
+        },
+        "WaitForSingleObject": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1497.003",
+            "description": "Common synchronization API; meaningful only with GetTickCount -- sandboxes accelerating time show an anomalously short delta."
+        },
+        "WaitForMultipleObjects": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1497.003",
+            "description": "Multi-object wait variant; meaningful only with GetTickCount for timing-based sandbox detection."
+        },
+        "NtDelayExecution": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1497.003",
+            "description": "Native sleep that bypasses hooks on Sleep() -- sandboxes that only hook the Win32 layer fail to accelerate this delay."
+        },
+        "CreateWaitableTimer": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1497.003",
+            "description": "Timer-based sleep alternative; meaningful only with GetTickCount to detect sandboxes that patch Sleep but not timer APIs."
+        },
+        "timeSetEvent": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1497.003",
+            "description": "Multimedia timer sleep alternative; meaningful only with GetTickCount for sleep-skipping sandbox detection."
+        },
+        "IcmpSendEcho": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1497.003",
+            "description": "ICMP-based timing delay; meaningful only with GetTickCount -- sandboxes not hooking ICMP reveal abnormal elapsed time."
+        },
+        "OpenSCManagerA": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1497.001",
+            "description": "Opens the service control manager; meaningful only combined with EnumServicesStatusW to enumerate VM-specific services."
+        },
+        "OpenSCManagerW": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1497.001",
+            "description": "Unicode variant of OpenSCManagerA; meaningful only combined with service enumeration for VM driver detection."
+        },
+        "EnumServicesStatusW": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1497.001",
+            "description": "Enumerates all running services; meaningful only combined with OpenSCManagerA/W to scan for VM driver services (VBoxService, vmtools)."
+        },
+        "CoInitializeEx": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1497.001",
+            "description": "COM initialization required for WMI queries; meaningful only combined with CoCreateInstance for WMI-based VM detection."
+        },
+        "CoCreateInstance": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1497.001",
+            "description": "Instantiates IWbemLocator; meaningful only combined with CoInitializeEx -- pivot of all WMI-based VM/hardware queries."
+        },
         "RegOpenKeyEx": {
             "severity": "LOW",
             "combo_only": true,
@@ -212,10 +402,20 @@
             "mitre": "T1497.001",
             "description": "Generic VMware artifact string."
         },
+        "VMwareVMware": {
+            "severity": "HIGH",
+            "mitre": "T1497.001",
+            "description": "VMware CPUID vendor string returned by leaf 0x40000000."
+        },
         "VBOX": {
             "severity": "HIGH",
             "mitre": "T1497.001",
             "description": "VirtualBox artifact string found in binary."
+        },
+        "VBoxVBoxVBox": {
+            "severity": "HIGH",
+            "mitre": "T1497.001",
+            "description": "VirtualBox CPUID vendor string returned by leaf 0x40000000."
         },
         "VBoxGuest": {
             "severity": "HIGH",
@@ -242,10 +442,60 @@
             "mitre": "T1497.001",
             "description": "VirtualBox service process name used for process enumeration."
         },
+        "vmwaretray.exe": {
+            "severity": "HIGH",
+            "mitre": "T1497.001",
+            "description": "VMware tray process name used for process enumeration."
+        },
+        "vmwareuser.exe": {
+            "severity": "HIGH",
+            "mitre": "T1497.001",
+            "description": "VMware user process; its presence confirms VMware Tools are installed."
+        },
+        "vmacthlp.exe": {
+            "severity": "HIGH",
+            "mitre": "T1497.001",
+            "description": "VMware activation helper process; VM-specific process enumeration artifact."
+        },
+        "vboxtray.exe": {
+            "severity": "HIGH",
+            "mitre": "T1497.001",
+            "description": "VirtualBox tray process name used for process enumeration."
+        },
+        "VBoxControl.exe": {
+            "severity": "HIGH",
+            "mitre": "T1497.001",
+            "description": "VirtualBox guest control utility; VM-specific process artifact."
+        },
+        "qemu-ga.exe": {
+            "severity": "HIGH",
+            "mitre": "T1497.001",
+            "description": "QEMU guest agent process; confirms QEMU/KVM environment."
+        },
+        "prl_cc.exe": {
+            "severity": "HIGH",
+            "mitre": "T1497.001",
+            "description": "Parallels Control Center process; confirms Parallels Desktop environment."
+        },
         "sbiedll.dll": {
             "severity": "HIGH",
             "mitre": "T1497.001",
             "description": "Sandboxie DLL name; checked via GetModuleHandle to detect sandboxed execution."
+        },
+        "snxhk.dll": {
+            "severity": "HIGH",
+            "mitre": "T1497.001",
+            "description": "Sandboxie hook DLL; its presence in the loaded module list confirms Sandboxie instrumentation."
+        },
+        "pstorec.dll": {
+            "severity": "HIGH",
+            "mitre": "T1497.001",
+            "description": "Fake pstorec DLL injected by Norman Sandbox for API monitoring."
+        },
+        "dir_watch.dll": {
+            "severity": "HIGH",
+            "mitre": "T1497.001",
+            "description": "Anubis sandbox monitoring DLL; its presence confirms an Anubis analysis environment."
         },
         "vmcheck.dll": {
             "severity": "HIGH",
@@ -256,6 +506,81 @@
             "severity": "HIGH",
             "mitre": "T1497.001",
             "description": "API logging DLL associated with sandbox instrumentation."
+        },
+        "C:\\Windows\\System32\\drivers\\VBoxMouse.sys": {
+            "severity": "HIGH",
+            "mitre": "T1497.001",
+            "description": "VirtualBox mouse driver file path; its existence confirms a VirtualBox guest environment."
+        },
+        "C:\\Windows\\System32\\drivers\\VBoxGuest.sys": {
+            "severity": "HIGH",
+            "mitre": "T1497.001",
+            "description": "VirtualBox guest driver file path; confirms VirtualBox Guest Additions are installed."
+        },
+        "C:\\Windows\\System32\\drivers\\VBoxSF.sys": {
+            "severity": "HIGH",
+            "mitre": "T1497.001",
+            "description": "VirtualBox shared folders driver file path; VM-specific filesystem artifact."
+        },
+        "C:\\Windows\\System32\\drivers\\VBoxVideo.sys": {
+            "severity": "HIGH",
+            "mitre": "T1497.001",
+            "description": "VirtualBox video driver file path; confirms VirtualBox virtualized display."
+        },
+        "C:\\Windows\\System32\\vboxdisp.dll": {
+            "severity": "HIGH",
+            "mitre": "T1497.001",
+            "description": "VirtualBox display DLL; VM-specific user-mode driver artifact."
+        },
+        "C:\\Windows\\System32\\vboxhook.dll": {
+            "severity": "HIGH",
+            "mitre": "T1497.001",
+            "description": "VirtualBox hook DLL; VM-specific Windows hooks artifact."
+        },
+        "C:\\Windows\\System32\\vboxmrxnp.dll": {
+            "severity": "HIGH",
+            "mitre": "T1497.001",
+            "description": "VirtualBox network provider DLL; VM-specific shared folder artifact."
+        },
+        "C:\\Windows\\System32\\drivers\\vmhgfs.sys": {
+            "severity": "HIGH",
+            "mitre": "T1497.001",
+            "description": "VMware Host-Guest Filesystem driver; confirms VMware Tools installation."
+        },
+        "C:\\Windows\\System32\\drivers\\vmmouse.sys": {
+            "severity": "HIGH",
+            "mitre": "T1497.001",
+            "description": "VMware mouse driver file path; VM-specific input device artifact."
+        },
+        "C:\\Windows\\System32\\drivers\\vmmemctl.sys": {
+            "severity": "HIGH",
+            "mitre": "T1497.001",
+            "description": "VMware memory balloon driver; VM-specific memory management artifact."
+        },
+        "C:\\Windows\\System32\\drivers\\vmci.sys": {
+            "severity": "HIGH",
+            "mitre": "T1497.001",
+            "description": "VMware VMCI driver file path; confirms VMware virtual machine communication interface."
+        },
+        "VMware SVGA II": {
+            "severity": "HIGH",
+            "mitre": "T1497.001",
+            "description": "VMware virtual GPU name returned by EnumDisplayDevices or WMI Win32_VideoController."
+        },
+        "VirtualBox Graphics Adapter": {
+            "severity": "HIGH",
+            "mitre": "T1497.001",
+            "description": "VirtualBox virtual GPU name returned by EnumDisplayDevices or WMI Win32_VideoController."
+        },
+        "VBOX HARDDISK": {
+            "severity": "HIGH",
+            "mitre": "T1497.001",
+            "description": "VirtualBox virtual disk model string returned by SetupDi or WMI Win32_DiskDrive."
+        },
+        "VMware Virtual disk": {
+            "severity": "HIGH",
+            "mitre": "T1497.001",
+            "description": "VMware virtual disk model string returned by SetupDi or WMI Win32_DiskDrive."
         },
         "HKLM\\SOFTWARE\\VMware, Inc.\\VMware Tools": {
             "severity": "HIGH",
@@ -272,6 +597,31 @@
             "mitre": "T1497.001",
             "description": "VirtualBox guest driver service registry path."
         },
+        "HKLM\\SYSTEM\\ControlSet001\\Services\\VBoxSF": {
+            "severity": "HIGH",
+            "mitre": "T1497.001",
+            "description": "VirtualBox shared folders service registry path."
+        },
+        "HKLM\\HARDWARE\\ACPI\\DSDT\\VBOX__": {
+            "severity": "HIGH",
+            "mitre": "T1497.001",
+            "description": "VirtualBox ACPI DSDT table registry artifact; presence confirms VirtualBox virtualization."
+        },
+        "HKLM\\HARDWARE\\ACPI\\FADT\\VBOX__": {
+            "severity": "HIGH",
+            "mitre": "T1497.001",
+            "description": "VirtualBox ACPI FADT table registry artifact; confirms VirtualBox environment."
+        },
+        "HKLM\\HARDWARE\\ACPI\\RSDT\\VBOX__": {
+            "severity": "HIGH",
+            "mitre": "T1497.001",
+            "description": "VirtualBox ACPI RSDT table registry artifact; confirms VirtualBox environment."
+        },
+        "HKLM\\SYSTEM\\CurrentControlSet\\Enum\\SCSI\\Disk&Ven_VMware_&Prod_VMware_Virtual_S": {
+            "severity": "HIGH",
+            "mitre": "T1497.001",
+            "description": "SCSI device enumeration registry path specific to VMware virtual disks."
+        },
         "\\\\.\\VBoxMiniRdrDN": {
             "severity": "HIGH",
             "mitre": "T1497.001",
@@ -281,6 +631,11 @@
             "severity": "HIGH",
             "mitre": "T1497.001",
             "description": "VirtualBox tray IPC pipe path used with CreateFileA."
+        },
+        "\\\\.\\VBoxGuest": {
+            "severity": "HIGH",
+            "mitre": "T1497.001",
+            "description": "VirtualBox guest device path; opening it confirms a VirtualBox environment."
         },
         "\\\\.\\HGFS": {
             "severity": "HIGH",
@@ -302,6 +657,36 @@
             "mitre": "T1497.001",
             "description": "Wine-exclusive export; checked via GetProcAddress to detect Wine environment."
         },
+        "Kernel-VMDetection-Private": {
+            "severity": "HIGH",
+            "mitre": "T1497.001",
+            "description": "License value queried via NtQueryLicenseValue; returns 1 on Hyper-V environments."
+        },
+        "sandbox": {
+            "severity": "MEDIUM",
+            "mitre": "T1497.001",
+            "description": "Common sandbox username; compared against GetUserName result to detect automated analysis accounts."
+        },
+        "malware": {
+            "severity": "MEDIUM",
+            "mitre": "T1497.001",
+            "description": "Common sandbox username; compared against GetUserName result to detect automated analysis accounts."
+        },
+        "virus": {
+            "severity": "MEDIUM",
+            "mitre": "T1497.001",
+            "description": "Common sandbox username; compared against GetUserName result to detect automated analysis accounts."
+        },
+        "SANDBOX": {
+            "severity": "MEDIUM",
+            "mitre": "T1497.001",
+            "description": "Common sandbox hostname; compared against GetComputerName result to detect automated analysis environments."
+        },
+        "CUCKOO": {
+            "severity": "MEDIUM",
+            "mitre": "T1497.001",
+            "description": "Cuckoo sandbox hostname; its presence as a computer name confirms a Cuckoo analysis environment."
+        },
         "QEMU": {
             "severity": "HIGH",
             "mitre": "T1497.001",
@@ -317,6 +702,11 @@
             "mitre": "T1497.001",
             "description": "Microsoft Hyper-V artifact string; may be legitimate in enterprise environments."
         },
+        "Microsoft Hv": {
+            "severity": "MEDIUM",
+            "mitre": "T1497.001",
+            "description": "Hyper-V CPUID vendor string returned by leaf 0x40000000."
+        },
         "KVMKVMKVM": {
             "severity": "HIGH",
             "mitre": "T1497.001",
@@ -326,6 +716,11 @@
             "severity": "HIGH",
             "mitre": "T1497.001",
             "description": "Xen hypervisor CPUID vendor string."
+        },
+        "prl hyperv": {
+            "severity": "HIGH",
+            "mitre": "T1497.001",
+            "description": "Parallels Desktop CPUID vendor string returned by leaf 0x40000000."
         }
     },
     "byte_patterns": {
@@ -335,11 +730,47 @@
             "mitre": "T1497.001",
             "description": "CPUID instruction, used to detect hypervisor presence via ECX bit 31."
         },
+        "cpuid_hypervisor_leaf": {
+            "pattern": "B8 00 00 00 40 0F A2",
+            "severity": "HIGH",
+            "mitre": "T1497.001",
+            "description": "MOV EAX, 0x40000000 followed by CPUID -- leaf 40000000h returns the hypervisor vendor string (VMwareVMware, VBoxVBoxVBox, KVMKVMKVM)."
+        },
         "rdtsc_timing": {
             "pattern": "0F 31",
             "severity": "HIGH",
             "mitre": "T1497.003",
             "description": "RDTSC instruction, used for timing-based VM/sandbox detection."
+        },
+        "vmware_io_port": {
+            "pattern": "BA 58 56 00 00",
+            "severity": "HIGH",
+            "mitre": "T1497.001",
+            "description": "MOV EDX, 0x5658 -- loads the VMware backdoor I/O port (VX) before an IN instruction to communicate with the VMware hypervisor."
+        },
+        "sidt_check": {
+            "pattern": "0F 01 0B",
+            "severity": "MEDIUM",
+            "mitre": "T1497.001",
+            "description": "SIDT [EBX] -- reads the IDT base register; on VMware the IDT pointer is relocated above 0xD0000000, exposing the hypervisor."
+        },
+        "sgdt_check": {
+            "pattern": "0F 01 06",
+            "severity": "MEDIUM",
+            "mitre": "T1497.001",
+            "description": "SGDT [ESI] -- reads the GDT base register; relocate differs between bare metal and VM, used for the GDT trick."
+        },
+        "sldt_check": {
+            "pattern": "0F 00 C0",
+            "severity": "MEDIUM",
+            "mitre": "T1497.001",
+            "description": "SLDT EAX -- reads the LDT register; returns 0 on bare metal, non-zero on some hypervisors."
+        },
+        "str_check": {
+            "pattern": "0F 00 C8",
+            "severity": "MEDIUM",
+            "mitre": "T1497.001",
+            "description": "STR EAX -- Store Task Register; value differs between physical and virtualized environments."
         }
     },
     "combinations": [
@@ -426,6 +857,76 @@
             "severity": "HIGH",
             "mitre": "T1497.001",
             "description": "Enumerates processes and attempts to open them -- likely scanning for VM/sandbox-specific process names."
+        },
+        {
+            "name": "Process name enumeration (Toolhelp32)",
+            "requires": ["CreateToolhelp32Snapshot", "Process32First", "Process32Next"],
+            "severity": "HIGH",
+            "mitre": "T1497.001",
+            "description": "Full Toolhelp32 process iteration -- iterates all running processes to compare names against known VM/sandbox process list."
+        },
+        {
+            "name": "Module enumeration for sandbox DLLs",
+            "requires": ["CreateToolhelp32Snapshot", "Module32First", "Module32Next"],
+            "severity": "HIGH",
+            "mitre": "T1497.001",
+            "description": "Iterates loaded modules -- likely scanning for sandbox-specific DLLs (sbiedll.dll, snxhk.dll, pstorec.dll)."
+        },
+        {
+            "name": "Filesystem VM artifact check",
+            "requires": ["GetFileAttributesA", "FindFirstFileA"],
+            "severity": "HIGH",
+            "mitre": "T1497.001",
+            "description": "Checks file existence and scans directories -- likely probing for VM driver files (VBoxMouse.sys, vmhgfs.sys, vmmouse.sys)."
+        },
+        {
+            "name": "Alternate sleep timing detection",
+            "requires": ["WaitForSingleObject", "GetTickCount"],
+            "severity": "HIGH",
+            "mitre": "T1497.003",
+            "description": "Measures elapsed time across a WaitForSingleObject call -- bypasses sandboxes that only hook Sleep()."
+        },
+        {
+            "name": "Native sleep timing bypass",
+            "requires": ["NtDelayExecution", "NtQuerySystemInformation"],
+            "severity": "HIGH",
+            "mitre": "T1497.003",
+            "description": "Uses native sleep to avoid Win32 Sleep() hooks, combined with system time queries to confirm sandbox time acceleration."
+        },
+        {
+            "name": "Comprehensive disk size check",
+            "requires": ["GetDiskFreeSpaceExA", "DeviceIoControl"],
+            "severity": "HIGH",
+            "mitre": "T1497.001",
+            "description": "Combines free space query with IOCTL disk size check -- disk < 80 GB or free space < 10 GB strongly indicates a VM or sandbox."
+        },
+        {
+            "name": "Service-based VM detection",
+            "requires": ["OpenSCManagerA", "EnumServicesStatusW"],
+            "severity": "HIGH",
+            "mitre": "T1497.001",
+            "description": "Opens the service control manager and enumerates all services -- scanning for VM-specific services (VBoxService, VMTools, vmci)."
+        },
+        {
+            "name": "WMI-based VM detection",
+            "requires": ["CoInitializeEx", "CoCreateInstance"],
+            "severity": "HIGH",
+            "mitre": "T1497.001",
+            "description": "Initializes COM and instantiates IWbemLocator -- required to issue WMI queries (Win32_ComputerSystem, Win32_BIOS, Win32_DiskDrive) for VM artifact scanning."
+        },
+        {
+            "name": "Sandbox environment check",
+            "requires": ["GetUserNameA", "GetComputerNameA"],
+            "severity": "HIGH",
+            "mitre": "T1497.001",
+            "description": "Reads both username and hostname -- compares against known sandbox account names (sandbox, malware, virus) and hostnames (SANDBOX, CUCKOO)."
+        },
+        {
+            "name": "Volume label VM detection",
+            "requires": ["GetVolumeInformationA", "GetDiskFreeSpaceExA"],
+            "severity": "HIGH",
+            "mitre": "T1497.001",
+            "description": "Queries volume name and disk size together -- 'VirtualBox Shared Folders' label combined with a small disk confirms a VirtualBox environment."
         }
     ]
 }
