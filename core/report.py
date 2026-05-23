@@ -1,7 +1,8 @@
 import json
 import os
-from utils.utils import BANNER, TOOL, VERSION
-from datetime import datetime
+from utils.utils import BANNER, TOOL, VERSION, SIGNATURES_VERSION
+
+
 
 REPORTS_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "reports")
 
@@ -85,30 +86,27 @@ def build_header(program_info, findings):
     
     return lines
 
-def generate_report(findings, program_info, categories):
+def generate_report(findings, program_info, categories, now):
     """Generate and write a formatted analysis report to disk and console.
-
-    Builds a full text report by combining a header with a per-category
-    breakdown of findings, organized by detection type and severity.
-    Within each severity level, combo-only findings are separated from
-    regular ones and flagged as weak standalone indicators.
-
-    The report is printed to the console and saved as a .txt file in
-    REPORTS_DIR, with a timestamped filename.
-
+    ...
     Args:
         findings (list[Finding]): All findings from the analysis.
         program_info (dict): Metadata about the analyzed program, expected
             keys: name, path, format, md5, sha256, date.
         categories (list[str]): Ordered list of categories to include
-            in the report (e.g. ["anti-vm", "anti-debug"]).
+            in the report (e.g. ["anti_vm", "anti_debug"]).
+        now (datetime): Timezone-aware datetime used to build the report
+            filename timestamp. Shared with generate_json to guarantee
+            both files carry the same timestamp.
+
+    Returns:
+        str: Path to the generated .txt report file.
     """
     
     print("\nGenerating report...")
     
     os.makedirs(REPORTS_DIR, exist_ok=True)
     
-    now = datetime.now().astimezone()
     timestamp = now.strftime("%d-%m-%Y_%Hh%Mmin%Ss")
     filename = os.path.join(REPORTS_DIR, f"report_{program_info['name']}_{timestamp}.txt")
     
@@ -120,13 +118,12 @@ def generate_report(findings, program_info, categories):
     SUBSUBSEP  = "*" * 40
 
     for category in categories:
-        category_name = category.upper()
         lines.append("")
         lines.append(SEPARATOR)
-        lines.append(f"  CATEGORY : {category_name}")
+        lines.append(f"  CATEGORY : {category.upper()}")
         lines.append(SEPARATOR)
         
-        category_findings = [f for f in findings if f.category == category_name.lower()]
+        category_findings = [f for f in findings if f.category == category]
         
         if not category_findings:
             lines.append("  No findings detected.")
@@ -176,22 +173,32 @@ def generate_report(findings, program_info, categories):
     
     with open(filename, "w", encoding="utf-8", newline='\n') as f:
         f.write(output)
+        
+    return filename
             
             
 
-def generate_json(findings, program_info, categories):
-    data = {
-        "meta": {},
-        "program": {},
-        "summary": {
-            "total_findings": 0,
-            "by_severity": {"CRITICAL": 0, "HIGH": 0, "MEDIUM": 0, "LOW": 0},
-            "by_category": {}
-        },
-        "findings": []
-    }
+def generate_json(findings, program_info, categories, now):
+    """Generate and write a structured JSON report to disk.
+
+    Builds a JSON document containing tool metadata, program information,
+    a findings summary (by severity and by category), and the full list
+    of serialized findings.
+
+    Args:
+        findings (list[Finding]): All findings from the analysis.
+        program_info (dict): Metadata about the analyzed program, expected
+            keys: name, path, format, md5, sha256.
+        categories (list[str]): Ordered list of categories to include
+            in the summary (e.g. ["anti_vm", "anti_debug"]).
+        now (datetime): Timezone-aware datetime used to build the report
+            filename timestamp. Shared with generate_report to guarantee
+            both files carry the same timestamp.
+
+    Returns:
+        str: Path to the generated .json report file.
+    """
     
-    now = datetime.now().astimezone()
     timestamp = now.strftime("%d-%m-%Y_%Hh%Mmin%Ss")
     filename = os.path.join(REPORTS_DIR, f"report_{program_info['name']}_{timestamp}.json")
     
@@ -232,6 +239,7 @@ def generate_json(findings, program_info, categories):
         "meta": {
             "tool": TOOL,
             "version": VERSION,
+            "signatures_version": SIGNATURES_VERSION,
             "generated_at": now.isoformat()
         },
         "program": {
@@ -253,4 +261,4 @@ def generate_json(findings, program_info, categories):
     with open(filename, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4)
     
-    return
+    return filename

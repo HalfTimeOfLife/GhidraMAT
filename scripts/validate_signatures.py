@@ -12,7 +12,7 @@ SIGNATURES_DIR = os.path.join(os.path.dirname(__file__), "..", "signatures")
 
 VALID_SEVERITIES = {"LOW", "MEDIUM", "HIGH", "CRITICAL"}
 
-REQUIRED_TOP_LEVEL = {"imports", "strings", "byte_patterns", "combinations"}
+REQUIRED_TOP_LEVEL = {"imports", "strings", "byte_patterns", "combinations", "sig_version"}
 
 errors = []
 

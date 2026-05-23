@@ -35,10 +35,9 @@ def scan_byte_pattern(context, pattern_str):
             print("[GhidraMAT] Scan cancelled by user.")
             return matches
         
-        size = block.getSize()
+        size = int(block.getSize())
         if size > 50000000:
             size = 50000000
-        data = bytearray(size)
         start = block.getStart()
         
         if context.monitor:
@@ -47,8 +46,8 @@ def scan_byte_pattern(context, pattern_str):
             )
         
         try:
-            for i in range(size):
-                data[i] = block.getByte(start.add(i)) & 0xFF
+            data = bytearray(size)
+            block.getBytes(start, data, 0, size)
         except MemoryAccessException:
             print("[WARNING] MemoryAccessException on block : ", start)
             continue

@@ -9,6 +9,7 @@
 
 import sys
 import os
+from datetime import datetime
 
 script_dir = os.path.dirname(os.path.realpath(__file__))
 if script_dir not in sys.path:
@@ -90,8 +91,12 @@ def run():
     "format": exec_format,
     "date": creation_date
     }
-    generate_report(findings, program_info, CATEGORIES)
-    generate_json(findings, program_info, CATEGORIES)
+    
+    now = datetime.now().astimezone()
+    
+    
+    generate_report(findings, program_info, CATEGORIES , now)
+    generate_json(findings, program_info, CATEGORIES , now)
 
 
 run()

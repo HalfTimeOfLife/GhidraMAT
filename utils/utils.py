@@ -5,6 +5,8 @@ from ghidra.program.model.listing import BookmarkType
 from java.awt import Color
 
 VERSION = "0.2"
+SIGNATURES_VERSION = 1
+
 
 # Background colors applied to findings based on their severity level.
 SEVERITY_COLORS = {
@@ -71,53 +73,73 @@ def get_strings(context):
 def load_signatures(signatures_dir, name):
     """Load a JSON signature file from a directory.
 
+    Verifies that the file's sig_version matches SIGNATURES_VERSION before
+    returning. Raises ValueError if there is a mismatch.
+
     Args:
         signatures_dir (str): Path to the directory containing signature files.
         name (str): Name of the signature file to load, without extension.
 
     Returns:
         dict: Parsed JSON content of the signature file.
+
+    Raises:
+        ValueError: If the sig_version field is missing or does not match
+            SIGNATURES_VERSION.
+        FileNotFoundError: If the signature file does not exist.
     """
+
     path = os.path.join(signatures_dir, "{}.json".format(name))
-    with open(path) as f:
-        return json.load(f)
+    with open(path, encoding="utf-8") as f:
+        data = json.load(f)
+    sig_ver = data.get("sig_version")
+    if sig_ver != SIGNATURES_VERSION:
+        raise ValueError(
+            "Signature version mismatch for '{}': expected '{}', got '{}'.".format(
+                name, SIGNATURES_VERSION, sig_ver
+            )
+        )
+    return data
 
 
 def apply_visual_marking(service, finding):
     """Apply a background color to the addresses associated with a finding.
 
     Uses the finding's severity to determine the color from SEVERITY_COLORS.
-    Skips external addresses. Colors are applied to the finding's address
-    and all its cross-references.
+    External addresses are skipped. The color is applied to all non-external
+    addresses in finding.xrefs.
 
     Args:
-        service: Ghidra color service used to set background colors.
-        finding: Finding object with severity, address, and xrefs attributes.
+        service: Ghidra ColorizingService used to set background colors.
+        finding: Finding object with severity and xrefs attributes.
     """
     color = SEVERITY_COLORS.get(finding.severity)
     if not color:
         return
 
     for xref in finding.xrefs:
-        service.setBackgroundColor(xref, xref, color)
+        if not xref.isExternalAddress():
+            service.setBackgroundColor(xref, xref, color)
 
 
 def create_bookmark(program, finding):
     """Create analysis bookmarks for the addresses associated with a finding.
 
-    Places a bookmark at the finding's address and at each of its
-    cross-references. Skips external addresses. The bookmark is categorized
-    using the finding's category and annotated with its description.
+    Places a bookmark at each non-external address in finding.xrefs.
+    The bookmark is categorized using the finding's category (uppercased)
+    and annotated with its description.
 
     Args:
         program: The Ghidra program in which to create bookmarks.
-        finding: Finding object with address, xrefs, category, and description
+        finding: Finding object with xrefs, category, and description
             attributes.
     """
+
     bm = program.getBookmarkManager()
 
     for xref in finding.xrefs:
-        bm.setBookmark(xref, BookmarkType.ANALYSIS, finding.category.upper(), finding.description)
+        if not xref.isExternalAddress():
+            bm.setBookmark(xref, BookmarkType.ANALYSIS, finding.category.upper(), finding.description)
         
         
 def resolve_function_context(func_manager, addr):

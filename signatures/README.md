@@ -24,12 +24,15 @@ Each file follows this structure:
 
 ```json
 {
+    "sig_version": 1,
     "imports": {},
     "strings": {},
     "byte_patterns": {},
     "combinations": []
 }
 ```
+
+The `sig_version` field is required. At load time, `load_signatures()` checks that it matches the `SIGNATURES_VERSION` constant in `utils/utils.py` and raises a `ValueError` on mismatch.
 
 | Category | Description | MITRE Technique |
 |---|---|---|
@@ -123,7 +126,7 @@ Matches raw **byte sequences** in executable sections. Used for opcodes and inst
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `pattern` | string | yes | Space-separated hex bytes. |
+| `pattern` | string | yes | Space-separated hex bytes. Use `??` as a single-byte wildcard. |
 | `severity` | string | yes | `LOW`, `MEDIUM`, `HIGH`, or `CRITICAL` |
 | `mitre` | string | no | MITRE ATT&CK sub-technique ID (e.g. `T1497.003`). Used in report findings and summary. |
 | `description` | string | yes | What this byte sequence indicates |
@@ -167,9 +170,9 @@ Combination findings override the individual `combo_only` findings for the same 
 
 ---
 
-## How the Three Types Work Together
+## How the Four Detection Types Work Together
 
-A complete detection for registry-based VMware detection would produce three independent findings:
+A complete detection for registry-based VMware detection would produce four independent findings:
 
 | Type | Match | Finding |
 |---|---|---|
@@ -186,10 +189,11 @@ The combination tells you *how*, the string tells you *what target*.
 
 If you need to add a new detection category:
 
-1. Create a new file `signatures/<category>.json` with the base skeleton:
+1. Create a new file `signatures/<category>.json` with the base skeleton, using the current `SIGNATURES_VERSION` value from `utils/utils.py`:
 
 ```json
 {
+    "sig_version": 1,
     "imports": {},
     "strings": {},
     "byte_patterns": {},
@@ -198,6 +202,12 @@ If you need to add a new detection category:
 ```
 
 2. Add the category name to `CATEGORIES` in `analyzer.py`.
+
+3. Validate the new file before committing:
+
+```bash
+python scripts/validate_signatures.py
+```
 
 ---
 
@@ -211,17 +221,18 @@ If you need to add a new detection category:
 | `CRITICAL` | Near-certain indicator, typically from a multi-API combination |
 
 ---
+
 ## MITRE ATT&CK Version
 
 Signatures in this project are mapped against **MITRE ATT&CK v16** (Enterprise, Windows platform).
-Reference : https://attack.mitre.org
+Reference: https://attack.mitre.org
 
 ---
 
 ## Signature Sources
 
 Signatures in this project are based on and cross-referenced against the following resources:
- 
+
 - [CheckPoint Evasions](https://evasions.checkpoint.com/)
 - [Unprotect Project](https://www.unprotect.it/)
 - [al-khaser](https://github.com/ayoubfaouzi/al-khaser)

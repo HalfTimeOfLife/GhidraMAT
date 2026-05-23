@@ -10,7 +10,7 @@ Ghidra script framework for automated static detection of malware behaviors: ant
 
 ## Detection Modules
 
-The file `detection.py` provides the generic detection engine for all GhidraMAT categories: it loads category-specific signatures from [signatures/](signatures/) and identifies suspicious imports, strings, byte patterns and import combinations in the analyzed binary, returning them as Finding objects. Here is the category supported :
+The file `detection.py` provides the generic detection engine for all GhidraMAT categories: it loads category-specific signatures from [signatures/](signatures/) and identifies suspicious imports, strings, byte patterns and import combinations in the analyzed binary, returning them as Finding objects.
 
 | Category | What it detects | Status |
 |---|---|---|
@@ -31,14 +31,17 @@ Signatures are fully **decoupled from detection logic**. API names, byte pattern
 
 ```
 GhidraMAT/
-├── analyzer.py              # Main runner
+├── analyzer.py                 # Main runner
+├── ruff.toml                   # Ruff linter configuration
 ├── core/
-│   ├── context.py           # Wraps Ghidra program object
-│   ├── finding.py           # Finding data model
-│   └── report.py            # Report generation (plaintext)
-├── signatures               # Declarative JSON signatures grouped by family
+│   ├── context.py              # Wraps Ghidra program object
+│   ├── finding.py              # Finding data model
+│   └── report.py               # Report generation (plaintext + JSON)
+├── scripts/
+│   └── validate_signatures.py  # Signature schema validator (used by pre-commit)
+├── signatures/                 # Declarative JSON signatures grouped by category
 │   ├── README.md
-│   ├── anti_debug.json     
+│   ├── anti_debug.json
 │   ├── anti_vm.json
 │   ├── crypto.json
 │   ├── impair_defenses.json
@@ -47,17 +50,52 @@ GhidraMAT/
 │   ├── packer.json
 │   └── persistence.json
 └── utils/
-    ├── detection.py         # Detection module  
-    ├── utils.py             # Shared helpers (imports, strings, signatures loading)
-    ├── xrefs.py             # Cross-reference resolution
-    └── pattern.py           # Byte pattern scanner
+    ├── detection.py            # Detection engine
+    ├── pattern.py              # Byte pattern scanner
+    ├── utils.py                # Shared helpers (imports, strings, signatures loading)
+    └── xrefs.py                # Cross-reference resolution
 ```
+
+---
+
+## Signatures
+
+Each category has a dedicated JSON file under `signatures/`. A signature file contains four detection types: `imports`, `strings`, `byte_patterns`, and `combinations`. See [signatures/README.md](signatures/README.md) for the full format specification.
+
+Every signature file carries a `sig_version` field. At load time, `load_signatures()` checks that `sig_version` matches the `SIGNATURES_VERSION` constant defined in `utils/utils.py`. A mismatch raises a `ValueError` and aborts the analysis for that category. This guarantees that the running code and the signature files are always in sync.
+
+```json
+{
+    "sig_version": 1,
+    "imports": {},
+    "strings": {},
+    "byte_patterns": {},
+    "combinations": []
+}
+```
+
+To validate all signature files against the schema without running Ghidra, use the standalone validator:
+
+```bash
+python scripts/validate_signatures.py
+```
+
+The validator is also registered as a pre-commit hook and runs automatically on every `git commit` that touches a `.json` file under `signatures/`.
 
 ---
 
 ## Report generation
 
-GhidraMAT produces a structured report per binary with findings grouped by category, each annotated with its offset and matched signature. Reports are currently exported as plaintext. JSON export for pipeline integration is planned.
+After analysis, GhidraMAT writes two report files to the `reports/` directory (created automatically if absent):
+
+| Format | Filename | Contents |
+|---|---|---|
+| Plaintext | `report_<name>_<timestamp>.txt` | Human-readable findings grouped by category, type, and severity |
+| JSON | `report_<name>_<timestamp>.json` | Machine-readable findings with full metadata, suitable for pipeline integration |
+
+Both files share the same timestamp, so they can always be matched to the same analysis run. The JSON report includes tool version, signature version, program hashes, and a summary broken down by severity and category.
+
+The `reports/` directory is excluded from version control via `.gitignore`.
 
 ---
 
@@ -91,9 +129,11 @@ Once the scripts directory is added, the analyzer is also available directly fro
 `Analysis → GhidraMAT`
 
 ### Option 3 — Toolbar
+
 The analyzer can be launched using the toolbar icon: ![GhidraMAT](ghidramat_icon_small.png)
 
 ### Option 4 — Key Binding
+
 By default, the analyzer can be launched using the key binding `Ctrl+Shift+A`.
 
 ---
