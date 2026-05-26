@@ -67,7 +67,7 @@ def validate_combination(filepath, i, combo):
     for field in ("name", "requires", "severity", "description"):
         if field not in combo:
             err(filepath, f"combinations[{i}]: missing required field '{field}'")
-    if "requires" in combo and not isinstance(combo["requires"], list):
+    if "requires" not in combo or not isinstance(combo["requires"], list) or not combo["requires"]:
         err(filepath, f"combinations[{i}]: 'requires' must be a list")
     if "severity" in combo and combo["severity"] not in VALID_SEVERITIES:
         err(filepath, f"combinations[{i}]: invalid severity '{combo['severity']}'")
