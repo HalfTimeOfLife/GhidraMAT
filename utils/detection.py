@@ -5,9 +5,9 @@ from utils.utils import get_imports, load_signatures, get_strings, resolve_funct
 from utils.xrefs import get_xrefs_to_symbol, get_xrefs_to_string
 from utils.pattern import scan_byte_pattern
 
-
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SIG_PATH = os.path.join(PROJECT_ROOT, "signatures")
+
 
 def analyze(context, category):
     """Run all signature-based detections for a given category.
@@ -31,11 +31,9 @@ def analyze(context, category):
     signatures = load_signatures(SIG_PATH, category)
     imports = get_imports(context)
     strings = get_strings(context)
-    
+
     if context.monitor:
         context.monitor.setMessage("[GhidraMAT] Searching for {} ...".format(category))
-        
-
 
     for api_name, data in signatures["imports"].items():
         if api_name in imports:
@@ -83,7 +81,6 @@ def analyze(context, category):
                 xref_labels=xref_labels,
                 mitre=data.get("mitre")
             ))
-
 
     for combo in signatures["combinations"]:
         if set(combo["requires"]).issubset(imports):
