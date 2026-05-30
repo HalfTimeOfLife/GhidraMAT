@@ -1,7 +1,680 @@
 {
     "sig_version": 1,
-    "imports": {},
-    "strings": {},
-    "byte_patterns": {},
-    "combinations": []
+    "imports": {
+        "IsDebuggerPresent": {
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "Checks the BeingDebugged flag of the PEB. The most commonly used debugger detection API -- trivially bypassed but ubiquitous in malware."
+        },
+        "CheckRemoteDebuggerPresent": {
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "Checks whether a debugger is attached to the current process from another process. Internally calls NtQueryInformationProcess(ProcessDebugPort)."
+        },
+        "NtQueryInformationProcess": {
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "Native NT API queried with ProcessDebugPort (0x7), ProcessDebugFlags (0x1F), or ProcessDebugObjectHandle (0x1E) to detect an attached debugger -- returns -1, 0, or a non-null handle respectively when a debugger is present. Also used for parent process checks (ProcessBasicInformation)."
+        },
+        "RtlQueryProcessHeapInformation": {
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "Reads the heap flags from the current process memory. When a process is started under a debugger, the Flags and ForceFlags fields of the heap header are set to abnormal values (HEAP_TAIL_CHECKING_ENABLED, HEAP_FREE_CHECKING_ENABLED, HEAP_VALIDATE_PARAMETERS_ENABLED)."
+        },
+        "RtlQueryProcessDebugInformation": {
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "Reads process debug information including heap flags. Equivalent to RtlQueryProcessHeapInformation but queries a specific process by PID via PDI_HEAPS | PDI_HEAP_BLOCKS."
+        },
+        "NtQuerySystemInformation": {
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "Called with SystemKernelDebuggerInformation (0x23) to detect a kernel debugger. Returns DebuggerEnabled=1 and DebuggerNotPresent=0 when a kernel debugger is attached to the system."
+        },
+        "NtQueryObject": {
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "Called with ObjectAllTypesInformation to enumerate all kernel object types and count DebugObject handles. A non-zero TotalNumberOfObjects for DebugObject indicates a debug session is or was active on the system."
+        },
+        "NtClose": {
+            "severity": "MEDIUM",
+            "mitre": "T1622",
+            "description": "Native variant of CloseHandle. Passing an invalid handle (e.g. 0xDEADBEEF) raises EXCEPTION_INVALID_HANDLE (0xC0000008) under a debugger instead of silently failing -- revealing debugger presence via the exception. Used directly to bypass hooks on kernel32!CloseHandle."
+        },
+        "CloseHandle": {
+            "severity": "MEDIUM",
+            "mitre": "T1622",
+            "description": "Passing an invalid handle (e.g. 0xDEADBEEF) raises EXCEPTION_INVALID_HANDLE (0xC0000008) under a debugger, while it silently fails without one. The exception caught by an SEH handler confirms debugger presence."
+        },
+        "HeapWalk": {
+            "severity": "MEDIUM",
+            "mitre": "T1622",
+            "description": "Iterates heap entries to check if the tail byte sequence 0xABABABAB is present (appended when HEAP_TAIL_CHECKING_ENABLED is set in NtGlobalFlag). This flag is set when a process is started under a debugger."
+        },
+        "DebugBreak": {
+            "severity": "MEDIUM",
+            "mitre": "T1622",
+            "description": "Triggers a breakpoint exception (EXCEPTION_BREAKPOINT). Without a debugger, the exception is forwarded to the SEH handler; with a debugger, it is consumed. Used as a reliable SEH-based debugger check."
+        },
+        "GetThreadContext": {
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "Retrieves the thread context with CONTEXT_DEBUG_REGISTERS to inspect hardware debug registers DR0-DR3. Non-zero values indicate hardware breakpoints have been set by a debugger."
+        },
+        "GetCurrentThread": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1622",
+            "description": "Returns a pseudo-handle to the current thread. Meaningful only in combination with GetThreadContext for hardware breakpoint detection via DR0-DR3."
+        },
+        "OpenProcess": {
+            "severity": "MEDIUM",
+            "mitre": "T1622",
+            "description": "Called on csrss.exe via CsrGetProcessId -- the call succeeds only if the user has SeDebugPrivilege, which is granted when a debugger is attached. Also used to open other processes for cross-process memory reads (function patch detection)."
+        },
+        "ReadProcessMemory": {
+            "severity": "MEDIUM",
+            "mitre": "T1622",
+            "description": "Used to read the first bytes of kernel32!IsDebuggerPresent in another process and compare them to the current process. A difference reveals that the function was patched or hooked by a debugger."
+        },
+        "WriteProcessMemory": {
+            "severity": "HIGH",
+            "combo_only": true,
+            "mitre": "T1622",
+            "description": "Used in Anti-Step-Over: patches the byte at the return address with 0x90 (NOP) if it is 0xCC (INT3 breakpoint). Meaningful only in combination with VirtualProtect."
+        },
+        "VirtualAlloc": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1622",
+            "description": "Too generic alone. Meaningful in combination with VirtualProtect for guard page memory breakpoint detection, or with GetWriteWatch for write-watch based debugger detection."
+        },
+        "VirtualProtect": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1622",
+            "description": "Too generic alone. Meaningful in combination with WriteProcessMemory (Anti-Step-Over), with VirtualAlloc for guard page tricks, or for patching ntdll!DbgBreakPoint/DbgUiRemoteBreakin."
+        },
+        "GetWriteWatch": {
+            "severity": "MEDIUM",
+            "mitre": "T1622",
+            "description": "Called on a MEM_WRITE_WATCH region to detect unexpected memory writes by a debugger or API hook. More writes than expected indicate debugger instrumentation probing the buffer."
+        },
+        "Toolhelp32ReadProcessMemory": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1622",
+            "description": "Reads a byte at the return address of the calling function. If the byte is 0xCC (INT3), a step-over breakpoint is present. Meaningful only in combination with VirtualProtect."
+        },
+        "NtQueryVirtualMemory": {
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "Called with MemoryWorkingSetList to retrieve the Working Set of the current process. Checks the Shared and ShareCount fields for code pages -- software breakpoints cause the page to become private (non-shared), revealing their presence."
+        },
+        "SetUnhandledExceptionFilter": {
+            "severity": "MEDIUM",
+            "mitre": "T1622",
+            "description": "Registers a custom unhandled exception filter. Under a debugger, the filter is never called -- the exception is intercepted by the debugger instead. If the filter is reached, no debugger is present."
+        },
+        "RaiseException": {
+            "severity": "MEDIUM",
+            "mitre": "T1622",
+            "description": "Called with DBG_CONTROL_C (0x40010005) or DBG_RIPEVENT (0x40010007) -- exceptions consumed by a debugger and not forwarded to the process exception handler. If the SEH handler is not reached, a debugger is present."
+        },
+        "AddVectoredExceptionHandler": {
+            "severity": "MEDIUM",
+            "mitre": "T1622",
+            "description": "Registers a Vectored Exception Handler (VEH). Used to count hardware breakpoint single-step exceptions in an instruction sequence, or to chain exception handlers to hide the control flow from static analysis."
+        },
+        "RemoveVectoredExceptionHandler": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1622",
+            "description": "Meaningful only in combination with AddVectoredExceptionHandler -- used to chain VEH handlers for control flow obfuscation or instruction counting anti-debug."
+        },
+        "NtSetInformationThread": {
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "Called with ThreadHideFromDebugger (0x11) to detach the current thread from the debugger. The thread continues running but the debugger stops receiving events -- a breakpoint in the hidden thread crashes the process instead of breaking in."
+        },
+        "DebugActiveProcess": {
+            "severity": "HIGH",
+            "combo_only": true,
+            "mitre": "T1622",
+            "description": "Used in self-debugging anti-attach: the process spawns a child which attempts to attach as debugger to the parent via DebugActiveProcess. Failure reveals another debugger is already attached. Meaningful only in combination with CreateProcess."
+        },
+        "CreateProcess": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1622",
+            "description": "Too generic alone. Meaningful only in combination with DebugActiveProcess for self-debugging anti-attach detection."
+        },
+        "DbgSetDebugFilterState": {
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "Wraps ntdll!NtSetDebugFilterState. Succeeds only when a kernel-mode debugger is present or as a side-effect of some user-mode debuggers. Requires administrator privileges."
+        },
+        "NtSetDebugFilterState": {
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "Native variant of DbgSetDebugFilterState. Returns STATUS_SUCCESS only when a kernel debugger is present or due to side-effects of certain user-mode debuggers."
+        },
+        "SwitchToThread": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1622",
+            "description": "Returns 0 when no thread context switch can occur -- which happens when single-stepping in a debugger. A counter incremented on zero returns reveals tracing. Meaningful only in combination with NtYieldExecution."
+        },
+        "NtYieldExecution": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1622",
+            "description": "Returns STATUS_NO_YIELD_PERFORMED (0x40000024) when single-stepping under a debugger prevents a context switch. Meaningful only in combination with SwitchToThread."
+        },
+        "FindWindowA": {
+            "severity": "MEDIUM",
+            "mitre": "T1622",
+            "description": "Searches for top-level windows with known debugger class names: OLLYDBG, WinDbgFrameClass, ID (Immunity Debugger), ObsidianGUI, Qt5QWindowIcon, Zeta Debugger, Rock Debugger, x64dbg."
+        },
+        "FindWindowW": {
+            "severity": "MEDIUM",
+            "mitre": "T1622",
+            "description": "Unicode variant of FindWindowA. Searches for top-level windows with known debugger class names to detect running debugger instances."
+        },
+        "FindWindowExA": {
+            "severity": "MEDIUM",
+            "mitre": "T1622",
+            "description": "Extended variant of FindWindowA allowing child window search. Used to detect debugger windows by class name when the top-level window search is insufficient."
+        },
+        "FindWindowExW": {
+            "severity": "MEDIUM",
+            "mitre": "T1622",
+            "description": "Unicode extended variant of FindWindowA. Used to detect debugger windows by class name."
+        },
+        "GetShellWindow": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1622",
+            "description": "Retrieves the handle of the shell window (explorer.exe). Meaningful only in combination with GetWindowThreadProcessId and NtQueryInformationProcess for parent process PID comparison."
+        },
+        "GetWindowThreadProcessId": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1622",
+            "description": "Extracts the PID of the shell process (explorer.exe) from its window handle. Meaningful only in combination with GetShellWindow and NtQueryInformationProcess for parent process checks."
+        },
+        "OutputDebugStringA": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1622",
+            "description": "Pre-Vista: if a debugger is present it consumes the DBG_PRINTEXCEPTION_C event, preventing GetLastError from being overwritten. Meaningful only in combination with SetLastError and GetLastError."
+        },
+        "SetLastError": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1622",
+            "description": "Sets a known error code before OutputDebugStringA. If GetLastError returns a different value after the call, no debugger consumed the event. Meaningful only in combination with OutputDebugStringA."
+        },
+        "GetLastError": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1622",
+            "description": "Checks whether the error code was overwritten after OutputDebugStringA. Meaningful only in combination with SetLastError and OutputDebugStringA."
+        },
+        "GetLocalTime": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1622",
+            "description": "Used in timing-based anti-debug: elapsed time between two GetLocalTime calls is compared against a threshold -- single-stepping in a debugger introduces measurable delay. Meaningful only in combination."
+        },
+        "GetSystemTime": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1622",
+            "description": "Used in timing-based anti-debug: elapsed time between two GetSystemTime calls is compared against a threshold. Meaningful only in combination."
+        },
+        "GetTickCount": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1622",
+            "description": "Used in timing-based anti-debug: measures elapsed milliseconds between two calls to detect single-stepping. Meaningful only in combination."
+        },
+        "QueryPerformanceCounter": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1622",
+            "description": "High-resolution timer used to measure elapsed ticks between two calls. Single-stepping in a debugger introduces measurable delay. Meaningful only in combination."
+        },
+        "timeGetTime": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1622",
+            "description": "Multimedia timer used to measure elapsed milliseconds between two calls for timing-based debugger detection. Meaningful only in combination."
+        },
+        "LoadLibraryA": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1622",
+            "description": "Used in the LOAD_DLL_DEBUG_EVENT handle leak trick: a DLL is loaded and then opened with exclusive access via CreateFileA. If the open fails, the debugger did not close the LOAD_DLL_DEBUG_INFO handle. Meaningful only in combination with CreateFileA."
+        },
+        "LoadLibraryW": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1622",
+            "description": "Unicode variant of LoadLibraryA. Used in the same LOAD_DLL_DEBUG_EVENT handle leak detection trick. Meaningful only in combination with CreateFileW."
+        },
+        "CreateFileA": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1622",
+            "description": "Used in two detection tricks: (1) exclusively opening the current process binary -- fails if the debugger holds an unclosed CREATE_PROCESS_DEBUG_EVENT handle; (2) exclusively opening a DLL loaded via LoadLibraryA to detect an unclosed LOAD_DLL_DEBUG_EVENT handle."
+        },
+        "CreateFileW": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1622",
+            "description": "Unicode variant of CreateFileA. Used in the same process binary and DLL handle leak detection tricks."
+        }
+    },
+
+    "strings": {
+        "OLLYDBG": {
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "OllyDbg window class name. Searched via FindWindowA to detect a running OllyDbg instance."
+        },
+        "WinDbgFrameClass": {
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "WinDbg window class name. Searched via FindWindowA to detect a running WinDbg instance."
+        },
+        "ID": {
+            "severity": "MEDIUM",
+            "mitre": "T1622",
+            "description": "Immunity Debugger window class name. Searched via FindWindowA to detect a running Immunity Debugger instance. Short string -- confirm with FindWindowA import."
+        },
+        "ObsidianGUI": {
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "Obsidian GUI debugger window class name. Searched via FindWindowA to detect this debugger."
+        },
+        "Qt5QWindowIcon": {
+            "severity": "MEDIUM",
+            "mitre": "T1622",
+            "description": "Qt5-based debugger window class name (x64dbg, PE-bear, and others). Searched via FindWindowA to detect Qt-based reverse engineering tools."
+        },
+        "Zeta Debugger": {
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "Zeta Debugger window class name. Searched via FindWindowA to detect this debugger."
+        },
+        "Rock Debugger": {
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "Rock Debugger window class name. Searched via FindWindowA to detect this debugger."
+        },
+        "antidbg": {
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "Window class name associated with anti-debug test tools. Presence signals a debugging or analysis environment."
+        },
+        "x64dbg": {
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "x64dbg window title or process name. Searched via FindWindowA or process enumeration to detect x64dbg."
+        },
+        "ollydbg.exe": {
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "OllyDbg process name. Used in process enumeration (Toolhelp32) to detect a running OllyDbg instance."
+        },
+        "x64dbg.exe": {
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "x64dbg process name. Used in process enumeration to detect a running x64dbg instance."
+        },
+        "x32dbg.exe": {
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "x32dbg (32-bit variant of x64dbg) process name. Used in process enumeration to detect a running x32dbg instance."
+        },
+        "windbg.exe": {
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "WinDbg process name. Used in process enumeration to detect a running WinDbg instance."
+        },
+        "idag.exe": {
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "IDA Pro (32-bit) process name. Used in process enumeration to detect IDA Pro running."
+        },
+        "idag64.exe": {
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "IDA Pro (64-bit) process name. Used in process enumeration to detect IDA Pro running."
+        },
+        "idaw.exe": {
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "IDA Pro GUI process name (older versions). Used in process enumeration."
+        },
+        "idaw64.exe": {
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "IDA Pro 64-bit GUI process name (older versions). Used in process enumeration."
+        },
+        "immunitydebugger.exe": {
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "Immunity Debugger process name. Used in process enumeration to detect Immunity Debugger."
+        },
+        "petools.exe": {
+            "severity": "MEDIUM",
+            "mitre": "T1622",
+            "description": "PE Tools process name. Used in process enumeration to detect PE analysis tools."
+        },
+        "lordpe.exe": {
+            "severity": "MEDIUM",
+            "mitre": "T1622",
+            "description": "LordPE process name. Used in process enumeration to detect this PE dumper/editor."
+        },
+        "ProcessHacker.exe": {
+            "severity": "MEDIUM",
+            "mitre": "T1622",
+            "description": "Process Hacker process name. Used in process enumeration to detect this advanced process monitor."
+        },
+        "dbgview.exe": {
+            "severity": "MEDIUM",
+            "mitre": "T1622",
+            "description": "Sysinternals DebugView process name. Its presence suggests an active debugging or monitoring session."
+        },
+        "ThreadHideFromDebugger": {
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "String associated with NtSetInformationThread ThreadHideFromDebugger class. Its presence as a literal string suggests dynamic API resolution of this anti-debug technique."
+        },
+        "IsDebuggerPresent": {
+            "severity": "MEDIUM",
+            "mitre": "T1622",
+            "description": "String used to resolve IsDebuggerPresent via GetProcAddress at runtime, bypassing static import detection."
+        },
+        "CheckRemoteDebuggerPresent": {
+            "severity": "MEDIUM",
+            "mitre": "T1622",
+            "description": "String used to resolve CheckRemoteDebuggerPresent via GetProcAddress at runtime, bypassing static import detection."
+        },
+        "NtQueryInformationProcess": {
+            "severity": "MEDIUM",
+            "mitre": "T1622",
+            "description": "String used to resolve NtQueryInformationProcess from ntdll.dll via GetProcAddress at runtime to evade static import analysis."
+        },
+        "ntdll.dll": {
+            "severity": "MEDIUM",
+            "mitre": "T1622",
+            "description": "ntdll.dll is loaded via LoadLibraryA to dynamically resolve native NT APIs (NtQueryInformationProcess, NtClose, etc.) that bypass hooks on Win32 equivalents. Also a known window class name in some analysis environments."
+        },
+        "DbgBreakPoint": {
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "Name of ntdll!DbgBreakPoint resolved via GetProcAddress to patch it with RET (0xC3), preventing a debugger from gaining control when attaching to the process."
+        },
+        "DbgUiRemoteBreakin": {
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "Name of ntdll!DbgUiRemoteBreakin resolved via GetProcAddress to patch it with a TerminateProcess call, killing the process when a debugger attempts to attach."
+        },
+        "CsrGetProcessId": {
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "Undocumented ntdll export resolved via GetProcAddress to get the PID of csrss.exe. Used to call OpenProcess on csrss.exe -- succeeds only with SeDebugPrivilege (i.e. under a debugger)."
+        }
+    },
+
+    "byte_patterns": {
+        "peb_beingdebugged_x86": {
+            "pattern": "64 A1 30 00 00 00",
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "MOV EAX, FS:[0x30] -- reads the PEB pointer on x86 to check the BeingDebugged flag at offset +0x2, bypassing IsDebuggerPresent hooks."
+        },
+        "peb_beingdebugged_x64": {
+            "pattern": "65 48 8B 04 25 60 00 00 00",
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "MOV RAX, GS:[0x60] -- reads the PEB pointer on x64 to check the BeingDebugged flag at offset +0x2, bypassing IsDebuggerPresent hooks."
+        },
+        "ntglobalflag_x86": {
+            "pattern": "8A 40 68 24 70 3C 70",
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "MOV AL, [EAX+0x68] / AND AL, 0x70 / CMP AL, 0x70 -- reads NtGlobalFlag from PEB on x86 and checks for debugger heap flags (FLG_HEAP_ENABLE_TAIL_CHECK | FLG_HEAP_ENABLE_FREE_CHECK | FLG_HEAP_VALIDATE_PARAMETERS = 0x70)."
+        },
+        "ntglobalflag_x64": {
+            "pattern": "8A 80 BC 00 00 00 24 70 3C 70",
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "MOV AL, [RAX+0xBC] / AND AL, 0x70 / CMP AL, 0x70 -- reads NtGlobalFlag from PEB on x64 and checks for debugger heap flags (0x70)."
+        },
+        "kuser_shared_data_x86": {
+            "pattern": "A0 D4 02 FE 7F",
+            "severity": "MEDIUM",
+            "mitre": "T1622",
+            "description": "MOV AL, [0x7FFE02D4] -- reads KdDebuggerEnabled from the KUSER_SHARED_DATA structure at its fixed user-mode address on x86 to detect a kernel debugger."
+        },
+        "kuser_shared_data_x64": {
+            "pattern": "0F B6 05 CD 02 FE 7F",
+            "severity": "MEDIUM",
+            "mitre": "T1622",
+            "description": "MOVZX EAX, BYTE PTR [0x7FFE02D4] -- reads KdDebuggerEnabled from KUSER_SHARED_DATA at its fixed address on x64 to detect a kernel debugger."
+        },
+        "rdtsc_timing": {
+            "pattern": "0F 31",
+            "severity": "MEDIUM",
+            "mitre": "T1622",
+            "description": "RDTSC -- measures elapsed CPU cycles between two calls. Single-stepping in a debugger introduces measurable lag between two RDTSC reads, revealing the debugger presence."
+        },
+        "int2ah_timing": {
+            "pattern": "CD 2A",
+            "severity": "MEDIUM",
+            "mitre": "T1622",
+            "description": "INT 2Ah (KiGetTickCount syscall) -- kernel-mode tick count read via software interrupt. Used for timing-based anti-debug as an alternative to RDTSC, harder to hook."
+        },
+        "int3_short": {
+            "pattern": "CC",
+            "severity": "MEDIUM",
+            "mitre": "T1622",
+            "description": "INT 3 (1-byte opcode 0xCC) -- standard software breakpoint. Used in SEH-based anti-debug: without a debugger the EXCEPTION_BREAKPOINT is forwarded to the exception handler; with a debugger it is consumed."
+        },
+        "int3_long": {
+            "pattern": "CD 03",
+            "severity": "MEDIUM",
+            "mitre": "T1622",
+            "description": "INT 3 long form (2-byte opcode CD 03). Under a debugger the exception is consumed and EIP points mid-instruction; the misalignment can be exploited to detect tracing or corrupt the debugger's EIP."
+        },
+        "int2d": {
+            "pattern": "CD 2D",
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "INT 2Dh -- under a debugger this exception is consumed and the byte following INT 2Dh is skipped, causing disassembly desynchronization. A NOP placed after INT 2Dh is skipped under a debugger, altering the execution path."
+        },
+        "ice_undocumented": {
+            "pattern": "F1",
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "ICE -- Intel undocumented instruction (opcode 0xF1). Raises EXCEPTION_SINGLE_STEP (0x80000004). Under a debugger in trace mode, this exception is treated as a normal single-step and the handler is not called, revealing tracing."
+        },
+        "popf_trap_flag": {
+            "pattern": "9C 81 04 24 00 01 00 00 9D",
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "PUSHFD / ADD DWORD PTR [ESP], 0x100 / POPFD -- sets the Trap Flag in EFLAGS. Raises EXCEPTION_SINGLE_STEP; under a debugger the flag is cleared before delivery so the exception handler is never reached, revealing the debugger."
+        },
+        "rep_prefix_anti_trace": {
+            "pattern": "F3 64 F1",
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "REP prefix (0xF3) + FS segment override (0x64) + ICE (0xF1). Some debuggers (OllyDbg-like) skip the prefix and jump directly to the ICE instruction, altering control flow compared to non-debugged execution."
+        },
+        "pushss_popss_pushf": {
+            "pattern": "16 17 9C",
+            "severity": "MEDIUM",
+            "mitre": "T1622",
+            "description": "PUSH SS / POP SS / PUSHF -- after single-stepping through this sequence in a debugger, the Trap Flag is set in the pushed EFLAGS value and remains detectable. The debugger normally clears TF after each event but the push captures it before clearing."
+        },
+        "software_bp_scan_cc": {
+            "pattern": "80 3D CC",
+            "severity": "MEDIUM",
+            "mitre": "T1622",
+            "description": "CMP BYTE PTR [reg], 0xCC -- checks a memory byte against the INT3 opcode. Used to scan function prologues for software breakpoints placed by the debugger."
+        },
+        "hardware_bp_dr0_check_x86": {
+            "pattern": "64 A1 18 00 00 00",
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "MOV EAX, FS:[0x18] -- reads the TEB pointer on x86 as part of GetThreadContext-free DR register access to detect hardware breakpoints in DR0-DR3."
+        }
+    },
+
+    "combinations": [
+        {
+            "name": "Hardware breakpoint detection",
+            "requires": ["GetThreadContext", "GetCurrentThread"],
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "Retrieves the current thread context with CONTEXT_DEBUG_REGISTERS and checks DR0-DR3. A non-zero value in any debug register signals that a hardware breakpoint has been set by an attached debugger."
+        },
+        {
+            "name": "Timing-based anti-debug (GetTickCount)",
+            "requires": ["GetTickCount"],
+            "severity": "MEDIUM",
+            "mitre": "T1622",
+            "description": "Measures elapsed milliseconds between two GetTickCount calls around sensitive code. Excessive delay caused by single-stepping or breakpoints in a debugger exceeds the expected threshold."
+        },
+        {
+            "name": "Timing-based anti-debug (QueryPerformanceCounter)",
+            "requires": ["QueryPerformanceCounter"],
+            "severity": "MEDIUM",
+            "mitre": "T1622",
+            "description": "Measures elapsed high-resolution ticks between two QueryPerformanceCounter calls. Debugger single-stepping introduces measurable lag that exceeds normal execution delta."
+        },
+        {
+            "name": "Timing-based anti-debug (GetLocalTime)",
+            "requires": ["GetLocalTime"],
+            "severity": "LOW",
+            "mitre": "T1622",
+            "description": "Measures wall-clock time between two GetLocalTime calls. Coarse-grained timing check used to detect slow execution caused by debugger tracing."
+        },
+        {
+            "name": "Anti-Step-Over (WriteProcessMemory)",
+            "requires": ["WriteProcessMemory", "VirtualProtect"],
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "Checks the byte at the function's return address for 0xCC (INT3 step-over breakpoint) and patches it with 0x90 (NOP) using WriteProcessMemory after making it writable with VirtualProtect. Breaks the debugger's step-over or causes a crash."
+        },
+        {
+            "name": "Anti-Step-Over (Toolhelp32ReadProcessMemory)",
+            "requires": ["Toolhelp32ReadProcessMemory"],
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "Reads the byte at the return address via Toolhelp32ReadProcessMemory without direct memory access. Detects a step-over breakpoint (0xCC) placed by the debugger at the return address."
+        },
+        {
+            "name": "Memory breakpoint detection (guard page)",
+            "requires": ["VirtualAlloc", "VirtualProtect"],
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "Allocates an executable buffer containing 0xC3 (RET), marks it as a guard page (PAGE_GUARD), then jumps to it. OllyDbg and ImmunityDebugger implement memory breakpoints via guard pages -- their presence causes execution to reach the pushed 'debugger detected' address instead of the SEH handler."
+        },
+        {
+            "name": "Write-watch debugger detection",
+            "requires": ["VirtualAlloc", "GetWriteWatch"],
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "Allocates a MEM_WRITE_WATCH region and calls APIs that should not write to it. If GetWriteWatch reports unexpected writes, a debugger or API hook is probing the buffer (e.g. reading parameters passed to APIs)."
+        },
+        {
+            "name": "Function patch detection (IsDebuggerPresent hook)",
+            "requires": ["ReadProcessMemory", "CreateToolhelp32Snapshot", "Process32Next"],
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "Reads the first bytes of kernel32!IsDebuggerPresent from another process and compares them to the current process. A mismatch reveals that the function was patched or hooked by a debugger (e.g. ScyllaHide). Windows libraries share the same base address across all processes in a session."
+        },
+        {
+            "name": "DbgBreakPoint patch (anti-attach)",
+            "requires": ["GetModuleHandleA", "GetProcAddress", "VirtualProtect"],
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "Resolves ntdll!DbgBreakPoint via GetProcAddress, makes it writable, and patches the INT3 with RET (0xC3). Prevents the debugger from breaking in when attaching to the process -- the attach thread exits silently instead."
+        },
+        {
+            "name": "DbgUiRemoteBreakin patch (anti-attach / self-termination)",
+            "requires": ["GetProcAddress", "VirtualProtect"],
+            "severity": "CRITICAL",
+            "mitre": "T1622",
+            "description": "Resolves ntdll!DbgUiRemoteBreakin via GetProcAddress and patches it with a TerminateProcess call. Any attempt to attach a debugger to the process triggers immediate self-termination."
+        },
+        {
+            "name": "Self-debugging anti-attach",
+            "requires": ["DebugActiveProcess", "CreateProcess"],
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "Spawns a child process that calls DebugActiveProcess on the parent. Failure (returns FALSE) reveals that another debugger is already attached, as only one debugger can be attached to a process at a time."
+        },
+        {
+            "name": "OutputDebugString GetLastError trick",
+            "requires": ["OutputDebugStringA", "SetLastError", "GetLastError"],
+            "severity": "MEDIUM",
+            "mitre": "T1622",
+            "description": "Sets a known error code, calls OutputDebugStringA, then checks GetLastError. A debugger consuming the DBG_PRINTEXCEPTION_C event leaves the error code unchanged. Pre-Vista technique; ineffective against modern debuggers."
+        },
+        {
+            "name": "Parent process check (NtQueryInformationProcess)",
+            "requires": ["NtQueryInformationProcess", "GetShellWindow", "GetWindowThreadProcessId"],
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "Compares the parent process PID (from ProcessBasicInformation) against the PID of explorer.exe (obtained via GetShellWindow + GetWindowThreadProcessId). A different parent indicates the process was launched from a debugger."
+        },
+        {
+            "name": "Parent process check (Toolhelp32)",
+            "requires": ["CreateToolhelp32Snapshot", "Process32First", "Process32Next"],
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "Iterates processes via Toolhelp32 to find the current process's parent PID and compare its name against 'explorer.exe'. A parent other than explorer.exe (e.g. a debugger or cmd.exe) triggers detection."
+        },
+        {
+            "name": "VEH instruction counting anti-debug",
+            "requires": ["AddVectoredExceptionHandler", "RemoveVectoredExceptionHandler"],
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "Registers a VEH to count EXCEPTION_SINGLE_STEP events triggered by hardware breakpoints set on a NOP sled. Under a debugger, single-step events are intercepted before the VEH, causing the counter to reach an unexpected value."
+        },
+        {
+            "name": "SwitchToThread anti-tracing",
+            "requires": ["SwitchToThread", "NtYieldExecution"],
+            "severity": "MEDIUM",
+            "mitre": "T1622",
+            "description": "Loops calling SwitchToThread (wrapping NtYieldExecution). Under single-step tracing in a debugger, no context switch can occur and both return 0/STATUS_NO_YIELD_PERFORMED respectively. A counter reaching the expected value confirms tracing."
+        },
+        {
+            "name": "CreateFile process binary exclusive open",
+            "requires": ["CreateFileA", "GetModuleFileNameA"],
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "Attempts to exclusively open the current process's own executable file (GENERIC_READ, share=0). Fails if a debugger holds an unclosed handle from the CREATE_PROCESS_DEBUG_EVENT, revealing debugger presence."
+        },
+        {
+            "name": "LoadLibrary handle leak detection",
+            "requires": ["LoadLibraryA", "CreateFileA"],
+            "severity": "MEDIUM",
+            "mitre": "T1622",
+            "description": "Loads a DLL via LoadLibraryA then immediately tries to open it with exclusive access via CreateFileA. If the open fails, the debugger did not close the LOAD_DLL_DEBUG_INFO handle from the LOAD_DLL_DEBUG_EVENT."
+        },
+        {
+            "name": "Dynamic NTAPI resolution for anti-debug",
+            "requires": ["LoadLibraryA", "GetProcAddress"],
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "Loads ntdll.dll at runtime and resolves native NT APIs (NtQueryInformationProcess, NtClose, NtSetInformationThread, etc.) via GetProcAddress. Bypasses static import analysis and hooks placed on Win32 wrappers."
+        }
+    ]
 }
