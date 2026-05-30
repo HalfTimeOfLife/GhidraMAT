@@ -41,11 +41,6 @@
             "mitre": "T1622",
             "description": "Native variant of CloseHandle. Passing an invalid handle (e.g. 0xDEADBEEF) raises EXCEPTION_INVALID_HANDLE (0xC0000008) under a debugger instead of silently failing -- revealing debugger presence via the exception. Used directly to bypass hooks on kernel32!CloseHandle."
         },
-        "CloseHandle": {
-            "severity": "MEDIUM",
-            "mitre": "T1622",
-            "description": "Passing an invalid handle (e.g. 0xDEADBEEF) raises EXCEPTION_INVALID_HANDLE (0xC0000008) under a debugger, while it silently fails without one. The exception caught by an SEH handler confirms debugger presence."
-        },
         "HeapWalk": {
             "severity": "MEDIUM",
             "mitre": "T1622",
@@ -102,9 +97,8 @@
         },
         "Toolhelp32ReadProcessMemory": {
             "severity": "MEDIUM",
-            "combo_only": true,
             "mitre": "T1622",
-            "description": "Reads a byte at the return address of the calling function. If the byte is 0xCC (INT3), a step-over breakpoint is present. Meaningful only in combination with VirtualProtect."
+            "description": "Reads a byte at the return address of the calling function. If the byte is 0xCC (INT3), a step-over breakpoint is present."
         },
         "NtQueryVirtualMemory": {
             "severity": "HIGH",
@@ -222,34 +216,19 @@
             "description": "Checks whether the error code was overwritten after OutputDebugStringA. Meaningful only in combination with SetLastError and OutputDebugStringA."
         },
         "GetLocalTime": {
-            "severity": "LOW",
-            "combo_only": true,
+            "severity": "MEDIUM",
             "mitre": "T1622",
-            "description": "Used in timing-based anti-debug: elapsed time between two GetLocalTime calls is compared against a threshold -- single-stepping in a debugger introduces measurable delay. Meaningful only in combination."
-        },
-        "GetSystemTime": {
-            "severity": "LOW",
-            "combo_only": true,
-            "mitre": "T1622",
-            "description": "Used in timing-based anti-debug: elapsed time between two GetSystemTime calls is compared against a threshold. Meaningful only in combination."
+            "description": "Used in timing-based anti-debug: elapsed time between two GetLocalTime calls is compared against a threshold -- single-stepping in a debugger introduces measurable delay."
         },
         "GetTickCount": {
-            "severity": "LOW",
-            "combo_only": true,
+            "severity": "MEDIUM",
             "mitre": "T1622",
-            "description": "Used in timing-based anti-debug: measures elapsed milliseconds between two calls to detect single-stepping. Meaningful only in combination."
+            "description": "Used in timing-based anti-debug: measures elapsed milliseconds between two calls to detect single-stepping."
         },
         "QueryPerformanceCounter": {
-            "severity": "LOW",
-            "combo_only": true,
+            "severity": "MEDIUM",
             "mitre": "T1622",
-            "description": "High-resolution timer used to measure elapsed ticks between two calls. Single-stepping in a debugger introduces measurable delay. Meaningful only in combination."
-        },
-        "timeGetTime": {
-            "severity": "LOW",
-            "combo_only": true,
-            "mitre": "T1622",
-            "description": "Multimedia timer used to measure elapsed milliseconds between two calls for timing-based debugger detection. Meaningful only in combination."
+            "description": "High-resolution timer used to measure elapsed ticks between two calls. Single-stepping in a debugger introduces measurable delay."
         },
         "LoadLibraryA": {
             "severity": "LOW",
@@ -274,9 +253,56 @@
             "combo_only": true,
             "mitre": "T1622",
             "description": "Unicode variant of CreateFileA. Used in the same process binary and DLL handle leak detection tricks."
+        },
+        "GetProcAddress": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1622",
+            "description": "Resolves functions by name at runtime; meaningful only in combination with LoadLibraryA (dynamic NTAPI resolution) or with VirtualProtect (DbgBreakPoint/DbgUiRemoteBreakin patching)."
+        },
+        "GetModuleHandle": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1622",
+            "description": "Retrieves a module base address; meaningful only in combination with GetProcAddress for DbgBreakPoint patch anti-attach."
+        },
+        "TerminateProcess": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1622",
+            "description": "Terminates a process; meaningful only in combination with GetProcAddress and VirtualProtect for DbgUiRemoteBreakin patching (self-termination on debugger attach)."
+        },
+        "CreateToolhelp32Snapshot": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1622",
+            "description": "Creates a process snapshot; meaningful only in combination with Process32First/Process32Next for parent process name enumeration (anti-debug parent check)."
+        },
+        "Process32First": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1622",
+            "description": "Starts iteration over a Toolhelp32 snapshot; meaningful only in combination with CreateToolhelp32Snapshot and Process32Next for parent process anti-debug check."
+        },
+        "Process32Next": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1622",
+            "description": "Iterates over a Toolhelp32 snapshot; meaningful only in combination with CreateToolhelp32Snapshot and Process32First for parent process anti-debug check, or with ReadProcessMemory for function hook detection."
+        },
+        "GetModuleFileNameA": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1622",
+            "description": "Retrieves the current process executable path; meaningful only in combination with CreateFileA for exclusive-open debugger handle leak detection."
+        },
+        "GetModuleFileNameW": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1622",
+            "description": "Unicode variant of GetModuleFileNameA; meaningful only in combination with CreateFileW for exclusive-open debugger handle leak detection."
         }
     },
-
     "strings": {
         "OLLYDBG": {
             "severity": "HIGH",
@@ -421,7 +447,7 @@
         "DbgUiRemoteBreakin": {
             "severity": "HIGH",
             "mitre": "T1622",
-            "description": "Name of ntdll!DbgUiRemoteBreakin resolved via GetProcAddress to patch it with a TerminateProcess call, killing the process when a debugger attempts to attach."
+            "description": "Name of ntdll!DbgUiRemoteBreakin resolved via GetProcAddress and patched with a TerminateProcess call, killing the process when a debugger attempts to attach."
         },
         "CsrGetProcessId": {
             "severity": "HIGH",
@@ -429,7 +455,6 @@
             "description": "Undocumented ntdll export resolved via GetProcAddress to get the PID of csrss.exe. Used to call OpenProcess on csrss.exe -- succeeds only with SeDebugPrivilege (i.e. under a debugger)."
         }
     },
-
     "byte_patterns": {
         "peb_beingdebugged_x86": {
             "pattern": "64 A1 30 00 00 00",
@@ -479,12 +504,6 @@
             "mitre": "T1622",
             "description": "INT 2Ah (KiGetTickCount syscall) -- kernel-mode tick count read via software interrupt. Used for timing-based anti-debug as an alternative to RDTSC, harder to hook."
         },
-        "int3_short": {
-            "pattern": "CC",
-            "severity": "MEDIUM",
-            "mitre": "T1622",
-            "description": "INT 3 (1-byte opcode 0xCC) -- standard software breakpoint. Used in SEH-based anti-debug: without a debugger the EXCEPTION_BREAKPOINT is forwarded to the exception handler; with a debugger it is consumed."
-        },
         "int3_long": {
             "pattern": "CD 03",
             "severity": "MEDIUM",
@@ -522,10 +541,10 @@
             "description": "PUSH SS / POP SS / PUSHF -- after single-stepping through this sequence in a debugger, the Trap Flag is set in the pushed EFLAGS value and remains detectable. The debugger normally clears TF after each event but the push captures it before clearing."
         },
         "software_bp_scan_cc": {
-            "pattern": "80 3D CC",
+            "pattern": "80 3D ?? ?? ?? ?? CC",
             "severity": "MEDIUM",
             "mitre": "T1622",
-            "description": "CMP BYTE PTR [reg], 0xCC -- checks a memory byte against the INT3 opcode. Used to scan function prologues for software breakpoints placed by the debugger."
+            "description": "CMP BYTE PTR [RIP+disp32], 0xCC -- checks a memory location against the INT3 opcode. Used to scan function prologues for software breakpoints placed by the debugger. The four wildcard bytes cover the RIP-relative 32-bit displacement on x64."
         },
         "hardware_bp_dr0_check_x86": {
             "pattern": "64 A1 18 00 00 00",
@@ -534,35 +553,13 @@
             "description": "MOV EAX, FS:[0x18] -- reads the TEB pointer on x86 as part of GetThreadContext-free DR register access to detect hardware breakpoints in DR0-DR3."
         }
     },
-
     "combinations": [
         {
             "name": "Hardware breakpoint detection",
             "requires": ["GetThreadContext", "GetCurrentThread"],
-            "severity": "HIGH",
+            "severity": "CRITICAL",
             "mitre": "T1622",
             "description": "Retrieves the current thread context with CONTEXT_DEBUG_REGISTERS and checks DR0-DR3. A non-zero value in any debug register signals that a hardware breakpoint has been set by an attached debugger."
-        },
-        {
-            "name": "Timing-based anti-debug (GetTickCount)",
-            "requires": ["GetTickCount"],
-            "severity": "MEDIUM",
-            "mitre": "T1622",
-            "description": "Measures elapsed milliseconds between two GetTickCount calls around sensitive code. Excessive delay caused by single-stepping or breakpoints in a debugger exceeds the expected threshold."
-        },
-        {
-            "name": "Timing-based anti-debug (QueryPerformanceCounter)",
-            "requires": ["QueryPerformanceCounter"],
-            "severity": "MEDIUM",
-            "mitre": "T1622",
-            "description": "Measures elapsed high-resolution ticks between two QueryPerformanceCounter calls. Debugger single-stepping introduces measurable lag that exceeds normal execution delta."
-        },
-        {
-            "name": "Timing-based anti-debug (GetLocalTime)",
-            "requires": ["GetLocalTime"],
-            "severity": "LOW",
-            "mitre": "T1622",
-            "description": "Measures wall-clock time between two GetLocalTime calls. Coarse-grained timing check used to detect slow execution caused by debugger tracing."
         },
         {
             "name": "Anti-Step-Over (WriteProcessMemory)",
@@ -570,13 +567,6 @@
             "severity": "HIGH",
             "mitre": "T1622",
             "description": "Checks the byte at the function's return address for 0xCC (INT3 step-over breakpoint) and patches it with 0x90 (NOP) using WriteProcessMemory after making it writable with VirtualProtect. Breaks the debugger's step-over or causes a crash."
-        },
-        {
-            "name": "Anti-Step-Over (Toolhelp32ReadProcessMemory)",
-            "requires": ["Toolhelp32ReadProcessMemory"],
-            "severity": "HIGH",
-            "mitre": "T1622",
-            "description": "Reads the byte at the return address via Toolhelp32ReadProcessMemory without direct memory access. Detects a step-over breakpoint (0xCC) placed by the debugger at the return address."
         },
         {
             "name": "Memory breakpoint detection (guard page)",
@@ -601,17 +591,17 @@
         },
         {
             "name": "DbgBreakPoint patch (anti-attach)",
-            "requires": ["GetModuleHandleA", "GetProcAddress", "VirtualProtect"],
+            "requires": ["GetModuleHandle", "GetProcAddress", "VirtualProtect"],
             "severity": "HIGH",
             "mitre": "T1622",
             "description": "Resolves ntdll!DbgBreakPoint via GetProcAddress, makes it writable, and patches the INT3 with RET (0xC3). Prevents the debugger from breaking in when attaching to the process -- the attach thread exits silently instead."
         },
         {
             "name": "DbgUiRemoteBreakin patch (anti-attach / self-termination)",
-            "requires": ["GetProcAddress", "VirtualProtect"],
+            "requires": ["GetProcAddress", "VirtualProtect", "TerminateProcess"],
             "severity": "CRITICAL",
             "mitre": "T1622",
-            "description": "Resolves ntdll!DbgUiRemoteBreakin via GetProcAddress and patches it with a TerminateProcess call. Any attempt to attach a debugger to the process triggers immediate self-termination."
+            "description": "Resolves ntdll!DbgUiRemoteBreakin via GetProcAddress, makes it writable with VirtualProtect, and overwrites it with a TerminateProcess stub. Any attempt to attach a debugger triggers immediate self-termination. TerminateProcess distinguishes this from benign GetProcAddress + VirtualProtect usage."
         },
         {
             "name": "Self-debugging anti-attach",
@@ -630,7 +620,7 @@
         {
             "name": "Parent process check (NtQueryInformationProcess)",
             "requires": ["NtQueryInformationProcess", "GetShellWindow", "GetWindowThreadProcessId"],
-            "severity": "HIGH",
+            "severity": "CRITICAL",
             "mitre": "T1622",
             "description": "Compares the parent process PID (from ProcessBasicInformation) against the PID of explorer.exe (obtained via GetShellWindow + GetWindowThreadProcessId). A different parent indicates the process was launched from a debugger."
         },
@@ -664,7 +654,7 @@
         },
         {
             "name": "LoadLibrary handle leak detection",
-            "requires": ["LoadLibraryA", "CreateFileA"],
+            "requires": ["LoadLibraryA","CreateFileA"],
             "severity": "MEDIUM",
             "mitre": "T1622",
             "description": "Loads a DLL via LoadLibraryA then immediately tries to open it with exclusive access via CreateFileA. If the open fails, the debugger did not close the LOAD_DLL_DEBUG_INFO handle from the LOAD_DLL_DEBUG_EVENT."
@@ -675,6 +665,20 @@
             "severity": "HIGH",
             "mitre": "T1622",
             "description": "Loads ntdll.dll at runtime and resolves native NT APIs (NtQueryInformationProcess, NtClose, NtSetInformationThread, etc.) via GetProcAddress. Bypasses static import analysis and hooks placed on Win32 wrappers."
+        },
+        {
+            "name": "LoadLibrary handle leak detection (Unicode)",
+            "requires": ["LoadLibraryW", "CreateFileW"],
+            "severity": "MEDIUM",
+            "mitre": "T1622",
+            "description": "Unicode variant: loads a DLL via LoadLibraryW then exclusively opens it with CreateFileW. If the open fails, the debugger did not close the LOAD_DLL_DEBUG_INFO handle from the LOAD_DLL_DEBUG_EVENT."
+        },
+        {
+            "name": "CreateFile process binary exclusive open (Unicode)",
+            "requires": ["CreateFileW", "GetModuleFileNameW"],
+            "severity": "HIGH",
+            "mitre": "T1622",
+            "description": "Unicode variant: attempts to exclusively open the current process executable via CreateFileW. Fails if a debugger holds an unclosed CREATE_PROCESS_DEBUG_EVENT handle, revealing debugger presence."
         }
     ]
 }

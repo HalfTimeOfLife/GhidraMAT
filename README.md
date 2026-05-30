@@ -15,7 +15,7 @@ The file `detection.py` provides the generic detection engine for all GhidraMAT 
 | Category | What it detects | Status |
 |---|---|---|
 | `anti_vm` | VM environment detection — `CPUID` hypervisor checks, firmware/SMBIOS table scanning, hardware fingerprinting, timing anomalies (`RDTSC`, sleep-skipping), user activity absence, VM-specific registry keys, device paths and process names | UP |
-| `anti_debug` | `IsDebuggerPresent`, `NtQueryInformationProcess`, breakpoint scanning, SEH tricks | WIP |
+| `anti_debug` | `IsDebuggerPresent`, `NtQueryInformationProcess`, breakpoint scanning, SEH tricks | UP |
 | `packer` | Section entropy (Shannon > 7.2), malformed PE headers, abnormal section names, TLS callbacks, low import count | WIP |
 | `network` | C2 indicators, hardcoded IPs/URLs, suspicious User-Agents, DGA-like strings, raw socket usage | WIP |
 | `crypto` | AES S-box constants, RC4 key scheduling patterns, rolling XOR, custom magic constants | WIP |
