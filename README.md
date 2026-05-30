@@ -6,6 +6,8 @@
 
 Ghidra script framework for automated static detection of malware behaviors: anti-debug, anti-VM, packing, C2 indicators, process injection, persistence and defense impairment.
 
+[![CI](https://github.com/HalfTimeOfLife/GhidraMAT/actions/workflows/ci.yml/badge.svg)](https://github.com/HalfTimeOfLife/GhidraMAT/actions/workflows/ci.yml)
+
 ---
 
 ## Detection Modules

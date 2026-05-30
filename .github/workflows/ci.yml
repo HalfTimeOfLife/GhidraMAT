@@ -1,0 +1,23 @@
+name: CI
+on:
+  push:
+    branches: [master]
+  pull_request:
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: pip install ruff==0.4.4 pytest
+      - name: Lint with ruff
+        run: ruff check .
+      - name: Validate signatures
+        run: python scripts/validate_signatures.py
+      - name: Run tests
+        run: pytest
