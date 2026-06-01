@@ -34,6 +34,7 @@ Signatures are fully **decoupled from detection logic**. API names, byte pattern
 ```
 GhidraMAT/
 ├── analyzer.py                 # Main runner
+├── conftest.py                 # pytest path configuration
 ├── ruff.toml                   # Ruff linter configuration
 ├── core/
 │   ├── context.py              # Wraps Ghidra program object
@@ -51,6 +52,9 @@ GhidraMAT/
 │   ├── network.json
 │   ├── packer.json
 │   └── persistence.json
+├── tests/
+│   ├── test_finding.py
+│   └── test_validate_signatures.py
 └── utils/
     ├── detection.py            # Detection engine
     ├── pattern.py              # Byte pattern scanner
@@ -105,9 +109,17 @@ The `reports/` directory is excluded from version control via `.gitignore`.
 
 - Ghidra 10.x or later
 - PyGhidra — [Installation guide](https://github.com/NationalSecurityAgency/ghidra/blob/master/Ghidra/Features/PyGhidra/src/main/py/README.md)
-- `pre-commit` and `ruff` — `pip install pre-commit ruff && pre-commit install`
+- `pre-commit`, `ruff`, and `pytest` — `pip install pre-commit ruff pytest && pre-commit install`
 
 ---
+
+## Running tests
+
+```bash
+pytest
+```
+
+--- 
 
 ## Getting Started
 
@@ -139,3 +151,7 @@ The analyzer can be launched using the toolbar icon: ![GhidraMAT](ghidramat_icon
 By default, the analyzer can be launched using the key binding `Ctrl+Shift+A`.
 
 ---
+
+## Project status
+
+See [ROADMAP.md](ROADMAP.md) for the planned release schedule and [CHANGELOG.md](CHANGELOG.md) for the history of changes.
