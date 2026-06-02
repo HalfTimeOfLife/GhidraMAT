@@ -235,6 +235,10 @@ Signatures in this project are based on and cross-referenced against the followi
 
 - [CheckPoint Evasions](https://evasions.checkpoint.com/)
 - [Unprotect Project](https://www.unprotect.it/)
-- [al-khaser](https://github.com/ayoubfaouzi/al-khaser)
+- [malapi.io](https://malapi.io/)
 
 ---
+
+## Test Binary
+
+- [al-khaser](https://github.com/ayoubfaouzi/al-khaser)

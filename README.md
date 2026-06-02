@@ -8,6 +8,8 @@ Ghidra script framework for automated static detection of malware behaviors: ant
 
 [![CI](https://github.com/HalfTimeOfLife/GhidraMAT/actions/workflows/ci.yml/badge.svg)](https://github.com/HalfTimeOfLife/GhidraMAT/actions/workflows/ci.yml)
 
+> **Platform support:** GhidraMAT currently targets **Windows PE binaries**. Linux ELF and macOS Mach-O support is planned for a future release.
+
 ---
 
 ## Detection Modules

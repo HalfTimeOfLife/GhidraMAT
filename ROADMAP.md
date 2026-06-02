@@ -127,9 +127,11 @@ extraction and require dataflow or pattern-based reconstruction to surface them.
 
 ## v1.0+ — Ongoing maintenance
 
-GhidraMAT will continue to evolve after v1.0. New signatures will be added as new evasion
-techniques, packers, or malware behaviors are discovered or documented. New features may
-also be introduced if relevant improvements are identified.
+GhidraMAT will continue to evolve after v1.0. New signatures will be added as new evasion techniques, packers, or malware behaviors are discovered or documented. New features may also be introduced if relevant improvements are identified.
+
+**Linux and macOS coverage**
+
+Extend all signature files with platform-specific techniques for Linux ELF and macOS  binaries. Only techniques that are genuinely relevant to each platform will be added.
 
 ---
 
