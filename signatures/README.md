@@ -185,6 +185,17 @@ The combination tells you *how*, the string tells you *what target*.
 
 ---
 
+## Severity Levels
+
+| Level | Meaning |
+|---|---|
+| `LOW` | Present in almost all binaries; only meaningful alongside other indicators |
+| `MEDIUM` | Uncommon in legitimate software; warrants investigation |
+| `HIGH` | Strongly indicative of malicious or evasive behavior |
+| `CRITICAL` | Near-certain indicator, typically from a multi-API combination |
+
+---
+
 ## Adding a New Category
 
 If you need to add a new detection category:
@@ -203,22 +214,36 @@ If you need to add a new detection category:
 
 2. Add the category name to `CATEGORIES` in `analyzer.py`.
 
-3. Validate the new file before committing:
+
+
+---
+
+## Validating signature files
+
+To validate the integrity of the signature files, use the script [scripts/validate_signatures.py](../scripts/validate_signatures.py):
 
 ```bash
 python scripts/validate_signatures.py
 ```
 
----
+If the files are correct : it will display :
 
-## Severity Levels
+```bash
+All 8 signature file(s) are valid.
+ ```
 
-| Level | Meaning |
-|---|---|
-| `LOW` | Present in almost all binaries; only meaningful alongside other indicators |
-| `MEDIUM` | Uncommon in legitimate software; warrants investigation |
-| `HIGH` | Strongly indicative of malicious or evasive behavior |
-| `CRITICAL` | Near-certain indicator, typically from a multi-API combination |
+Else, it will list the error :
+
+```bash
+Validation failed — 6 error(s):
+
+  [anti_vm.json] imports.SetupDiEnumDeviceInfo: invalid severity 'ZMEDIUM'
+  [injection.json] missing detection types (top-level keys): {'imports'}
+  [injection.json] unknown top-level keys (typo?): {'import'}
+  [injection.json] sig_version mismatch: expected 1, got 12
+  [injection.json] imports.WriteProcessMemory: invalid severity 'MAEDaIUM'
+  [injection.json] byte_patterns.process_hollowing_create_suspended: invalid byte token 'Y00' in pattern
+```
 
 ---
 
@@ -241,4 +266,80 @@ Signatures in this project are based on and cross-referenced against the followi
 
 ## Test Binary
 
+### Anti-vm:
 - [al-khaser](https://github.com/ayoubfaouzi/al-khaser)
+
+**Signatures covered by al-khaser:**
+
+| Category | Signatures |
+|----------|-----------|
+| **Registry** | `RegOpenKeyEx`, `RegQueryValueEx`, `RegEnumKeyEx` |
+| **Firmware** | `GetSystemFirmwareTable`, `EnumSystemFirmwareTables` |
+| **Device enumeration** | `SetupDiGetClassDevs`, `SetupDiEnumDeviceInfo`, `SetupDiGetDeviceRegistryProperty`, `DeviceIoControl` |
+| **Network** | `GetAdaptersAddresses`, `GetAdaptersInfo`, `WNetGetProviderName` |
+| **Process enumeration** | `CreateToolhelp32Snapshot`, `EnumProcesses`, `Process32First`, `Process32Next`, `Process32FirstW`, `Process32NextW`, `Module32First`, `Module32Next` |
+| **Filesystem** | `GetFileAttributesA`, `GetFileAttributesW`, `FindFirstFileA`, `FindFirstFileW` |
+| **Disk info** | `GetDiskFreeSpaceExA`, `GetDiskFreeSpaceExW`, `GetVolumeInformationA`, `GetVolumeInformationW` |
+| **System info** | `GetSystemInfo`, `GlobalMemoryStatusEx`, `GetSystemMetrics`, `GetCursorPos`, `GetLastInputInfo`, `GetPwrCapabilities` |
+| **Timing** | `GetTickCount`, `Sleep`, `QueryPerformanceCounter`, `QueryPerformanceFrequency`, `WaitForSingleObject`, `WaitForMultipleObjects`, `NtDelayExecution`, `CreateWaitableTimer`, `timeSetEvent`, `IcmpSendEcho` |
+| **Display** | `EnumDisplayDevicesA`, `Direct3DCreate9` |
+| **Services** | `OpenSCManagerA`, `OpenSCManagerW`, `EnumServicesStatusW` |
+| **WMI** | `CoInitializeEx`, `CoCreateInstance` |
+| **User/Computer** | `GetUserNameA`, `GetUserNameW`, `GetComputerNameA`, `GetComputerNameW`, `GetComputerNameExW` |
+| **Mutex** | `CreateMutexA`, `OpenMutexA` |
+| **Device paths** | `CreateFileA`, `CreateFileW` |
+| **Dynamic API** | `GetModuleHandle`, `GetProcAddress` |
+| **License** | `NtQueryLicenseValue`, `IsNativeVhdBoot` |
+| **Wine** | `MulDiv` |
+| **Window** | `FindWindowA`, `EnumWindows` |
+| **OpenProcess** | `OpenProcess` |
+| **Strings** | `VMware, Inc.`, `VMware`, `VMwareVMware`, `VBOX`, `VBoxVBoxVBox`, `VBoxGuest`, `VBoxService`, `VBoxTrayToolWndClass`, `vmtoolsd.exe`, `vboxservice.exe`, `vmwaretray.exe`, `vmwareuser.exe`, `vmacthlp.exe`, `vboxtray.exe`, `VBoxControl.exe`, `qemu-ga.exe`, `prl_cc.exe`, `sbiedll.dll`, `snxhk.dll`, `pstorec.dll`, `dir_watch.dll`, `vmcheck.dll`, `api_log.dll`, `Kernel-VMDetection-Private`, `sandbox`, `malware`, `virus`, `SANDBOX`, `CUCKOO`, `QEMU`, `VIRTUAL HD`, `Hyper-V`, `Microsoft Hv`, `KVMKVMKVM`, `XenVMMXenVMM`, `prl hyperv`, `wine_get_unix_file_name`, `wine_get_host_version`, `VMware SVGA II`, `VirtualBox Graphics Adapter`, `VBOX HARDDISK`, `VMware Virtual disk` |
+| **Paths** | `C:\Windows\System32\drivers\VBoxMouse.sys`, `C:\Windows\System32\drivers\VBoxGuest.sys`, `C:\Windows\System32\drivers\VBoxSF.sys`, `C:\Windows\System32\drivers\VBoxVideo.sys`, `C:\Windows\System32\vboxdisp.dll`, `C:\Windows\System32\vboxhook.dll`, `C:\Windows\System32\vboxmrxnp.dll`, `C:\Windows\System32\drivers\vmhgfs.sys`, `C:\Windows\System32\drivers\vmmouse.sys`, `C:\Windows\System32\drivers\vmmemctl.sys`, `C:\Windows\System32\drivers\vmci.sys`, `HKLM\SOFTWARE\VMware, Inc.\VMware Tools`, `HKLM\SOFTWARE\Oracle\VirtualBox Guest Additions`, `HKLM\SYSTEM\CurrentControlSet\Services\VBoxGuest`, `HKLM\SYSTEM\ControlSet001\Services\VBoxSF`, `HKLM\HARDWARE\ACPI\DSDT\VBOX__`, `HKLM\HARDWARE\ACPI\FADT\VBOX__`, `HKLM\HARDWARE\ACPI\RSDT\VBOX__`, `HKLM\SYSTEM\CurrentControlSet\Enum\SCSI\Disk&Ven_VMware_&Prod_VMware_Virtual_S`, `\\.\VBoxMiniRdrDN`, `\\.\pipe\VBoxTrayIPC`, `\\.\VBoxGuest`, `\\.\HGFS`, `\\.\vmci` |
+| **Byte patterns** | `cpuid_check`, `cpuid_hypervisor_leaf`, `rdtsc_timing`, `vmware_io_port`, `sidt_check`, `sgdt_check`, `sldt_check`, `str_check` |
+
+---
+
+### Anti-debug:
+- [al-khaser](https://github.com/ayoubfaouzi/al-khaser)
+
+**Signatures covered by al-khaser:**
+
+| Category | Signatures |
+|----------|-----------|
+| **Basic debugger checks** | `IsDebuggerPresent`, `CheckRemoteDebuggerPresent`, `NtQueryInformationProcess`, `RtlQueryProcessHeapInformation`, `RtlQueryProcessDebugInformation`, `NtQuerySystemInformation`, `NtQueryObject`, `NtClose`, `HeapWalk`, `DebugBreak`, `GetThreadContext`, `GetCurrentThread`, `NtQueryVirtualMemory` |
+| **Exception handling** | `SetUnhandledExceptionFilter`, `RaiseException`, `AddVectoredExceptionHandler`, `RemoveVectoredExceptionHandler` |
+| **Anti-attach** | `NtSetInformationThread`, `DebugActiveProcess`, `CreateProcess`, `DbgSetDebugFilterState`, `NtSetDebugFilterState` |
+| **Timing** | `GetLocalTime`, `GetTickCount`, `QueryPerformanceCounter`, `SwitchToThread`, `NtYieldExecution` |
+| **Window detection** | `FindWindowA`, `FindWindowW`, `FindWindowExA`, `FindWindowExW`, `GetShellWindow`, `GetWindowThreadProcessId` |
+| **OutputDebugString** | `OutputDebugStringA`, `SetLastError`, `GetLastError` |
+| **Memory manipulation** | `WriteProcessMemory`, `VirtualAlloc`, `VirtualProtect`, `ReadProcessMemory`, `GetWriteWatch`, `Toolhelp32ReadProcessMemory` |
+| **Process/Thread** | `OpenProcess`, `CreateToolhelp32Snapshot`, `Process32First`, `Process32Next`, `TerminateProcess` |
+| **Dynamic API** | `LoadLibraryA`, `LoadLibraryW`, `GetProcAddress`, `GetModuleHandle`, `CreateFileA`, `CreateFileW`, `GetModuleFileNameA`, `GetModuleFileNameW` |
+| **Strings** | `OLLYDBG`, `WinDbgFrameClass`, `ID`, `ObsidianGUI`, `Qt5QWindowIcon`, `Zeta Debugger`, `Rock Debugger`, `antidbg`, `x64dbg`, `ollydbg.exe`, `x64dbg.exe`, `x32dbg.exe`, `windbg.exe`, `idag.exe`, `idag64.exe`, `idaw.exe`, `idaw64.exe`, `immunitydebugger.exe`, `petools.exe`, `lordpe.exe`, `ProcessHacker.exe`, `dbgview.exe`, `ThreadHideFromDebugger`, `IsDebuggerPresent`, `CheckRemoteDebuggerPresent`, `NtQueryInformationProcess`, `ntdll.dll`, `DbgBreakPoint`, `DbgUiRemoteBreakin`, `CsrGetProcessId` |
+| **Byte patterns** | `peb_beingdebugged_x86`, `peb_beingdebugged_x64`, `ntglobalflag_x86`, `ntglobalflag_x64`, `kuser_shared_data_x86`, `kuser_shared_data_x64`, `rdtsc_timing`, `int2ah_timing`, `int3_long`, `int2d`, `ice_undocumented`, `popf_trap_flag`, `rep_prefix_anti_trace`, `pushss_popss_pushf`, `software_bp_scan_cc`, `hardware_bp_dr0_check_x86` |
+
+---
+
+### Injection:
+
+Test binaries from [atomic-red-team](https://github.com/redcanaryco/atomic-red-team.git)
+
+```bash
+git clone https://github.com/redcanaryco/atomic-red-team.git
+# Binaries are located in:
+#   atomics/T1055/bin/x64/
+#   atomics/T1055.002/bin/
+#   atomics/T1055.004/bin/x64/
+#   atomics/T1055.012/bin/x64/
+#   atomics/T1055.015/bin/
+```
+
+| Technique                  | Binary                    | `injection.json` Signatures Tested                                                       |
+| -------------------------- | ------------------------- | ---------------------------------------------------------------------------------------- |
+| Process Hollowing          | `CreateProcess.exe`       | `CreateProcessW`, `NtUnmapViewOfSection`, `SetThreadContext`, `pe_magic_embedded`        |
+| APC Injection (Early Bird) | `EarlyBird.exe`           | `QueueUserAPC`, `CreateProcessA`, `VirtualAllocEx`, `WriteProcessMemory`, `ResumeThread` |
+| Native APC                 | `NtQueueApcThreadEx.exe`  | `NtQueueApcThreadEx`, `NtQueueApcThread`                                                 |
+| Section-based injection    | `InjectView.exe`          | `NtCreateSection`, `NtMapViewOfSection`                                                  |
+| Native remote thread       | `RtlCreateUserThread.exe` | `RtlCreateUserThread`, `VirtualAllocEx`, `WriteProcessMemory`, `VirtualProtectEx`        |
+| ListPlanting               | `ListPlanting.exe`        | `FindWindow`, `SendMessage`, `PostMessage`, `VirtualAllocEx`                             |
+| PE Injection               | `RedInjection.exe`        | `pe_magic_embedded` (byte pattern)                                                       |

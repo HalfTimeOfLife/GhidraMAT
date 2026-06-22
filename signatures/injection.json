@@ -1,7 +1,639 @@
 {
     "sig_version": 1,
-    "imports": {},
-    "strings": {},
-    "byte_patterns": {},
-    "combinations": []
+    "imports": {
+        "CreateRemoteThread": {
+            "severity": "HIGH",
+            "mitre": "T1055.001",
+            "description": "Creates a thread in a remote process -- primary mechanism for classic DLL injection and shellcode injection into foreign processes."
+        },
+        "CreateRemoteThreadEx": {
+            "severity": "HIGH",
+            "mitre": "T1055.001",
+            "description": "Extended variant of CreateRemoteThread; allows specifying a processor group for the injected thread."
+        },
+        "NtCreateThreadEx": {
+            "severity": "HIGH",
+            "mitre": "T1055.001",
+            "description": "Native NT API to create a remote thread; bypasses user-mode hooks on CreateRemoteThread."
+        },
+        "RtlCreateUserThread": {
+            "severity": "HIGH",
+            "mitre": "T1055.001",
+            "description": "Undocumented NT function used to create threads in remote processes; used by Cobalt Strike and BADHATCH."
+        },
+        "QueueUserAPC": {
+            "severity": "HIGH",
+            "mitre": "T1055.004",
+            "description": "Queues an APC to a remote thread -- used for APC injection and Early Bird injection into suspended processes."
+        },
+        "NtQueueApcThread": {
+            "severity": "HIGH",
+            "mitre": "T1055.004",
+            "description": "Native NT APC queuing API; bypasses hooks on QueueUserAPC for stealthier APC injection."
+        },
+        "NtQueueApcThreadEx": {
+            "severity": "HIGH",
+            "mitre": "T1055.004",
+            "description": "Extended native APC queuing API introduced in Windows 8; used for user-mode APC injection variants."
+        },
+        "SetThreadContext": {
+            "severity": "HIGH",
+            "mitre": "T1055.003",
+            "description": "Overwrites the register context of a suspended thread -- redirects execution to injected shellcode. Core primitive of thread hijacking and Process Hollowing."
+        },
+        "NtUnmapViewOfSection": {
+            "severity": "HIGH",
+            "mitre": "T1055.012",
+            "description": "Unmaps the legitimate image from a hollowed process before writing a malicious PE -- core step of Process Hollowing."
+        },
+        "ZwUnmapViewOfSection": {
+            "severity": "HIGH",
+            "mitre": "T1055.012",
+            "description": "Alias for NtUnmapViewOfSection at the syscall level; used interchangeably in Process Hollowing implementations."
+        },
+        "SetWindowsHookEx": {
+            "severity": "HIGH",
+            "mitre": "T1055.011",
+            "description": "Installs a global Windows hook -- injects a DLL into all processes handling the specified message type."
+        },
+        "NtWriteVirtualMemory": {
+            "severity": "HIGH",
+            "mitre": "T1055.001",
+            "description": "Native NT equivalent of WriteProcessMemory; bypasses user-mode hooks for stealthier remote memory writes."
+        },
+        "NtCreateTransaction": {
+            "severity": "HIGH",
+            "mitre": "T1055.013",
+            "description": "Creates an NTFS transaction -- first step of Process Doppelgänging. Used to write a malicious PE to a transacted file that is never committed to disk."
+        },
+        "NtCreateProcessEx": {
+            "severity": "HIGH",
+            "mitre": "T1055.013",
+            "description": "Creates a process from a section object backed by a transacted file -- core step of Process Doppelgänging, avoids NtUnmapViewOfSection monitored in Process Hollowing."
+        },
+        "NtRollbackTransaction": {
+            "severity": "HIGH",
+            "mitre": "T1055.013",
+            "description": "Rolls back the NTFS transaction after creating the process section -- removes the malicious file from disk while the process continues executing from the transacted image."
+        },
+        "VirtualAllocEx": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1055.001",
+            "description": "Allocates memory in a remote process; meaningful only combined with WriteProcessMemory and a thread creation API."
+        },
+        "VirtualAlloc": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1055.001",
+            "description": "Allocates executable memory locally; meaningful only combined with VirtualProtect and CreateThread for local shellcode execution."
+        },
+        "VirtualProtect": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1055.001",
+            "description": "Changes memory protection flags; meaningful only combined with VirtualAlloc and CreateThread for making shellcode executable."
+        },
+        "VirtualProtectEx": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1055.001",
+            "description": "Changes memory protection in a remote process; meaningful only combined with WriteProcessMemory."
+        },
+        "WriteProcessMemory": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1055.001",
+            "description": "Writes into a remote process memory space; meaningful only combined with VirtualAllocEx and a thread creation API."
+        },
+        "ReadProcessMemory": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1055.001",
+            "description": "Reads from a remote process memory; meaningful only combined with WriteProcessMemory for process memory manipulation."
+        },
+        "OpenProcess": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1055.001",
+            "description": "Opens a handle to a remote process; precondition for all remote injection techniques."
+        },
+        "OpenThread": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1055.003",
+            "description": "Opens a handle to a remote thread; precondition for thread hijacking via SuspendThread + SetThreadContext."
+        },
+        "SuspendThread": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1055.003",
+            "description": "Suspends a remote thread; first step of thread execution hijacking before SetThreadContext."
+        },
+        "ResumeThread": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1055.003",
+            "description": "Resumes a suspended remote thread; final step in thread hijacking and Early Bird APC injection."
+        },
+        "GetThreadContext": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1055.003",
+            "description": "Retrieves the register context of a thread; used in thread hijacking to read EIP/RIP before overwriting."
+        },
+        "NtCreateSection": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1055.012",
+            "description": "Creates a shared memory section; used in section-based injection as an alternative to VirtualAllocEx."
+        },
+        "NtMapViewOfSection": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1055.012",
+            "description": "Maps a section into a remote process; combined with NtCreateSection for stealthy allocation-free injection."
+        },
+        "NtAllocateVirtualMemory": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1055.001",
+            "description": "Native NT equivalent of VirtualAllocEx; meaningful only combined with NtWriteVirtualMemory and a thread creation API."
+        },
+        "CreateProcess": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1055.012",
+            "description": "Creates a new process; meaningful only combined with NtUnmapViewOfSection -- required to start a suspended host process for hollowing."
+        },
+        "CreateProcessA": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1055.012",
+            "description": "ANSI variant of CreateProcess; meaningful only combined with NtUnmapViewOfSection for Process Hollowing."
+        },
+        "CreateProcessW": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1055.012",
+            "description": "Unicode variant of CreateProcess; meaningful only combined with NtUnmapViewOfSection for Process Hollowing."
+        },
+        "LoadLibraryA": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1055.001",
+            "description": "Loads a DLL into the current process; meaningful only combined with WriteProcessMemory and CreateRemoteThread for classic DLL injection."
+        },
+        "LoadLibraryW": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1055.001",
+            "description": "Unicode variant of LoadLibraryA; meaningful only combined with WriteProcessMemory and CreateRemoteThread for classic DLL injection."
+        },
+        "CreateThread": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1055.001",
+            "description": "Creates a local thread; meaningful only combined with VirtualAlloc and VirtualProtect for local shellcode execution."
+        },
+        "CreateFiber": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1055.001",
+            "description": "Creates a fiber for shellcode execution; meaningful only combined with VirtualAlloc -- used to execute shellcode through fiber scheduling."
+        },
+        "ConvertThreadToFiber": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1055.001",
+            "description": "Converts a thread to a fiber; prerequisite for CreateFiber-based shellcode execution."
+        },
+        "CreateThreadpoolWait": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1055.001",
+            "description": "Creates a threadpool wait object; meaningful only combined with VirtualAlloc -- used to execute shellcode via threadpool callback."
+        },
+        "SendMessage": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1055.015",
+            "description": "Sends a window message; meaningful only combined with FindWindow and VirtualAllocEx -- used in ListPlanting to copy payload 2 bytes at a time via LVM_SETITEMPOSITION."
+        },
+        "PostMessage": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1055.015",
+            "description": "Posts a window message asynchronously; meaningful only combined with FindWindow and VirtualAllocEx -- used in ListPlanting as an alternative to WriteProcessMemory."
+        },
+        "FindWindow": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1055.015",
+            "description": "Finds a top-level window by class name; meaningful only combined with SendMessage and VirtualAllocEx -- used in ListPlanting to locate the SysListView32 control of the target process."
+        },
+        "EnumChildWindows": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1055.015",
+            "description": "Enumerates child windows; meaningful only combined with SendMessage and VirtualAllocEx -- used in ListPlanting to locate the SysListView32 child window of the target process."
+        }
+    },
+    "strings": {
+        "explorer.exe": {
+            "severity": "MEDIUM",
+            "mitre": "T1055.001",
+            "description": "Common injection target; malware frequently injects into explorer.exe to blend with normal user activity."
+        },
+        "svchost.exe": {
+            "severity": "MEDIUM",
+            "mitre": "T1055.001",
+            "description": "Common injection target; injecting into svchost.exe allows malicious code to run under a trusted Windows service host."
+        },
+        "lsass.exe": {
+            "severity": "HIGH",
+            "mitre": "T1055.001",
+            "description": "High-value injection target; injecting into lsass.exe allows credential access and persistence in the authentication subsystem."
+        },
+        "iexplore.exe": {
+            "severity": "MEDIUM",
+            "mitre": "T1055.001",
+            "description": "Common browser injection target used to proxy C2 traffic through a trusted process."
+        },
+        "notepad.exe": {
+            "severity": "MEDIUM",
+            "mitre": "T1055.001",
+            "description": "Commonly used as a benign host process for shellcode injection in malware samples and offensive tools."
+        },
+        "rundll32.exe": {
+            "severity": "MEDIUM",
+            "mitre": "T1055.001",
+            "description": "Frequently used as injection host to execute malicious DLLs under a signed Windows binary."
+        },
+        "wermgr.exe": {
+            "severity": "MEDIUM",
+            "mitre": "T1055.001",
+            "description": "Windows Error Reporting process used as injection target by TrickBot and other malware families."
+        },
+        "msbuild.exe": {
+            "severity": "MEDIUM",
+            "mitre": "T1055.001",
+            "description": "Legitimate .NET build tool used as injection host to execute malicious assemblies."
+        },
+        "\\Device\\PhysicalMemory": {
+            "severity": "HIGH",
+            "mitre": "T1055.001",
+            "description": "Physical memory device path; direct access used for kernel-level injection bypassing user-mode APIs."
+        },
+        "SysListView32": {
+            "severity": "MEDIUM",
+            "mitre": "T1055.015",
+            "description": "ListView control class name targeted in ListPlanting injection; its presence as a string suggests the binary searches for this window class in a remote process."
+        },
+        "NtCreateSection": {
+            "severity": "HIGH",
+            "mitre": "T1055.012",
+            "description": "ntdll export name resolved via GetProcAddress at runtime; its presence as a string indicates section-based injection bypassing the IAT."
+        },
+        "NtMapViewOfSection": {
+            "severity": "HIGH",
+            "mitre": "T1055.012",
+            "description": "ntdll export name resolved via GetProcAddress at runtime; paired with NtCreateSection for allocation-free remote injection."
+        },
+        "NtUnmapViewOfSection": {
+            "severity": "HIGH",
+            "mitre": "T1055.012",
+            "description": "ntdll export name resolved via GetProcAddress at runtime; used in Process Hollowing to unmap the legitimate image before writing a malicious PE."
+        },
+        "NtQueueApcThread": {
+            "severity": "HIGH",
+            "mitre": "T1055.004",
+            "description": "ntdll export name resolved via GetProcAddress at runtime; native APC queuing bypassing Win32 QueueUserAPC hooks."
+        },
+        "NtQueueApcThreadEx": {
+            "severity": "HIGH",
+            "mitre": "T1055.004",
+            "description": "ntdll export name resolved via GetProcAddress at runtime; extended native APC variant introduced in Windows 8."
+        },
+        "RtlCreateUserThread": {
+            "severity": "HIGH",
+            "mitre": "T1055.001",
+            "description": "ntdll export name resolved via GetProcAddress at runtime; used to create threads in remote processes, bypassing CreateRemoteThread hooks."
+        },
+        "NtCreateThreadEx": {
+            "severity": "HIGH",
+            "mitre": "T1055.001",
+            "description": "ntdll export name resolved via GetProcAddress at runtime; native thread creation in a remote process, bypassing user-mode hooks."
+        },
+        "NtAllocateVirtualMemory": {
+            "severity": "HIGH",
+            "mitre": "T1055.001",
+            "description": "ntdll export name resolved via GetProcAddress at runtime; native equivalent of VirtualAllocEx, bypassing user-mode hooks."
+        },
+        "NtWriteVirtualMemory": {
+            "severity": "HIGH",
+            "mitre": "T1055.001",
+            "description": "ntdll export name resolved via GetProcAddress at runtime; native equivalent of WriteProcessMemory, bypassing user-mode hooks."
+        },
+        "ZwUnmapViewOfSection": {
+            "severity": "HIGH",
+            "mitre": "T1055.012",
+            "description": "ntdll export name resolved via GetProcAddress at runtime; alias for NtUnmapViewOfSection used interchangeably in Process Hollowing."
+        },
+        "NtCreateTransaction": {
+            "severity": "HIGH",
+            "mitre": "T1055.013",
+            "description": "ntdll export name resolved via GetProcAddress at runtime; first step of Process Doppelgaenging."
+        },
+        "NtCreateProcessEx": {
+            "severity": "HIGH",
+            "mitre": "T1055.013",
+            "description": "ntdll export name resolved via GetProcAddress at runtime; creates a process from a transacted section in Process Doppelgaenging."
+        },
+        "NtRollbackTransaction": {
+            "severity": "HIGH",
+            "mitre": "T1055.013",
+            "description": "ntdll export name resolved via GetProcAddress at runtime; rolls back the transacted file after process creation in Process Doppelgaenging."
+        },
+        "WriteProcessMemory": {
+            "severity": "HIGH",
+            "mitre": "T1055.001",
+            "description": "API name resolved via GetProcAddress at runtime; writes into a remote process memory space -- core primitive of DLL injection and Process Hollowing."
+        },
+        "VirtualAllocEx": {
+            "severity": "HIGH",
+            "mitre": "T1055.001",
+            "description": "API name resolved via GetProcAddress at runtime; allocates memory in a remote process -- precondition for classic DLL and shellcode injection."
+        },
+        "QueueUserAPC": {
+            "severity": "HIGH",
+            "mitre": "T1055.004",
+            "description": "API name resolved via GetProcAddress at runtime; used for APC injection and Early Bird injection into suspended processes."
+        },
+        "FindWindowA": {
+            "severity": "LOW",
+            "mitre": "T1055.015",
+            "description": "ANSI variant of FindWindow; its presence as a string indicates dynamic resolution for ListPlanting targeting a SysListView32 control."
+        },
+        "SendMessageA": {
+            "severity": "LOW",
+            "mitre": "T1055.015",
+            "description": "ANSI variant of SendMessage; used in ListPlanting to copy shellcode via LVM_SETITEMPOSITION messages."
+        },
+        "ntdll.dll": {
+            "severity": "MEDIUM",
+            "mitre": "T1055.001",
+            "description": "ntdll module name loaded via LoadLibraryA or GetModuleHandle to resolve native NT APIs at runtime, bypassing IAT-based detection."
+        }
+    },
+    "byte_patterns": {
+        "shellcode_stub_x86": {
+            "pattern": "60 E8 00 00 00 00 5B",
+            "severity": "HIGH",
+            "mitre": "T1055.001",
+            "description": "PUSHAD + CALL $+5 + POP EBX -- classic position-independent shellcode prologue for base address resolution."
+        },
+        "shellcode_stub_x64": {
+            "pattern": "E8 00 00 00 00 59 48",
+            "severity": "HIGH",
+            "mitre": "T1055.001",
+            "description": "CALL $+5 + POP RCX + REX.W prefix -- x64 position-independent shellcode prologue for base address resolution."
+        },
+        "process_hollowing_create_suspended": {
+            "pattern": "04 00 00 00 00 00 00 00",
+            "severity": "MEDIUM",
+            "mitre": "T1055.012",
+            "description": "CREATE_SUSPENDED flag (0x4) as a DWORD argument -- passed to CreateProcess to start a suspended host process for hollowing."
+        },
+        "pe_magic_embedded": {
+            "pattern": "4D 5A",
+            "severity": "MEDIUM",
+            "mitre": "T1055.002",
+            "description": "MZ magic bytes -- a PE header found in executable memory outside the main image suggests in-memory PE injection or reflective loading."
+        },
+        "tls_callback_stub": {
+            "pattern": "55 8B EC 83 EC ?? 53 56 57",
+            "severity": "MEDIUM",
+            "mitre": "T1055.005",
+            "description": "Common TLS callback function prologue -- TLS callbacks execute before the PE entry point and are abused to inject and run code before debuggers or security tools initialize."
+        }
+    },
+    "combinations": [
+        {
+            "name": "Classic DLL injection",
+            "requires": [
+                "VirtualAllocEx",
+                "WriteProcessMemory",
+                "CreateRemoteThread"
+            ],
+            "severity": "CRITICAL",
+            "mitre": "T1055.001",
+            "description": "Allocates remote memory, writes payload, spawns remote thread -- canonical DLL injection pattern used by the majority of Windows malware families."
+        },
+        {
+            "name": "Classic DLL injection with OpenProcess",
+            "requires": [
+                "OpenProcess",
+                "VirtualAllocEx",
+                "WriteProcessMemory",
+                "CreateRemoteThread"
+            ],
+            "severity": "CRITICAL",
+            "mitre": "T1055.001",
+            "description": "Full remote injection chain: opens target handle, allocates memory, writes payload, creates remote thread."
+        },
+        {
+            "name": "Native remote thread injection",
+            "requires": [
+                "NtAllocateVirtualMemory",
+                "NtWriteVirtualMemory",
+                "NtCreateThreadEx"
+            ],
+            "severity": "CRITICAL",
+            "mitre": "T1055.001",
+            "description": "NT-native DLL injection bypassing user-mode hooks on VirtualAllocEx, WriteProcessMemory, and CreateRemoteThread."
+        },
+        {
+            "name": "LoadLibrary DLL injection",
+            "requires": [
+                "OpenProcess",
+                "VirtualAllocEx",
+                "WriteProcessMemory",
+                "LoadLibraryA"
+            ],
+            "severity": "CRITICAL",
+            "mitre": "T1055.001",
+            "description": "Writes a DLL path into a remote process and uses LoadLibraryA as the thread start routine -- textbook DLL injection pattern."
+        },
+        {
+            "name": "Thread execution hijacking",
+            "requires": [
+                "OpenThread",
+                "SuspendThread",
+                "SetThreadContext",
+                "ResumeThread"
+            ],
+            "severity": "CRITICAL",
+            "mitre": "T1055.003",
+            "description": "Opens a running thread, suspends it, overwrites its instruction pointer, then resumes -- Thread Execution Hijacking (T1055.003)."
+        },
+        {
+            "name": "APC injection",
+            "requires": [
+                "VirtualAllocEx",
+                "WriteProcessMemory",
+                "QueueUserAPC"
+            ],
+            "severity": "CRITICAL",
+            "mitre": "T1055.004",
+            "description": "Allocates and writes shellcode into a remote process then queues an APC -- executed when the target thread enters an alertable wait."
+        },
+        {
+            "name": "Early Bird APC injection",
+            "requires": [
+                "CreateProcessA",
+                "VirtualAllocEx",
+                "WriteProcessMemory",
+                "QueueUserAPC",
+                "ResumeThread"
+            ],
+            "severity": "CRITICAL",
+            "mitre": "T1055.004",
+            "description": "Creates a suspended process, injects shellcode via APC before the main thread runs, then resumes -- executes before EDR hooks are initialized."
+        },
+        {
+            "name": "Process Hollowing",
+            "requires": [
+                "CreateProcessW",
+                "NtUnmapViewOfSection",
+                "VirtualAllocEx",
+                "WriteProcessMemory",
+                "SetThreadContext"
+            ],
+            "severity": "CRITICAL",
+            "mitre": "T1055.012",
+            "description": "Creates a suspended process, unmaps its legitimate image, writes a malicious PE, then redirects the entry thread -- full Process Hollowing chain."
+        },
+        {
+            "name": "Process Hollowing (ANSI variant)",
+            "requires": [
+                "CreateProcessA",
+                "NtUnmapViewOfSection",
+                "WriteProcessMemory",
+                "SetThreadContext"
+            ],
+            "severity": "CRITICAL",
+            "mitre": "T1055.012",
+            "description": "ANSI variant of Process Hollowing: suspends a newly created process, hollows its image, injects a malicious PE and resumes."
+        },
+        {
+            "name": "Section-based injection",
+            "requires": [
+                "NtCreateSection",
+                "NtMapViewOfSection",
+                "NtCreateThreadEx"
+            ],
+            "severity": "CRITICAL",
+            "mitre": "T1055.012",
+            "description": "Creates a shared section, maps it into a remote process, creates a remote thread -- allocation-free injection avoiding VirtualAllocEx."
+        },
+        {
+            "name": "Process Doppelgänging",
+            "requires": [
+                "NtCreateTransaction",
+                "NtCreateProcessEx",
+                "NtRollbackTransaction"
+            ],
+            "severity": "CRITICAL",
+            "mitre": "T1055.013",
+            "description": "Creates a TxF transaction, writes a malicious PE to a transacted file, loads it as a process section, then rolls back the transaction -- the process runs from a file that never exists on disk."
+        },
+        {
+            "name": "ListPlanting injection",
+            "requires": [
+                "FindWindow",
+                "VirtualAllocEx",
+                "SendMessage"
+            ],
+            "severity": "HIGH",
+            "mitre": "T1055.015",
+            "description": "Locates a SysListView32 window, allocates memory in the target process, copies shellcode via LVM_SETITEMPOSITION messages, then triggers execution via LVM_SORTITEMS -- avoids WriteProcessMemory."
+        },
+        {
+            "name": "Local shellcode execution",
+            "requires": [
+                "VirtualAlloc",
+                "VirtualProtect",
+                "CreateThread"
+            ],
+            "severity": "HIGH",
+            "mitre": "T1055.001",
+            "description": "Allocates a RW buffer, marks it executable with VirtualProtect, then spawns a local thread -- common in loaders and droppers."
+        },
+        {
+            "name": "Fiber-based shellcode execution",
+            "requires": [
+                "ConvertThreadToFiber",
+                "CreateFiber",
+                "VirtualAlloc"
+            ],
+            "severity": "HIGH",
+            "mitre": "T1055.001",
+            "description": "Converts the calling thread to a fiber, creates a second fiber pointing to shellcode -- avoids CreateThread for stealthy local execution."
+        },
+        {
+            "name": "Thread hijacking (GetContext/SetContext)",
+            "requires": [
+                "GetThreadContext",
+                "SetThreadContext",
+                "SuspendThread",
+                "ResumeThread"
+            ],
+            "severity": "CRITICAL",
+            "mitre": "T1055.003",
+            "description": "Reads, modifies, and restores thread context around a suspend/resume cycle -- canonical thread execution hijacking primitive."
+        },
+        {
+            "name": "Local shellcode with thread",
+            "requires": [
+                "VirtualAlloc",
+                "CreateThread"
+            ],
+            "severity": "HIGH",
+            "mitre": "T1055.001",
+            "description": "Allocates a local memory buffer and spawns a thread pointing to it -- minimal local shellcode execution pattern used by loaders and stagers."
+        },
+        {
+            "name": "Remote section injection with EnumChildWindows",
+            "requires": [
+                "EnumChildWindows",
+                "VirtualAllocEx"
+            ],
+            "severity": "HIGH",
+            "mitre": "T1055.015",
+            "description": "Enumerates child windows and allocates memory in the target process -- ListPlanting variant using EnumChildWindows to locate SysListView32."
+        },
+        {
+            "name": "Section-based injection (no thread API)",
+            "requires": [
+                "NtCreateSection",
+                "NtMapViewOfSection"
+            ],
+            "severity": "HIGH",
+            "mitre": "T1055.012",
+            "description": "Creates and maps a shared section without an explicit thread API -- the execution trigger may be a callback, APC, or existing thread."
+        },
+        {
+            "name": "Process Hollowing with ZwUnmapViewOfSection",
+            "requires": [
+                "CreateProcessW",
+                "ZwUnmapViewOfSection",
+                "WriteProcessMemory",
+                "SetThreadContext"
+            ],
+            "severity": "CRITICAL",
+            "mitre": "T1055.012",
+            "description": "Zw-variant Process Hollowing: creates a suspended process, unmaps its image, writes a malicious PE and redirects the entry thread."
+        }
+    ]
 }

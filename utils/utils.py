@@ -4,7 +4,7 @@ import os
 from ghidra.program.model.listing import BookmarkType
 from java.awt import Color
 
-VERSION = "0.3"
+VERSION = "0.4"
 SIGNATURES_VERSION = 1
 
 

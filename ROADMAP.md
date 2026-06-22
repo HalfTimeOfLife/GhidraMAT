@@ -2,22 +2,7 @@
 
 This document describes the planned release schedule for GhidraMAT. Each version ships one feature and one signature file.
 
-Current version: **v0.3**
-
----
-
-## v0.4 — CI GitHub Actions + `injection.json`
-
-**Feature: CI GitHub Actions**
-
-Automate quality checks server-side, independently of local pre-commit setup.
-
-- `.github/workflows/ci.yml` running `ruff`, `pytest`, and `validate_signatures.py` on every push and PR
-- CI status badge in [README.md](Readme.md)
-
-**Signatures: `injection.json`**
-
-Detection of process injection techniques — MITRE `T1055`.
+Current version: **v0.4**
 
 ---
 
@@ -137,13 +122,12 @@ Extend all signature files with platform-specific techniques for Linux ELF and m
 
 ## Summary
 
-| Version | Feature | Signatures |
-|---|---|---|
-| v0.4 | CI GitHub Actions | `injection.json` |
-| v0.5 | Unit tests for detection engine | `persistence.json` |
-| v0.6 | Global risk scoring | `impair_defenses.json` |
-| v0.7 | Pattern scanner improvements | `network.json` |
-| v0.8 | Cross-category detections | `crypto.json` |
-| v0.9 | Ghidra results panel | `packer.json` |
-| v1.0 | Runtime string detection + full documentation | Signatures review |
-| v1.0+ | N/A | Signatures enrichment |
+| Version | Feature | Signatures | Status |
+|---|---|---|---|
+| v0.5 | Unit tests for detection engine | `persistence.json` | Planned |
+| v0.6 | Global risk scoring | `impair_defenses.json` | Planned |
+| v0.7 | Pattern scanner improvements | `network.json` | Planned |
+| v0.8 | Cross-category detections | `crypto.json` | Planned |
+| v0.9 | Ghidra results panel | `packer.json` | Planned |
+| v1.0 | Runtime string detection + full documentation | Signatures review | Planned |
+| v1.0+ | N/A | Signatures enrichment | Planned |

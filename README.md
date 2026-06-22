@@ -27,6 +27,9 @@ The file `detection.py` provides the generic detection engine for all GhidraMAT 
 | `persistence` | Run registry keys, scheduled tasks, service installation, startup folder writes | WIP |
 | `impair_defenses` | Active defense neutralization — disabling Windows Defender, clearing event logs, patching AMSI, firewall tampering, security tool termination | WIP |
 
+> Categories marked WIP have empty signature files and produce no findings.
+> The detection engine runs normally for all categories.
+
 ---
 
 ## Architecture of the project
@@ -128,7 +131,10 @@ pytest
 1. Open your target binary in **Ghidra**
 2. Run **Auto Analysis**
 3. Go to **Window → Script Manager**
-4. Add the `GhidraMAT/` folder to your script directories
+4. Add the `GhidraMAT/` folder to your script directories :
+    1. In Ghidra, open `Window` → `Script Manager`
+    2. Click the three-bar menu (top right) → `Manage Script Directories`
+    3. Click the green **+** button → navigate to the `GhidraMAT/` folder → OK
 
 You can then launch **GhidraMAT** using one of the following methods:
 

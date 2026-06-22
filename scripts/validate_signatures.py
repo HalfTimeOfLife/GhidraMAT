@@ -8,6 +8,9 @@ import json
 import os
 import sys
 
+# Must match SIGNATURES_VERSION in utils/utils.py
+SIGNATURES_VERSION = 1
+
 SIGNATURES_DIR = os.path.join(os.path.dirname(__file__), "..", "signatures")
 
 VALID_SEVERITIES = {"LOW", "MEDIUM", "HIGH", "CRITICAL"}
@@ -67,8 +70,11 @@ def validate_combination(filepath, i, combo):
     for field in ("name", "requires", "severity", "description"):
         if field not in combo:
             err(filepath, f"combinations[{i}]: missing required field '{field}'")
-    if "requires" not in combo or not isinstance(combo["requires"], list) or not combo["requires"]:
-        err(filepath, f"combinations[{i}]: 'requires' must be a list")
+    if "requires" in combo:
+        if not isinstance(combo["requires"], list):
+            err(filepath, f"combinations[{i}]: 'requires' must be a non-empty list, got {type(combo['requires']).__name__}")
+        elif not combo["requires"]:
+            err(filepath, f"combinations[{i}]: 'requires' must not be empty")
     if "severity" in combo and combo["severity"] not in VALID_SEVERITIES:
         err(filepath, f"combinations[{i}]: invalid severity '{combo['severity']}'")
     
@@ -83,6 +89,14 @@ def validate_file(filepath):
     missing = REQUIRED_TOP_LEVEL - data.keys()
     if missing:
         err(filepath, f"missing detection types (top-level keys): {missing}")
+
+    unknown = data.keys() - REQUIRED_TOP_LEVEL
+    if unknown:
+        err(filepath, f"unknown top-level keys (typo?): {unknown}")
+        
+    sig_ver = data.get("sig_version")
+    if sig_ver != SIGNATURES_VERSION:
+        err(filepath, f"sig_version mismatch: expected {SIGNATURES_VERSION}, got {sig_ver!r}")
     
 
     for api_name, entry in data.get("imports", {}).items():

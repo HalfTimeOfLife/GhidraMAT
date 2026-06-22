@@ -4,6 +4,41 @@ All notable changes to this project are documented in this file.
 
 ---
 
+## v0.4
+
+**CI GitHub Actions**
+
+Automated quality checks now run server-side on every push and pull request,
+independently of the local pre-commit setup.
+
+- `.github/workflows/ci.yml` runs `ruff`, `pytest`, and `validate_signatures.py`
+- CI status badge added to `README.md`
+
+**Signatures: `injection.json` (MITRE `T1055`)**
+
+Detection of process injection techniques. Covers classic DLL injection, Process
+Hollowing, APC injection (Early Bird and native), thread hijacking, section-based
+injection, ListPlanting, and PE injection.
+
+- 42 imports, 29 strings, 5 byte patterns, 19 combinations
+- String-based detection layer for native ntdll APIs resolved via `GetProcAddress`
+  at runtime (`NtCreateSection`, `NtMapViewOfSection`, `NtQueueApcThread`,
+  `RtlCreateUserThread`, `NtAllocateVirtualMemory`, `NtWriteVirtualMemory`, and others) -- these APIs never appear in the IAT when dynamically resolved
+- Byte patterns: PE magic header (`MZ`), `CREATE_SUSPENDED` flag, `NtUnmapViewOfSection`
+  call sequence, module stomping marker
+- MITRE sub-technique coverage: `T1055.001`, `T1055.002`, `T1055.003`, `T1055.004`,
+  `T1055.012`, `T1055.013`, `T1055.015`
+
+**Tested against**
+
+redcanaryco/atomic-red-team:
+`CreateProcess.exe` (Process Hollowing), `EarlyBird.exe` (APC Early Bird),
+`NtQueueApcThreadEx.exe` (native APC), `RtlCreateUserThread.exe` (native remote thread),
+`listPlanting.exe` (ListPlanting), `InjectView.exe` (section-based), `RedInjection.exe`
+(PE injection)
+
+---
+
 ## v0.3
 
 **Anti-debug detection module (`anti_debug` — MITRE `T1622`)**
@@ -14,9 +49,9 @@ assembly-level patterns (INT3, INT2D, ICE, POPF), process memory inspection, and
 interactive techniques (thread hiding, window enumeration, self-debugging anti-attach,
 NTAPI patching). Signatures cross-referenced against [Check Point Anti-Debug Encyclopedia](https://anti-debug.checkpoint.com), [al-khaser](https://github.com/ayoubfaouzi/al-khaser), and [Unprotect Project](https://unprotect.it).
 
-**Bug fix — byte pattern scanner**
+**Bug fix -- byte pattern scanner**
 
-`scan_byte_pattern` was silently returning empty results on all binaries due to a Java ↔
+`scan_byte_pattern` was silently returning empty results on all binaries due to a Java <->
 Python bytearray issue in PyGhidra. The scanner now iterates decoded instructions via
 `getListing()` and reads bytes per instruction.
 
@@ -27,7 +62,7 @@ schema validation.
 
 **Tested against**
 
-al-khaser x64 (`0cd8a40f...`) — 119 findings across `anti_vm` and `anti_debug`.
+al-khaser x64 (`0cd8a40f...`) -- 119 findings across `anti_vm` and `anti_debug`.
 
 ---
 
@@ -64,7 +99,7 @@ Updated README.
 
 Initial release.
 
-**Anti-VM detection module (`anti_vm` — MITRE `T1497`)**
+**Anti-VM detection module (`anti_vm` -- MITRE `T1497`)**
 
 First operational detection category. Signatures covering CPUID hypervisor checks,
 RDTSC timing, firmware table scanning (SMBIOS/ACPI), registry artifact paths, VM-specific
