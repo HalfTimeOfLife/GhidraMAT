@@ -1,3 +1,9 @@
+"""tests/test_validate_signatures.py
+
+Tests for scripts.validate_signatures
+
+"""
+
 import json
 import pytest
 
@@ -5,7 +11,7 @@ from scripts.validate_signatures import validate_file, errors
 
 
 # -------------------------------------------------------------------
-# Common fixtures / helpers
+# --- fixtures / helpers ---
 # -------------------------------------------------------------------
 
 @pytest.fixture(autouse=True)
@@ -102,7 +108,7 @@ def assert_no_errors():
 
 
 # -------------------------------------------------------------------
-# Valid file tests
+# --- valid files ---
 # -------------------------------------------------------------------
 
 def test_valid_empty_file(tmp_path):
@@ -156,7 +162,7 @@ def test_valid_file_with_combination(tmp_path):
 
 
 # -------------------------------------------------------------------
-# Top-level schema tests
+# --- top level schema ---
 # -------------------------------------------------------------------
 
 def test_missing_sig_version(tmp_path):
@@ -200,7 +206,7 @@ def test_missing_combinations_key(tmp_path):
 
 
 # -------------------------------------------------------------------
-# Imports validation tests
+# --- import validation ---
 # -------------------------------------------------------------------
 
 def test_missing_severity_in_import(tmp_path):
@@ -249,7 +255,7 @@ def test_invalid_severity_in_import(tmp_path):
 
 
 # -------------------------------------------------------------------
-# Strings validation tests
+# --- strings validation ---
 # -------------------------------------------------------------------
 
 def test_missing_severity_in_string(tmp_path):
@@ -285,7 +291,7 @@ def test_invalid_severity_in_strings(tmp_path):
 
 
 # -------------------------------------------------------------------
-# Byte patterns validation tests
+# --- byte patterns validation ---
 # -------------------------------------------------------------------
 
 def test_missing_pattern_in_byte_pattern(tmp_path):
@@ -325,7 +331,7 @@ def test_invalid_severity_in_byte_pattern(tmp_path):
 
 
 # -------------------------------------------------------------------
-# Combinations validation tests
+# --- combinations validation ---
 # -------------------------------------------------------------------
 
 def test_missing_name_in_combination(tmp_path):
@@ -378,7 +384,7 @@ def test_invalid_severity_in_combination(tmp_path):
 
 
 # -------------------------------------------------------------------
-# JSON parsing tests
+# --- JSON parsing ---
 # -------------------------------------------------------------------
 
 def test_invalid_json(tmp_path):

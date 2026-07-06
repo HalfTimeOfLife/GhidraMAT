@@ -1,20 +1,9 @@
 import json
 import os
 
-from ghidra.program.model.listing import BookmarkType
-from java.awt import Color
 
 VERSION = "0.4"
 SIGNATURES_VERSION = 1
-
-
-# Background colors applied to findings based on their severity level.
-SEVERITY_COLORS = {
-    "CRITICAL": Color(220, 50,  50),
-    "HIGH":     Color(220, 130, 50),
-    "MEDIUM":   Color(220, 200, 50),
-    "LOW":      Color(150, 200, 100)
-}
 
 TOOL = "GhidraMAT"
 
@@ -113,6 +102,16 @@ def apply_visual_marking(service, finding):
         service: Ghidra ColorizingService used to set background colors.
         finding: Finding object with severity and xrefs attributes.
     """
+    from java.awt import Color
+    
+    # Background colors applied to findings based on their severity level.
+    SEVERITY_COLORS = {
+        "CRITICAL": Color(220, 50,  50),
+        "HIGH":     Color(220, 130, 50),
+        "MEDIUM":   Color(220, 200, 50),
+        "LOW":      Color(150, 200, 100)
+    }
+    
     color = SEVERITY_COLORS.get(finding.severity)
     if not color:
         return
@@ -134,7 +133,8 @@ def create_bookmark(program, finding):
         finding: Finding object with xrefs, category, and description
             attributes.
     """
-
+    from ghidra.program.model.listing import BookmarkType
+    
     bm = program.getBookmarkManager()
 
     for xref in finding.xrefs:

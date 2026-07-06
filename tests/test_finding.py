@@ -13,8 +13,9 @@ def make_finding(**kwargs):
     defaults.update(kwargs)
     return Finding(**defaults)
 
-
+# -------------------------------------------------------------------
 # --- to_dict ---
+# -------------------------------------------------------------------
 
 def test_to_dict_keys_present():
     """to_dict should return a dict with exactly the expected set of keys."""
@@ -72,8 +73,9 @@ def test_to_dict_xref_labels():
     
     assert result["xref_labels"] == labels
 
-
+# -------------------------------------------------------------------
 # --- __str__ ---
+# -------------------------------------------------------------------
 
 def test_str_basic():
     """__str__ should include the finding name, severity, category and description."""
