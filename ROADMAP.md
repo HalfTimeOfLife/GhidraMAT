@@ -16,11 +16,6 @@ Extend test coverage beyond `Finding` and `validate_signatures` to the core anal
 - `report.py`: verify JSON structure (`meta`, `summary`, `findings`), verify TXT sections are present by category and severity
 - `load_signatures`: version mismatch raises `ValueError`, missing file raises `FileNotFoundError`
 
-**Small addition: performance benchmarks**
-
-- Measure analysis time on 1MB, 10MB, and 50MB binaries
-- Baseline threshold, fails on >2× regression
-
 **Signatures: `persistence.json`**
 
 Detection of persistence mechanisms — MITRE `T1547`.
@@ -160,7 +155,7 @@ be added if a genuine need is identified.
 
 | Version | Core feature | Small additions | Signatures | Status |
 |---|---|---|---|---|
-| v0.5 | Unit tests for detection engine | Performance benchmarks | `persistence.json` | Planned |
+| v0.5 | Unit tests for detection engine | N/A | `persistence.json` | Planned |
 | v0.6 | Global risk scoring | Configurable thresholds | `impair_defenses.json` | Planned |
 | v0.7 | Pattern scanner improvements | Section-aware anchoring | `network.json` | Planned |
 | v0.8 | Cross-category detections | `requires` field, YARA export | `crypto.json` | Planned |
