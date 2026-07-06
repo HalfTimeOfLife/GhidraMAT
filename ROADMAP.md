@@ -1,4 +1,4 @@
-# GhidraMAT — Roadmap
+# GhidraMAT - Roadmap
 
 This document describes the planned release schedule for GhidraMAT. Each version ships one core feature and one signature file. Secondary features are possible in each release if they don't affect the scope.
 
@@ -6,7 +6,7 @@ Current version: **v0.4**
 
 ---
 
-## v0.5 — Unit tests + `persistence.json`
+## v0.5 - Unit tests + `persistence.json`
 
 **Feature: Unit tests for the detection engine**
 
@@ -18,11 +18,17 @@ Extend test coverage beyond `Finding` and `validate_signatures` to the core anal
 
 **Signatures: `persistence.json`**
 
-Detection of persistence mechanisms — MITRE `T1547`.
+Detection of persistence mechanisms - MITRE:
+- `T1547` (`.001`, `.004`)
+- `T1543` (`.003`)
+- `T1053` (`.005`)
+- `T1547` (`.002`, `.003`, `.005`, `.009`, `.014`)
+- `T1546` (`.003`, `.009`, `.010`, `.012`, `.015`)
+- `T1197`
 
 ---
 
-## v0.6 — Global risk scoring + `impair_defenses.json`
+## v0.6 - Global risk scoring + `impair_defenses.json`
 
 **Feature: Global risk score**
 
@@ -34,15 +40,15 @@ Aggregate all findings into a single risk level for the analyzed binary.
 
 **Secondary feature: configurable scoring thresholds**
 
-- `config/scoring_config.json` — thresholds adjustable without touching code
+- `config/scoring_config.json` - thresholds adjustable without touching code
 
 **Signatures: `impair_defenses.json`**
 
-Detection of defense impairment techniques — MITRE `T1562`.
+Detection of defense impairment techniques (specific MITRE ATT&CK Technique IDs will be added during the development of this version).
 
 ---
 
-## v0.7 — Pattern scanner improvements + `network.json`
+## v0.7 - Pattern scanner improvements + `network.json`
 
 **Feature: Improved pattern scanner**
 
@@ -54,11 +60,11 @@ Extend the byte pattern scanner with better coverage and flexibility:
 
 **Signatures: `network.json`**
 
-Detection of C2 communication and network indicators — MITRE `T1071`.
+Detection of C2 communication and network indicators (specific MITRE ATT&CK Technique IDs will be added during the development of this version).
 
 ---
 
-## v0.8 — Cross-category detections + `crypto.json`
+## v0.8 - Cross-category detections + `crypto.json`
 
 **Feature: Cross-category detection**
 
@@ -70,7 +76,7 @@ Allow a single signature to surface findings across multiple categories simultan
 
 **Small addition: conditional dependency (`requires`)**
 
-- `"requires": "network"` — a finding is only emitted if another category also matched
+- `"requires": "network"` - a finding is only emitted if another category also matched
 - Reduces false positives in ambiguous categories
 
 **Secondary feature: Automatic YARA rule generation**
@@ -81,11 +87,11 @@ Allow a single signature to surface findings across multiple categories simultan
 
 **Signatures: `crypto.json`**
 
-Detection of cryptographic primitives and custom encryption — MITRE `T1027`.
+Detection of cryptographic primitives and custom encryption (specific MITRE ATT&CK Technique IDs will be added during the development of this version).
 
 ---
 
-## v0.9 — Ghidra results panel + `packer.json`
+## v0.9 - Ghidra results panel + `packer.json`
 
 **Feature: Dedicated Ghidra results panel**
 
@@ -100,11 +106,11 @@ Display findings directly inside Ghidra instead of only in the console and repor
 
 **Signatures: `packer.json`**
 
-Detection of packed or protected binaries — MITRE `T1027`.
+Detection of packed or protected binaries (specific MITRE ATT&CK Technique IDs will be added during the development of this version).
 
 ---
 
-## v1.0 — Full documentation, signature review, and basic runtime string detection
+## v1.0 - Full documentation, signature review, and basic runtime string detection
 
 **Feature: Complete documentation**
 
@@ -116,7 +122,7 @@ Detection of packed or protected binaries — MITRE `T1027`.
 **Feature: Runtime-constructed string detection (basic)** *(delivered if feasible)*
 
 - Pattern matching on sequences of immediate assignments (`MOV [mem], 0x41`)
-- No full dataflow analysis — just detection of simple char-by-char constructed strings
+- No full dataflow analysis - just detection of simple char-by-char constructed strings
 - Tested against 5 known public samples
 
 **Signatures: full review**
@@ -127,7 +133,7 @@ Detection of packed or protected binaries — MITRE `T1027`.
 
 ---
 
-## v1.1 — Runtime string detection (full)
+## v1.1 - Runtime string detection (full)
 
 **Feature: Full runtime-constructed string detection**
 
@@ -135,7 +141,7 @@ Detection of packed or protected binaries — MITRE `T1027`.
 - Support for loop-based construction (e.g. `for i in range(len(key)): buf[i] = key[i] ^ 0x13`)
 - Dataflow path visualization in the report
 
-## v1.2 — Platform coverage
+## v1.2 - Platform coverage
 
 **Feature: Linux and macOS coverage**
 
@@ -143,7 +149,7 @@ Detection of packed or protected binaries — MITRE `T1027`.
 - Only techniques genuinely relevant to each platform are added
 - `anti_vm` adapted for paravirt/`hypervisor.framework`, `persistence` adapted for cron/launchd, etc.
 
-## v1.2+ — Ongoing maintenance
+## v1.2+ - Ongoing maintenance
 
 GhidraMAT will continue to evolve after v1.2. New signatures will be added as new evasion
 techniques, packers, or malware behaviors are discovered or documented. Additional features may
@@ -159,8 +165,8 @@ be added if a genuine need is identified.
 | v0.6 | Global risk scoring | Configurable thresholds | `impair_defenses.json` | Planned |
 | v0.7 | Pattern scanner improvements | Section-aware anchoring | `network.json` | Planned |
 | v0.8 | Cross-category detections | `requires` field, YARA export | `crypto.json` | Planned |
-| v0.9 | Ghidra results panel | — | `packer.json` | Planned |
-| v1.0 | Documentation + signature review | Basic runtime string detection | — | Planned |
-| v1.1 | Full runtime string detection | — | — | Deferred |
-| v1.2 | Linux/macOS coverage | — | — | Deferred |
-| v1.2+ | Ongoing maintenance | To be determined | — | Ongoing |
+| v0.9 | Ghidra results panel | - | `packer.json` | Planned |
+| v1.0 | Documentation + signature review | Basic runtime string detection | - | Planned |
+| v1.1 | Full runtime string detection | - | - | Deferred |
+| v1.2 | Linux/macOS coverage | - | - | Deferred |
+| v1.2+ | Ongoing maintenance | To be determined | - | Ongoing |
