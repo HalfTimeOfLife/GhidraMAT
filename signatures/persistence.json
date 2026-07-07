@@ -1,7 +1,401 @@
 {
     "sig_version": 1,
-    "imports": {},
-    "strings": {},
+    "imports": {
+        "RegSetValueEx": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1547.001",
+            "description": "Too generic alone; meaningful only in combination with RegCreateKeyEx or RegOpenKeyEx when writing a persistence value."
+        },
+        "RegCreateKeyEx": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1547.001",
+            "description": "Too generic alone; meaningful only in combination with RegSetValueEx -- creates the key before writing a persistence value."
+        },
+        "RegOpenKeyEx": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1547.004",
+            "description": "Too generic alone; meaningful only in combination with RegSetValueEx -- opens an existing key (e.g. Winlogon) before modifying it."
+        },
+        "CoCreateInstance": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1546.003",
+            "description": "Instantiates a COM object; meaningful only combined with CoInitializeEx. Used for WMI event subscription (IWbemServices), Task Scheduler (ITaskService), or ShellLink creation."
+        },
+        "CoInitializeEx": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1546.003",
+            "description": "COM initialization required before CoCreateInstance; too generic alone."
+        },
+        "AddAuthenticationPackage": {
+            "severity": "HIGH",
+            "mitre": "T1547.002",
+            "description": "Registers a malicious DLL as an LSA authentication package, loaded into LSASS at boot without requiring a reboot to take effect."
+        },
+        "AddSecurityPackage": {
+            "severity": "HIGH",
+            "mitre": "T1547.005",
+            "description": "Loads a malicious Security Support Provider DLL into LSASS immediately, without waiting for the next reboot."
+        },
+        "CreateServiceA": {
+            "severity": "HIGH",
+            "mitre": "T1543.003",
+            "description": "Creates a new Windows service; a common persistence and privilege escalation vector, especially when configured for automatic start."
+        },
+        "CreateServiceW": {
+            "severity": "HIGH",
+            "mitre": "T1543.003",
+            "description": "Unicode variant of CreateServiceA; creates a new Windows service for persistence."
+        },
+        "OpenSCManagerA": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1543.003",
+            "description": "Opens the service control manager; meaningful only in combination with CreateServiceA to install a new service."
+        },
+        "OpenSCManagerW": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1543.003",
+            "description": "Unicode variant of OpenSCManagerA; meaningful only in combination with CreateServiceW."
+        },
+        "StartServiceA": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1543.003",
+            "description": "Starts a service without waiting for a reboot; meaningful only in combination with CreateServiceA."
+        },
+        "StartServiceW": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1543.003",
+            "description": "Unicode variant of StartServiceA; meaningful only in combination with CreateServiceW."
+        },
+        "ChangeServiceConfig2A": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1543.003",
+            "description": "Modifies service failure actions or description; often used alongside CreateServiceA to make a malicious service blend in or auto-restart."
+        },
+        "ChangeServiceConfig2W": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1543.003",
+            "description": "Unicode variant of ChangeServiceConfig2A."
+        },
+        "OpenServiceA": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1543.003",
+            "description": "Opens a handle to an existing service; meaningful only in combination with ChangeServiceConfigA -- precursor to hijacking a legitimate service."
+        },
+        "OpenServiceW": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1543.003",
+            "description": "Unicode variant of OpenServiceA; meaningful only in combination with ChangeServiceConfigW."
+        },
+        "ChangeServiceConfigA": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1543.003",
+            "description": "Modifies a service's ImagePath (binPath); the actual API used to hijack an existing legitimate service rather than creating a new one."
+        },
+        "ChangeServiceConfigW": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1543.003",
+            "description": "Unicode variant of ChangeServiceConfigA."
+        },
+        "SHGetFolderPathW": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1547.001",
+            "description": "Resolves the Startup folder path dynamically (CSIDL_STARTUP) instead of hardcoding it."
+        },
+        "SdbCreateDatabase": {
+            "severity": "HIGH",
+            "mitre": "T1546.011",
+            "description": "Creates a custom shim database (.sdb) in memory via apphelp.dll, alternative to sdbinst.exe for installing application compatibility shims."
+        },
+        "SdbWriteBinaryTag": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1546.011",
+            "description": "Writes a binary tag (matching rule or patch data) into a shim database; meaningful only in combination with SdbCreateDatabase."
+        },
+        "SdbCloseDatabase": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1546.011",
+            "description": "Finalizes and writes the shim database to disk; meaningful only in combination with SdbCreateDatabase."
+        }
+    },
+    "strings": {
+        "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run": {
+            "severity": "HIGH",
+            "mitre": "T1547.001",
+            "description": "Registry Run key path; programs referenced here execute automatically at logon."
+        },
+        "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run": {
+            "severity": "HIGH",
+            "mitre": "T1547.001",
+            "description": "Per-user Registry Run key path; does not require elevated privileges to write."
+        },
+        "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunOnce": {
+            "severity": "HIGH",
+            "mitre": "T1547.001",
+            "description": "Registry RunOnce key path; executes once at next logon, then self-deletes."
+        },
+        "\\Start Menu\\Programs\\Startup": {
+            "severity": "HIGH",
+            "mitre": "T1547.001",
+            "description": "Startup folder path; any executable, script, or shortcut placed here runs automatically at logon."
+        },
+        "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon": {
+            "severity": "HIGH",
+            "mitre": "T1547.004",
+            "description": "Winlogon registry key; modifying its Shell, Userinit, or Notify values hijacks the logon process to launch additional executables."
+        },
+        "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Lsa\\Authentication Packages": {
+            "severity": "HIGH",
+            "mitre": "T1547.002",
+            "description": "LSA Authentication Packages registry value; DLLs listed here are loaded into LSASS at boot for credential interception."
+        },
+        "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Lsa\\Security Packages": {
+            "severity": "HIGH",
+            "mitre": "T1547.005",
+            "description": "LSA Security Packages registry value; DLLs listed here are loaded as Security Support Providers at boot."
+        },
+        "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Lsa\\OSConfig\\Security Packages": {
+            "severity": "HIGH",
+            "mitre": "T1547.005",
+            "description": "Secondary LSA Security Packages registry path under OSConfig; equally effective for SSP registration."
+        },
+        "HKLM\\SYSTEM\\CurrentControlSet\\Services\\W32Time\\TimeProviders": {
+            "severity": "HIGH",
+            "mitre": "T1547.003",
+            "description": "Windows Time service providers registry path; a malicious DLL registered here is loaded by the W32Time service at boot."
+        },
+        "HKLM\\SOFTWARE\\Microsoft\\Active Setup\\Installed Components": {
+            "severity": "HIGH",
+            "mitre": "T1547.014",
+            "description": "Active Setup registry path; the StubPath value under a component's GUID key executes once per user at first logon after being set."
+        },
+        "00021401-0000-0000-C000-000000000046": {
+            "severity": "HIGH",
+            "mitre": "T1547.009",
+            "description": "CLSID of the ShellLink COM object; instantiated via CoCreateInstance to programmatically create or modify .lnk shortcuts."
+        },
+        "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\AppCertDlls": {
+            "severity": "HIGH",
+            "mitre": "T1546.009",
+            "description": "AppCertDlls registry key; DLLs listed here are loaded into every process calling CreateProcess, CreateProcessAsUser, or WinExec."
+        },
+        "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Windows\\AppInit_DLLs": {
+            "severity": "HIGH",
+            "mitre": "T1546.010",
+            "description": "AppInit_DLLs registry value; DLLs listed here are loaded by user32.dll into nearly every process on the system."
+        },
+        "LoadAppInit_DLLs": {
+            "severity": "MEDIUM",
+            "mitre": "T1546.010",
+            "description": "Registry value that must be set to 1 alongside AppInit_DLLs to activate the loading mechanism."
+        },
+        "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options": {
+            "severity": "HIGH",
+            "mitre": "T1546.012",
+            "description": "IFEO registry path; a Debugger value set here hijacks execution of the target executable, redirecting it to an arbitrary payload."
+        },
+        "SilentProcessExit": {
+            "severity": "MEDIUM",
+            "mitre": "T1546.012",
+            "description": "IFEO-adjacent registry key used with MonitorProcess to launch a payload when the target process silently exits."
+        },
+        "Software\\Classes\\CLSID": {
+            "severity": "MEDIUM",
+            "mitre": "T1546.015",
+            "description": "Registry path under which a CLSID's default handler can be hijacked to load an attacker-controlled DLL instead of the legitimate COM object."
+        },
+        "InprocServer32": {
+            "severity": "MEDIUM",
+            "mitre": "T1546.015",
+            "description": "Registry subkey holding the DLL path for a COM object; overwriting it redirects any application instantiating that CLSID to a malicious DLL."
+        },
+        "__EventFilter": {
+            "severity": "HIGH",
+            "mitre": "T1546.003",
+            "description": "WMI class used to define the trigger condition of a permanent event subscription."
+        },
+        "__EventConsumer": {
+            "severity": "HIGH",
+            "mitre": "T1546.003",
+            "description": "WMI base class for event consumers (e.g. CommandLineEventConsumer, ActiveScriptEventConsumer) that execute a payload when a subscription fires."
+        },
+        "CommandLineEventConsumer": {
+            "severity": "HIGH",
+            "mitre": "T1546.003",
+            "description": "WMI consumer class that executes an arbitrary command line when its bound event filter triggers -- the most common WMI persistence payload."
+        },
+        "__FilterToConsumerBinding": {
+            "severity": "HIGH",
+            "mitre": "T1546.003",
+            "description": "WMI class that binds an __EventFilter to an __EventConsumer, completing a permanent event subscription."
+        },
+        "root\\subscription": {
+            "severity": "HIGH",
+            "mitre": "T1546.003",
+            "description": "WMI namespace where permanent event subscriptions (filters, consumers, bindings) are stored."
+        },
+        "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Schedule\\TaskCache\\Tasks": {
+            "severity": "HIGH",
+            "mitre": "T1053.005",
+            "description": "Registry path caching registered scheduled task metadata; direct writes here can register a task without going through the public Task Scheduler API."
+        },
+        "\\Windows\\System32\\Tasks\\": {
+            "severity": "HIGH",
+            "mitre": "T1053.005",
+            "description": "Filesystem path where scheduled task XML definitions are stored."
+        },
+        "schtasks.exe": {
+            "severity": "MEDIUM",
+            "mitre": "T1053.005",
+            "description": "Built-in command-line utility for creating and managing scheduled tasks; commonly invoked via CreateProcess or ShellExecute rather than linked directly."
+        },
+        "bitsadmin.exe": {
+            "severity": "HIGH",
+            "mitre": "T1197",
+            "description": "Built-in command-line utility for managing BITS jobs; can be used to download and execute a payload or establish a persistent job."
+        },
+        "4991d34b-80a1-4291-83b6-3328366b9097": {
+            "severity": "HIGH",
+            "mitre": "T1197",
+            "description": "CLSID of the BackgroundCopyManager COM object; instantiated to create and manage BITS jobs programmatically instead of via bitsadmin.exe."
+        },
+        "ActiveScriptEventConsumer": {
+            "severity": "HIGH",
+            "mitre": "T1546.003",
+            "description": "WMI consumer class that executes VBScript or JScript when its bound event filter triggers -- an alternative to CommandLineEventConsumer."
+        },
+        "NTEventLogEventConsumer": {
+            "severity": "HIGH",
+            "mitre": "T1546.003",
+            "description": "WMI consumer class that writes to the NT event log when triggered; occasionally abused as a low-noise persistence payload."
+        },
+        "sdbinst.exe": {
+            "severity": "MEDIUM",
+            "mitre": "T1546.011",
+            "description": "Built-in utility to install a custom shim database (.sdb)."
+        },
+        "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\AppCompatFlags\\Custom": {
+            "severity": "HIGH",
+            "mitre": "T1546.011",
+            "description": "Registry key associating a custom shim GUID with a target executable."
+        },
+        "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\AppCompatFlags\\InstalledSDB": {
+            "severity": "HIGH",
+            "mitre": "T1546.011",
+            "description": "Registry key listing installed custom shim databases on the system."
+        },
+        "__COMPAT_LAYER": {
+            "severity": "MEDIUM",
+            "mitre": "T1546.011",
+            "description": "Environment variable used to apply a compatibility layer without installing a full shim database."
+        },
+        "shell\\open\\command": {
+            "severity": "MEDIUM",
+            "mitre": "T1546.001",
+            "description": "Registry key suffix written under a ProgID to redirect execution of a file extension to an arbitrary handler."
+        },
+        "\\UserChoice": {
+            "severity": "MEDIUM",
+            "mitre": "T1546.001",
+            "description": "Subkey under FileExts\\<ext> storing the chosen handler for a file extension; the modern Explorer-based association mechanism."
+        },
+        "FileExts": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1546.001",
+            "description": "Too generic alone; meaningful only in combination with \\UserChoice for file association hijacking."
+        },
+        "591209C7-767B-42B2-9FBA-44EE4615F2C7": {
+            "severity": "HIGH",
+            "mitre": "T1546.001",
+            "description": "CLSID of IApplicationAssociationRegistration; instantiated via CoCreateInstance to change a file or protocol association through COM instead of direct registry writes."
+        }
+    },
     "byte_patterns": {},
-    "combinations": []
+    "combinations": [
+        {
+            "name": "Registry Run Key persistence",
+            "requires": [
+                "RegCreateKeyEx",
+                "RegSetValueEx"
+            ],
+            "severity": "HIGH",
+            "mitre": "T1547.001",
+            "description": "Creates and writes to a registry key -- likely installing a Run/RunOnce autostart entry."
+        },
+        {
+            "name": "Winlogon Helper DLL persistence",
+            "requires": [
+                "RegOpenKeyEx",
+                "RegSetValueEx"
+            ],
+            "severity": "HIGH",
+            "mitre": "T1547.004",
+            "description": "Opens and writes to an existing registry key -- likely modifying Winlogon's Shell, Userinit, or Notify values."
+        },
+        {
+            "name": "Windows service creation and start",
+            "requires": [
+                "CreateServiceA",
+                "StartServiceA"
+            ],
+            "severity": "HIGH",
+            "mitre": "T1543.003",
+            "description": "Creates a new service and starts it immediately without waiting for a reboot -- classic service-based persistence."
+        },
+        {
+            "name": "Windows service creation and start (Unicode)",
+            "requires": [
+                "CreateServiceW",
+                "StartServiceW"
+            ],
+            "severity": "HIGH",
+            "mitre": "T1543.003",
+            "description": "Unicode variant of service-based persistence: creates a new service and starts it immediately."
+        },
+        {
+            "name": "COM-based persistence mechanism",
+            "requires": [
+                "CoInitializeEx",
+                "CoCreateInstance"
+            ],
+            "severity": "HIGH",
+            "mitre": "T1546.003",
+            "description": "Initializes COM and instantiates an object -- required for WMI event subscription, Task Scheduler registration, or ShellLink-based shortcut creation. Confirm the specific mechanism via accompanying strings (WMI class names, task registry paths, or the ShellLink CLSID)."
+        },
+        {
+            "name": "Existing service hijack via reconfiguration",
+            "requires": [
+                "OpenServiceA",
+                "ChangeServiceConfigA"
+            ],
+            "severity": "HIGH",
+            "mitre": "T1543.003",
+            "description": "Opens an existing service and rewrites its ImagePath -- hijacks a legitimate service instead of creating a new one, evading service-creation-based detection."
+        },
+        {
+            "name": "Programmatic shim database creation",
+            "requires": ["SdbCreateDatabase", "SdbWriteBinaryTag"],
+            "severity": "HIGH",
+            "mitre": "T1546.011",
+            "description": "Builds a malicious shim database via API calls rather than dropping a pre-built .sdb and invoking sdbinst.exe -- stealthier, avoids the sdbinst.exe string."
+        }
+    ]
 }
