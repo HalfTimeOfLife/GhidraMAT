@@ -4,6 +4,51 @@ All notable changes to this project are documented in this file.
 
 ---
 
+## v0.5
+
+**Unit tests for the detection engine**
+
+Extended test coverage to the core analysis pipeline using a full fake Ghidra
+object hierarchy (`tests/fakes.py`) that enables pytest-based testing outside
+the Ghidra runtime.
+
+- `tests/fakes.py`: FakeAddress, FakeSymbol, FakeData, FakeFunction, FakeInstruction,
+  FakeReference, and manager-level fakes (FakeSymbolTable, FakeListing, FakeRefManager,
+  FakeFuncManager, FakeMemory, FakeProgram, FakeMonitor), assembled into FakeContext
+- `tests/test_detection.py`: covers imports, strings, byte patterns, combinations,
+  category propagation, empty signatures, and monitor interaction
+- `tests/test_utils.py`: `load_signatures` version mismatch and missing file cases
+- `tests/test_report.py`: JSON structure, TXT sections by category/severity/type
+
+**Bug fix -- MITRE summary includes unconfirmed combo_only tags**
+
+`build_header()` and `generate_json()` listed the MITRE tag of every finding in
+a category's summary, including `combo_only` imports whose combination never
+triggered. Both now filter `combo_only` findings out of the summary MITRE list.
+
+**Signatures: `persistence.json`**
+
+Detection of persistence mechanisms across MITRE `T1547` (.001, .002, .003, .004,
+.005, .009, .014), `T1543.003`, `T1053.005`, `T1546` (.001, .003, .009, .010, .011,
+.012, .015), and `T1197`.
+
+- 28 imports, 43 strings, 0 byte patterns, 10 combinations
+- `byte_patterns` intentionally empty across the board for this category
+
+**Tested against**
+
+Real-world malware from MalwareBazaar: PlugX (`3cdd33de...`), Berbew/Padodor
+(3 samples), Hupigon (`465d3aac...`), Ramnit (`ee937854...`).
+
+3 of 17 targeted sub-techniques confirmed via triggered combinations, cross-validated
+across 4 independent families: `T1547.001` (Registry Run Key), `T1547.004` (Winlogon
+Helper DLL), `T1543.003` (Windows Service, including the "existing service hijack"
+variant, confirmed on Hupigon). Remaining sub-techniques (`T1546.003/.009/.010/.012/.015`,
+`T1053.005`, `T1197`, `T1547.002/.003/.005/.009/.014`) were not observed in this sample
+set.
+
+---
+
 ## v0.4
 
 **CI GitHub Actions**

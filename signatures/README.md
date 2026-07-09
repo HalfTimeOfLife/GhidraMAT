@@ -271,7 +271,7 @@ Signatures in this project are based on and cross-referenced against the followi
 
 **Signatures covered by al-khaser:**
 
-| Category | Signatures |
+| Category | `anti_vm.json` Signatures Tested |
 |----------|-----------|
 | **Registry** | `RegOpenKeyEx`, `RegQueryValueEx`, `RegEnumKeyEx` |
 | **Firmware** | `GetSystemFirmwareTable`, `EnumSystemFirmwareTables` |
@@ -304,7 +304,7 @@ Signatures in this project are based on and cross-referenced against the followi
 
 **Signatures covered by al-khaser:**
 
-| Category | Signatures |
+| Category | `anti_debug.json` Signatures Tested |
 |----------|-----------|
 | **Basic debugger checks** | `IsDebuggerPresent`, `CheckRemoteDebuggerPresent`, `NtQueryInformationProcess`, `RtlQueryProcessHeapInformation`, `RtlQueryProcessDebugInformation`, `NtQuerySystemInformation`, `NtQueryObject`, `NtClose`, `HeapWalk`, `DebugBreak`, `GetThreadContext`, `GetCurrentThread`, `NtQueryVirtualMemory` |
 | **Exception handling** | `SetUnhandledExceptionFilter`, `RaiseException`, `AddVectoredExceptionHandler`, `RemoveVectoredExceptionHandler` |
@@ -343,3 +343,28 @@ git clone https://github.com/redcanaryco/atomic-red-team.git
 | Native remote thread       | `RtlCreateUserThread.exe` | `RtlCreateUserThread`, `VirtualAllocEx`, `WriteProcessMemory`, `VirtualProtectEx`        |
 | ListPlanting               | `ListPlanting.exe`        | `FindWindow`, `SendMessage`, `PostMessage`, `VirtualAllocEx`                             |
 | PE Injection               | `RedInjection.exe`        | `pe_magic_embedded` (byte pattern)                                                       |
+
+---
+
+### Persistence:
+
+Tested against real-world malware samples from [MalwareBazaar](https://bazaar.abuse.ch/):
+
+| Family | SHA256 | Techniques confirmed |
+|---|---|---|
+| PlugX | `3cdd33dea12f21a4f222eb060e1e8ca8a20d5f6ca0fd849715f125b973f3a257` | none (weak evidence for T1547.001/T1543.003 via strings only) |
+| Berbew/Padodor (sample 1) | `3ea33da21e2745965c0f2884a7050635d9e72b6f72df48bb763ebbc810a88aca` | T1547.001, T1547.004 |
+| Berbew/Padodor (sample 2) | `328e0c70f0471edaa9e705719a3f52eb4ad537b3f3926a1189776ec3fc6a8e93` | T1547.001 (×2 variants), T1547.004 |
+| Berbew/Padodor (sample 3) | `43483130d3303ff2d67946e2b30b77b0e9b785ab9b56a65f82d001d4c8a77519` | T1547.001, T1547.004 |
+| Hupigon | `465d3aac3ca4daa9ad4de04fcb999f358396efd7abceed9701c9c28c23c126db` | T1547.001, T1547.004, T1543.003 (×2) |
+| Ramnit | `ee9378542050d13b1028b443f214d363dac7d11c1229e7e9054efde251d3e36b` | T1547.001, T1547.004 |
+
+3 of 17 targeted sub-techniques were confirmed via triggered combinations, cross-validated across 4 independent families:
+
+| Sub-technique | Description | Status |
+|---|---|---|
+| `T1547.001` | Registry Run Key | Confirmed |
+| `T1547.004` | Winlogon Helper DLL | Confirmed |
+| `T1543.003` | Windows Service (including the "existing service hijack" variant, confirmed on Hupigon) | Confirmed |
+
+Remaining sub-techniques (`T1546.003/.009/.010/.012/.015`, `T1053.005`, `T1197`, `T1547.002/.003/.005/.009/.014`) were not observed in this sample set.

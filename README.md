@@ -24,7 +24,7 @@ The file `detection.py` provides the generic detection engine for all GhidraMAT 
 | `network` | C2 indicators, hardcoded IPs/URLs, suspicious User-Agents, DGA-like strings, raw socket usage | WIP |
 | `crypto` | AES S-box constants, RC4 key scheduling patterns, rolling XOR, custom magic constants | WIP |
 | `injection` | Classic DLL injection, Process Hollowing, APC injection, Thread Hijacking -- detected via dangerous API combinations | UP |
-| `persistence` | Run registry keys, scheduled tasks, service installation, startup folder writes | WIP |
+| `persistence` | Run registry keys, scheduled tasks, service installation, startup folder writes, WMI/COM/LSA event-triggered execution | UP |
 | `impair_defenses` | Active defense neutralization — disabling Windows Defender, clearing event logs, patching AMSI, firewall tampering, security tool termination | WIP |
 
 > Categories marked WIP have empty signature files and produce no findings.

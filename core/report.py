@@ -76,7 +76,7 @@ def build_header(program_info, findings):
         )
         
         mitre_ids = sorted(set(
-            f.mitre for f in cat_findings if f.mitre
+            f.mitre for f in cat_findings if f.mitre and not f.combo_only
         ))
         if mitre_ids:
             lines.append(f"  {'MITRE':<20} :  {', '.join(mitre_ids)}")
@@ -221,7 +221,7 @@ def generate_json(findings, program_info, categories, now):
         
         by_category[cat] = {
             "total": len(cat_findings),
-            "mitre": sorted(set(f.mitre for f in cat_findings if f.mitre)),
+            "mitre": sorted(set(f.mitre for f in cat_findings if f.mitre and not f.combo_only)),
             "by_severity": {
                 sev: len([f for f in cat_findings if f.severity == sev])
                 for sev in ("CRITICAL", "HIGH", "MEDIUM", "LOW")        

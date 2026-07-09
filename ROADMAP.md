@@ -2,7 +2,7 @@
 
 This document describes the planned release schedule for GhidraMAT. Each version ships one core feature and one signature file. Secondary features are possible in each release if they don't affect the scope.
 
-Current version: **v0.4**
+Current version: **v0.5**
 
 ---
 
@@ -161,7 +161,6 @@ be added if a genuine need is identified.
 
 | Version | Core feature | Small additions | Signatures | Status |
 |---|---|---|---|---|
-| v0.5 | Unit tests for detection engine | N/A | `persistence.json` | Planned |
 | v0.6 | Global risk scoring | Configurable thresholds | `impair_defenses.json` | Planned |
 | v0.7 | Pattern scanner improvements | Section-aware anchoring | `network.json` | Planned |
 | v0.8 | Cross-category detections | `requires` field, YARA export | `crypto.json` | Planned |

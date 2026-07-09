@@ -1,23 +1,53 @@
 {
     "sig_version": 1,
     "imports": {
-        "RegSetValueEx": {
+        "RegSetValueExA": {
             "severity": "LOW",
             "combo_only": true,
             "mitre": "T1547.001",
-            "description": "Too generic alone; meaningful only in combination with RegCreateKeyEx or RegOpenKeyEx when writing a persistence value."
+            "description": "Too generic alone; meaningful only in combination with RegCreateKeyExA/RegCreateKeyA or RegOpenKeyExA when writing a persistence value."
         },
-        "RegCreateKeyEx": {
+        "RegSetValueExW": {
             "severity": "LOW",
             "combo_only": true,
             "mitre": "T1547.001",
-            "description": "Too generic alone; meaningful only in combination with RegSetValueEx -- creates the key before writing a persistence value."
+            "description": "Unicode variant of RegSetValueExA; meaningful only in combination with RegCreateKeyExW/RegCreateKeyW or RegOpenKeyExW."
         },
-        "RegOpenKeyEx": {
+        "RegCreateKeyExA": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1547.001",
+            "description": "Too generic alone; meaningful only in combination with RegSetValueExA -- creates the key before writing a persistence value."
+        },
+        "RegCreateKeyExW": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1547.001",
+            "description": "Unicode variant of RegCreateKeyExA."
+        },
+        "RegCreateKeyA": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1547.001",
+            "description": "Legacy variant of RegCreateKeyExA (no security attributes/disposition control); meaningful only in combination with RegSetValueExA."
+        },
+        "RegCreateKeyW": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1547.001",
+            "description": "Unicode legacy variant of RegCreateKeyA; meaningful only in combination with RegSetValueExW."
+        },
+        "RegOpenKeyExA": {
             "severity": "LOW",
             "combo_only": true,
             "mitre": "T1547.004",
-            "description": "Too generic alone; meaningful only in combination with RegSetValueEx -- opens an existing key (e.g. Winlogon) before modifying it."
+            "description": "Too generic alone; meaningful only in combination with RegSetValueExA -- opens an existing key (e.g. Winlogon) before modifying it."
+        },
+        "RegOpenKeyExW": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1547.004",
+            "description": "Unicode variant of RegOpenKeyExA."
         },
         "CoCreateInstance": {
             "severity": "LOW",
@@ -136,6 +166,35 @@
         }
     },
     "strings": {
+        "RegSetValueExW": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1547.001",
+            "description": "API name resolved dynamically via GetProcAddress rather than statically imported; meaningful only alongside RegCreateKeyExW/RegCreateKeyW."
+        },
+        "RegCreateKeyExW": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1547.001",
+            "description": "API name resolved dynamically via GetProcAddress; meaningful only alongside RegSetValueExW."
+        },
+        "StartServiceW": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1543.003",
+            "description": "API name resolved dynamically via GetProcAddress; meaningful only alongside CreateServiceW/OpenSCManagerW."
+        },
+        "OpenSCManagerW": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1543.003",
+            "description": "API name resolved dynamically via GetProcAddress; meaningful only alongside CreateServiceW/StartServiceW."
+        },
+        "ChangeServiceConfigW": {
+            "severity": "MEDIUM",
+            "mitre": "T1543.003",
+            "description": "API name resolved dynamically via GetProcAddress; used to modify an existing service's ImagePath -- possible service hijack indicator."
+        },
         "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run": {
             "severity": "HIGH",
             "mitre": "T1547.001",
@@ -332,23 +391,38 @@
     "combinations": [
         {
             "name": "Registry Run Key persistence",
-            "requires": [
-                "RegCreateKeyEx",
-                "RegSetValueEx"
-            ],
+            "requires": ["RegCreateKeyExA", "RegSetValueExA"],
             "severity": "HIGH",
             "mitre": "T1547.001",
             "description": "Creates and writes to a registry key -- likely installing a Run/RunOnce autostart entry."
         },
         {
+            "name": "Registry Run Key persistence (Unicode)",
+            "requires": ["RegCreateKeyExW", "RegSetValueExW"],
+            "severity": "HIGH",
+            "mitre": "T1547.001",
+            "description": "Unicode variant: creates and writes to a registry key -- likely installing a Run/RunOnce autostart entry."
+        },
+        {
+            "name": "Registry Run Key persistence (legacy API)",
+            "requires": ["RegCreateKeyA", "RegSetValueExA"],
+            "severity": "HIGH",
+            "mitre": "T1547.001",
+            "description": "Uses the legacy RegCreateKeyA (no Ex) alongside RegSetValueExA -- same registry persistence pattern via the older API."
+        },
+        {
             "name": "Winlogon Helper DLL persistence",
-            "requires": [
-                "RegOpenKeyEx",
-                "RegSetValueEx"
-            ],
+            "requires": ["RegOpenKeyExA", "RegSetValueExA"],
             "severity": "HIGH",
             "mitre": "T1547.004",
             "description": "Opens and writes to an existing registry key -- likely modifying Winlogon's Shell, Userinit, or Notify values."
+        },
+        {
+            "name": "Winlogon Helper DLL persistence (Unicode)",
+            "requires": ["RegOpenKeyExW", "RegSetValueExW"],
+            "severity": "HIGH",
+            "mitre": "T1547.004",
+            "description": "Unicode variant of Winlogon Helper DLL persistence."
         },
         {
             "name": "Windows service creation and start",

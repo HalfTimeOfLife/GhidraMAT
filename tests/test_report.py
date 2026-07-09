@@ -126,6 +126,21 @@ def test_generate_json_combo_only_counted_separately(program_info, now):
     assert by_type["imports"] == 1
     assert by_type["combo_only"] == 1
 
+def test_generate_json_mitre_excludes_combo_only(program_info, now):
+    """In the json report, a combo_only finding's mitre tag should not appear
+    in by_category.mitre unless a non-combo_only finding also carries it."""
+    findings = [
+        make_finding(mitre="T1547.001", combo_only=True),
+        make_finding(mitre="T1543.003", combo_only=False),
+    ]
+    filename = report.generate_json(findings, program_info, ["anti_vm"], now)
+
+    with open(filename, encoding="utf-8") as f:
+        data = json.load(f)
+
+    mitre = data["summary"]["by_category"]["anti_vm"]["mitre"]
+    assert "T1547.001" not in mitre
+    assert "T1543.003" in mitre
 
 def test_generate_json_findings_serialized(program_info, now):
     """In the json report, the findings list should contain the serialized Finding objects (via to_dict)."""
@@ -243,3 +258,18 @@ def test_generate_report_header_summary_counts(program_info, now):
 
     assert "Total findings : 2" in output
     assert "anti_vm" in output
+    
+def test_generate_report_mitre_excludes_combo_only(program_info, now):
+    """The header MITRE summary line should not list a mitre tag that only
+    appears on combo_only (unconfirmed) findings."""
+    findings = [
+        make_finding(mitre="T1547.001", combo_only=True),
+        make_finding(mitre="T1543.003", combo_only=False),
+    ]
+    filename = report.generate_report(findings, program_info, ["anti_vm"], now)
+
+    with open(filename, encoding="utf-8") as f:
+        output = f.read()
+
+    assert "T1547.001" not in output
+    assert "T1543.003" in output
