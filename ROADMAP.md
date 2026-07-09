@@ -6,28 +6,6 @@ Current version: **v0.5**
 
 ---
 
-## v0.5 - Unit tests + `persistence.json`
-
-**Feature: Unit tests for the detection engine**
-
-Extend test coverage beyond `Finding` and `validate_signatures` to the core analysis pipeline.
-
-- `detection.py`: mock Ghidra `Context`, verify the 4 matching types (imports, strings, byte patterns, combinations) produce correct `Finding` objects
-- `report.py`: verify JSON structure (`meta`, `summary`, `findings`), verify TXT sections are present by category and severity
-- `load_signatures`: version mismatch raises `ValueError`, missing file raises `FileNotFoundError`
-
-**Signatures: `persistence.json`**
-
-Detection of persistence mechanisms - MITRE:
-- `T1547` (`.001`, `.004`)
-- `T1543` (`.003`)
-- `T1053` (`.005`)
-- `T1547` (`.002`, `.003`, `.005`, `.009`, `.014`)
-- `T1546` (`.003`, `.009`, `.010`, `.012`, `.015`)
-- `T1197`
-
----
-
 ## v0.6 - Global risk scoring + `impair_defenses.json`
 
 **Feature: Global risk score**
