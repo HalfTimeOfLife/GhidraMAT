@@ -1,0 +1,41 @@
+{
+    "config_version": 1,
+    "rules": [
+        {
+            "level": "CRITICAL",
+            "min_counts": {
+                "CRITICAL": 1
+            }
+        },
+        {
+            "level": "HIGH",
+            "min_counts": {
+                "HIGH": 3
+            }
+        },
+        {
+            "level": "MEDIUM",
+            "min_counts": {
+                "HIGH": 1
+            }
+        },
+        {
+            "level": "MEDIUM",
+            "min_counts": {
+                "MEDIUM": 3
+            }
+        },
+        {
+            "level": "LOW",
+            "min_counts": {
+                "MEDIUM": 1
+            }
+        },
+        {
+            "level": "LOW",
+            "min_counts": {
+                "LOW": 1
+            }
+        }
+    ]
+}

@@ -1,25 +1,16 @@
 import json
 import os
-from utils.utils import BANNER, TOOL, VERSION, SIGNATURES_VERSION
 
-
+from core.scoring import compute_risk_score
+from utils.utils import BANNER, SIGNATURES_VERSION, TOOL, VERSION
 
 REPORTS_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "reports")
 
 
-SEVERITY_ORDER = [
-    "CRITICAL",
-    "HIGH",
-    "MEDIUM",
-    "LOW"
-]
+SEVERITY_ORDER = ["CRITICAL", "HIGH", "MEDIUM", "LOW"]
 
-TYPES = [
-    "imports",
-    "strings",
-    "byte_patterns",
-    "combinations"
-]
+TYPES = ["imports", "strings", "byte_patterns", "combinations"]
+
 
 def build_header(program_info, findings):
     """Build the report header lines with program metadata and a findings summary.
@@ -36,9 +27,9 @@ def build_header(program_info, findings):
         list[str]: Lines of the report header, ready to be joined and written.
     """
     lines = []
-    
+
     lines.append(BANNER)
-    
+
     lines.append("=" * 60)
     lines.append("  ANALYSIS REPORT")
     lines.append("=" * 60)
@@ -49,42 +40,53 @@ def build_header(program_info, findings):
     lines.append(f"  SHA256      : {program_info['sha256']}")
     lines.append(f"  Date        : {program_info['date']}")
     lines.append("")
-    
+
+    risk = compute_risk_score(findings)
+    counts_str = ", ".join(f"{v} {k}" for k, v in risk["counts"].items() if v)
+    risk_line = f"  RISK SCORE  : {risk['level']}"
+    if counts_str:
+        risk_line += f"  ({counts_str})"
+    lines.append(risk_line)
+    lines.append("")
+
     lines.append("-" * 60)
     lines.append("  SUMMARY")
     lines.append("-" * 60)
-    
+
     total = len(findings)
     lines.append(f"  Total findings : {total}")
     lines.append("")
-    
-    categories = set(f.category for f in findings)
+
+    categories = {f.category for f in findings}
     for cat in sorted(categories):
         cat_findings = [f for f in findings if f.category == cat]
-        
-        n_imports     = len([f for f in cat_findings if f.type == "imports" and not f.combo_only])
-        n_strings     = len([f for f in cat_findings if f.type == "strings"])
-        n_bytes       = len([f for f in cat_findings if f.type == "byte_patterns"])
-        n_combos      = len([f for f in cat_findings if f.type == "combinations"])
-        n_combo_only  = len([f for f in cat_findings if f.combo_only])
-        
+
+        n_imports = len(
+            [f for f in cat_findings if f.type == "imports" and not f.combo_only]
+        )
+        n_strings = len([f for f in cat_findings if f.type == "strings"])
+        n_bytes = len([f for f in cat_findings if f.type == "byte_patterns"])
+        n_combos = len([f for f in cat_findings if f.type == "combinations"])
+        n_combo_only = len([f for f in cat_findings if f.combo_only])
+
         lines.append(
             f"  {cat:<20} : {len(cat_findings)} findings "
             f"({n_imports} imports, {n_strings} strings, "
             f"{n_bytes} byte_patterns, {n_combos} combinations, "
             f"{n_combo_only} combo_only)"
         )
-        
-        mitre_ids = sorted(set(
-            f.mitre for f in cat_findings if f.mitre and not f.combo_only
-        ))
+
+        mitre_ids = sorted(
+            {f.mitre for f in cat_findings if f.mitre and not f.combo_only}
+        )
         if mitre_ids:
             lines.append(f"  {'MITRE':<20} :  {', '.join(mitre_ids)}")
-    
+
     lines.append("-" * 60)
     lines.append("")
-    
+
     return lines
+
 
 def generate_report(findings, program_info, categories, now):
     """Generate and write a formatted analysis report to disk and console.
@@ -102,33 +104,35 @@ def generate_report(findings, program_info, categories, now):
     Returns:
         str: Path to the generated .txt report file.
     """
-    
+
     print("\nGenerating report...")
-    
+
     os.makedirs(REPORTS_DIR, exist_ok=True)
-    
+
     timestamp = now.strftime("%d-%m-%Y_%Hh%Mmin%Ss")
-    filename = os.path.join(REPORTS_DIR, f"report_{program_info['name']}_{timestamp}.txt")
-    
+    filename = os.path.join(
+        REPORTS_DIR, f"report_{program_info['name']}_{timestamp}.txt"
+    )
+
     lines = []
     lines.extend(build_header(program_info, findings))
-    
-    SEPARATOR  = "=" * 60
-    SUBSEP     = "-" * 40
-    SUBSUBSEP  = "*" * 40
+
+    SEPARATOR = "=" * 60
+    SUBSEP = "-" * 40
+    SUBSUBSEP = "*" * 40
 
     for category in categories:
         lines.append("")
         lines.append(SEPARATOR)
         lines.append(f"  CATEGORY : {category.upper()}")
         lines.append(SEPARATOR)
-        
+
         category_findings = [f for f in findings if f.category == category]
-        
+
         if not category_findings:
             lines.append("  No findings detected.")
             continue
-        
+
         for sign_type in TYPES:
             type_findings = [f for f in category_findings if f.type == sign_type]
             if not type_findings:
@@ -137,46 +141,44 @@ def generate_report(findings, program_info, categories, now):
             lines.append(SUBSEP)
             lines.append(f"TYPE : {sign_type}")
             lines.append(SUBSEP)
-            
-            
+
             for severity in SEVERITY_ORDER:
                 severity_findings = [f for f in type_findings if f.severity == severity]
                 if not severity_findings:
                     continue
-                    
+
                 lines.append("")
                 lines.append(f"  [ {severity} ]")
                 lines.append(SUBSUBSEP)
-                
-                normal   = [f for f in severity_findings if not f.combo_only]
+
+                normal = [f for f in severity_findings if not f.combo_only]
                 combonly = [f for f in severity_findings if f.combo_only]
-                
+
                 for f in normal:
                     lines.append(f"  {f.__str__()}")
-                
+
                 if combonly:
                     lines.append("")
                     lines.append("  -- Weak standalone indicators --")
                     for f in combonly:
                         lines.append(f"  {f.__str__()}")
-        
+
         lines.append("")
-    
+
     lines.append("")
     lines.append(SEPARATOR)
     lines.append("  END OF REPORT")
     lines.append(SEPARATOR)
-    
+
     output = "\n".join(lines)
-    
+
     print(output)
-    
-    with open(filename, "w", encoding="utf-8", newline='\n') as f:
+
+    with open(filename, "w", encoding="utf-8", newline="\n") as f:
         f.write(output)
-        
+
     return filename
-            
-            
+
 
 def generate_json(findings, program_info, categories, now):
     """Generate and write a structured JSON report to disk.
@@ -198,67 +200,88 @@ def generate_json(findings, program_info, categories, now):
     Returns:
         str: Path to the generated .json report file.
     """
-    
+
     timestamp = now.strftime("%d-%m-%Y_%Hh%Mmin%Ss")
-    filename = os.path.join(REPORTS_DIR, f"report_{program_info['name']}_{timestamp}.json")
-    
+    filename = os.path.join(
+        REPORTS_DIR, f"report_{program_info['name']}_{timestamp}.json"
+    )
+
     by_severity = {"CRITICAL": 0, "HIGH": 0, "MEDIUM": 0, "LOW": 0}
     for f in findings:
         by_severity[f.severity] += 1
-        
+
     by_category = {}
     for cat in categories:
         cat_findings = [f for f in findings if f.category == cat]
-        
+
         if not cat_findings:
             by_category[cat] = {
                 "total": 0,
                 "mitre": [],
                 "by_severity": {"CRITICAL": 0, "HIGH": 0, "MEDIUM": 0, "LOW": 0},
-                "by_type": {"imports": 0, "strings": 0, "byte_patterns": 0, "combinations": 0, "combo_only": 0}
+                "by_type": {
+                    "imports": 0,
+                    "strings": 0,
+                    "byte_patterns": 0,
+                    "combinations": 0,
+                    "combo_only": 0,
+                },
             }
             continue
-        
+
         by_category[cat] = {
             "total": len(cat_findings),
-            "mitre": sorted(set(f.mitre for f in cat_findings if f.mitre and not f.combo_only)),
+            "mitre": sorted(
+                {f.mitre for f in cat_findings if f.mitre and not f.combo_only}
+            ),
             "by_severity": {
                 sev: len([f for f in cat_findings if f.severity == sev])
-                for sev in ("CRITICAL", "HIGH", "MEDIUM", "LOW")        
+                for sev in ("CRITICAL", "HIGH", "MEDIUM", "LOW")
             },
             "by_type": {
-                "imports":      len([f for f in cat_findings if f.type == "imports" and not f.combo_only]),
-                "strings":      len([f for f in cat_findings if f.type == "strings"]),
-                "byte_patterns":len([f for f in cat_findings if f.type == "byte_patterns"]),
-                "combinations": len([f for f in cat_findings if f.type == "combinations"]),
-                "combo_only":   len([f for f in cat_findings if f.combo_only])
-            }
+                "imports": len(
+                    [
+                        f
+                        for f in cat_findings
+                        if f.type == "imports" and not f.combo_only
+                    ]
+                ),
+                "strings": len([f for f in cat_findings if f.type == "strings"]),
+                "byte_patterns": len(
+                    [f for f in cat_findings if f.type == "byte_patterns"]
+                ),
+                "combinations": len(
+                    [f for f in cat_findings if f.type == "combinations"]
+                ),
+                "combo_only": len([f for f in cat_findings if f.combo_only]),
+            },
         }
-    
+
     data = {
         "meta": {
             "tool": TOOL,
             "version": VERSION,
             "signatures_version": SIGNATURES_VERSION,
-            "generated_at": now.isoformat()
+            "generated_at": now.isoformat(),
         },
         "program": {
             "name": program_info["name"],
             "path": program_info["path"],
             "format": program_info["format"],
             "md5": program_info["md5"],
-            "sha256": program_info["sha256"]
+            "sha256": program_info["sha256"],
         },
         "summary": {
             "total_findings": len(findings),
+            "risk_score": compute_risk_score(findings),
             "by_severity": by_severity,
-            "by_category": by_category
+            "by_category": by_category,
         },
-        "findings": [f.to_dict() for f in findings]
+        "findings": [f.to_dict() for f in findings],
     }
-    
+
     os.makedirs(REPORTS_DIR, exist_ok=True)
     with open(filename, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4)
-    
+
     return filename
