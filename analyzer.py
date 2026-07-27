@@ -7,8 +7,8 @@
 # @toolbar ghidramat_icon.png
 # @runtime PyGhidra
 
-import sys
 import os
+import sys
 from datetime import datetime
 
 script_dir = os.path.dirname(os.path.realpath(__file__))
@@ -23,9 +23,9 @@ for _mod_name in list(sys.modules.keys()):
 from ghidra.app.plugin.core.colorizer import ColorizingService
 
 from core.context import Context
-from core.report import generate_report, generate_json
-from utils.utils import print_banner, apply_visual_marking, create_bookmark
+from core.report import generate_json, generate_report
 from utils.detection import analyze
+from utils.utils import apply_visual_marking, create_bookmark, print_banner
 
 CATEGORIES = [
     "anti_vm",
@@ -35,45 +35,49 @@ CATEGORIES = [
     "crypto",
     "injection",
     "persistence",
-    "impair_defenses"
+    "impair_defenses",
 ]
 
-# Basic metadata extracted from the current Ghidra program at load time.
-name = currentProgram.getName()
-path = currentProgram.getExecutablePath()
-creation_date = currentProgram.getCreationDate()
-exec_format = currentProgram.getExecutableFormat()
-program_md5 = currentProgram.getExecutableMD5()
-program_sha256 = currentProgram.getExecutableSHA256()
-base_image = currentProgram.getImageBase()
+
+def _get_program_info():
+    return {
+        "name": currentProgram.getName(),
+        "path": str(currentProgram.getExecutablePath()),
+        "md5": currentProgram.getExecutableMD5(),
+        "sha256": currentProgram.getExecutableSHA256(),
+        "format": currentProgram.getExecutableFormat(),
+        "date": str(currentProgram.getCreationDate()),
+    }
+
 
 def run():
     """Run the full GhidraMAT analysis on the current program."""
 
+    program_info = _get_program_info()
     print_banner()
-    print("Analyzing program: " + name)
-    print("Executable path: " + path)
-    print("Creation date: " + str(creation_date))
-    print("Executable format: " + exec_format)
-    print("MD5: " + program_md5)
-    print("SHA256: " + program_sha256)
-    print("Base image address: " + str(base_image))
-    print("\n[GhidraMAT] Starting analysis of " + name + "...\n")
+    print("Analyzing program: " + program_info["name"])
+    print("Executable path: " + program_info["path"])
+    print("Creation date: " + program_info["date"])
+    print("Executable format: " + program_info["format"])
+    print("MD5: " + program_info["md5"])
+    print("SHA256: " + program_info["sha256"])
+    print("Base image address: " + str(currentProgram.getImageBase()))
+    print("\n[GhidraMAT] Starting analysis of " + program_info["name"] + "...\n")
 
     context = Context(currentProgram, monitor)
     findings = []
 
     for category in CATEGORIES:
         if context.monitor:
-            context.monitor.setMessage("[GhidraMAT] Running {}...".format(category))
-        print("GhidraMAT: running {}".format(category))
+            context.monitor.setMessage(f"[GhidraMAT] Running {category}...")
+        print(f"GhidraMAT: running {category}")
         try:
             mod_findings = analyze(context, category)
             findings.extend(mod_findings)
-            print("[{}] {} finding(s)".format(category, len(mod_findings)))
+            print(f"[{category}] {len(mod_findings)} finding(s)")
         except Exception as e:
-            print("[ERROR] {} failed: {}".format(category, str(e)))
-            
+            print(f"[ERROR] {category} failed: {e!s}")
+
     service = state.getTool().getService(ColorizingService)
     transaction = currentProgram.startTransaction("GhidraMAT markings")
     try:
@@ -82,22 +86,11 @@ def run():
             apply_visual_marking(service, finding)
     finally:
         currentProgram.endTransaction(transaction, True)
-        
-    program_info = {
-    "name": name,
-    "path": str(path),
-    "md5": program_md5,
-    "sha256": program_sha256,
-    "format": exec_format,
-    "date": creation_date
-    }
-    
+
     now = datetime.now().astimezone()
-    
-    
-    generate_report(findings, program_info, CATEGORIES , now)
-    generate_json(findings, program_info, CATEGORIES , now)
+
+    generate_report(findings, program_info, CATEGORIES, now)
+    generate_json(findings, program_info, CATEGORIES, now)
 
 
 run()
-

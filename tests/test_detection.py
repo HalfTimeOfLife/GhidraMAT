@@ -4,28 +4,41 @@ Tests for utils.detection.analyze
 """
 
 import json
+
 import pytest
- 
+
 from tests.fakes import (
-    FakeContext, FakeSymbolTable, FakeListing, FakeRefManager,
-    FakeFuncManager, FakeSymbol, FakeData, FakeReference, FakeAddress,
-    FakeFunction, FakeInstruction, FakeProgram, FakeMonitor
+    FakeAddress,
+    FakeContext,
+    FakeData,
+    FakeFuncManager,
+    FakeFunction,
+    FakeInstruction,
+    FakeListing,
+    FakeMonitor,
+    FakeProgram,
+    FakeReference,
+    FakeRefManager,
+    FakeSymbol,
+    FakeSymbolTable,
 )
 from utils.detection import analyze
 
 # -------------------------------------------------------------------
 # --- helpers ---
 # -------------------------------------------------------------------
- 
- 
+
+
 def write_signatures(tmp_path, category, data):
     """Helper to write a signature JSON file for a given category."""
     path = tmp_path / f"{category}.json"
     path.write_text(json.dumps(data), encoding="utf-8")
 
+
 # -------------------------------------------------------------------
 # --- imports detection ---
 # -------------------------------------------------------------------
+
 
 def test_analyze_detects_import(tmp_path, monkeypatch):
     """analyze() should produce a Finding when an import is present in the binary."""
@@ -35,12 +48,12 @@ def test_analyze_detects_import(tmp_path, monkeypatch):
             "CreateToolhelp32Snapshot": {
                 "severity": "MEDIUM",
                 "mitre": "T1497.001",
-                "description": "Creates a process/module snapshot."
+                "description": "Creates a process/module snapshot.",
             }
         },
         "strings": {},
         "byte_patterns": {},
-        "combinations": []
+        "combinations": [],
     }
     write_signatures(tmp_path, "anti_vm", signatures)
     monkeypatch.setattr("utils.detection.SIG_PATH", str(tmp_path))
@@ -52,7 +65,7 @@ def test_analyze_detects_import(tmp_path, monkeypatch):
     context = FakeContext(
         symbol_table=FakeSymbolTable(symbols=[symbol]),
         ref_manager=FakeRefManager(refs_by_address={addr: [FakeReference(addr)]}),
-        func_manager=FakeFuncManager(function_by_address={addr: func})
+        func_manager=FakeFuncManager(function_by_address={addr: func}),
     )
 
     findings = analyze(context, "anti_vm")
@@ -77,19 +90,17 @@ def test_analyze_skips_import_not_present(tmp_path, monkeypatch):
             "CreateToolhelp32Snapshot": {
                 "severity": "MEDIUM",
                 "mitre": "T1497.001",
-                "description": "Creates a process/module snapshot."
+                "description": "Creates a process/module snapshot.",
             }
         },
         "strings": {},
         "byte_patterns": {},
-        "combinations": []
+        "combinations": [],
     }
     write_signatures(tmp_path, "anti_vm", signatures)
     monkeypatch.setattr("utils.detection.SIG_PATH", str(tmp_path))
 
-    context = FakeContext(
-        symbol_table=FakeSymbolTable(symbols=[])
-    )
+    context = FakeContext(symbol_table=FakeSymbolTable(symbols=[]))
 
     findings = analyze(context, "anti_vm")
 
@@ -105,28 +116,28 @@ def test_analyze_import_combo_only_flag_set(tmp_path, monkeypatch):
                 "severity": "LOW",
                 "combo_only": True,
                 "mitre": "T1497.003",
-                "description": "Ubiquitous; meaningful only in combination with Sleep."
+                "description": "Ubiquitous; meaningful only in combination with Sleep.",
             }
         },
         "strings": {},
         "byte_patterns": {},
-        "combinations": []
+        "combinations": [],
     }
     write_signatures(tmp_path, "anti_vm", signatures)
     monkeypatch.setattr("utils.detection.SIG_PATH", str(tmp_path))
-    
+
     addr = FakeAddress(0x1000)
     symbol = FakeSymbol("GetTickCount", addr)
     func = FakeFunction("main", FakeAddress(0x1000))
-    
+
     context = FakeContext(
         symbol_table=FakeSymbolTable(symbols=[symbol]),
         ref_manager=FakeRefManager(refs_by_address={addr: [FakeReference(addr)]}),
-        func_manager=FakeFuncManager(function_by_address={addr: func})
+        func_manager=FakeFuncManager(function_by_address={addr: func}),
     )
-    
+
     findings = analyze(context, "anti_vm")
-    
+
     assert len(findings) == 1
     f = findings[0]
     assert f.category == "anti_vm"
@@ -136,9 +147,11 @@ def test_analyze_import_combo_only_flag_set(tmp_path, monkeypatch):
     assert f.mitre == "T1497.003"
     assert f.combo_only is True
 
+
 # -------------------------------------------------------------------
 # --- strings detection ---
 # -------------------------------------------------------------------
+
 
 def test_analyze_detects_string(tmp_path, monkeypatch):
     """analyze() should produce a Finding when a signed string is defined in the binary."""
@@ -149,25 +162,25 @@ def test_analyze_detects_string(tmp_path, monkeypatch):
             "VMware, Inc.": {
                 "severity": "HIGH",
                 "mitre": "T1497.001",
-                "description": "VMware vendor string."
+                "description": "VMware vendor string.",
             }
         },
         "byte_patterns": {},
-        "combinations": []
+        "combinations": [],
     }
-    
+
     write_signatures(tmp_path, "anti_vm", signatures)
     monkeypatch.setattr("utils.detection.SIG_PATH", str(tmp_path))
-    
+
     addr = FakeAddress(0x1000)
     data = FakeData("VMware, Inc.", addr)
     context = FakeContext(
         listing=FakeListing(data=[data]),
-        ref_manager=FakeRefManager(refs_by_address={addr: [FakeReference(addr)]})
+        ref_manager=FakeRefManager(refs_by_address={addr: [FakeReference(addr)]}),
     )
-    
+
     findings = analyze(context, "anti_vm")
-    
+
     assert len(findings) == 1
     f = findings[0]
     assert f.category == "anti_vm"
@@ -175,8 +188,8 @@ def test_analyze_detects_string(tmp_path, monkeypatch):
     assert f.name == "VMware, Inc."
     assert f.severity == "HIGH"
     assert f.mitre == "T1497.001"
-    
-    
+
+
 def test_analyze_skips_string_not_present(tmp_path, monkeypatch):
     """analyze() should not produce a Finding when the signed string is absent from the binary."""
     signatures = {
@@ -186,24 +199,26 @@ def test_analyze_skips_string_not_present(tmp_path, monkeypatch):
             "VMware, Inc.": {
                 "severity": "HIGH",
                 "mitre": "T1497.001",
-                "description": "VMware vendor string."
+                "description": "VMware vendor string.",
             }
         },
         "byte_patterns": {},
-        "combinations": []
+        "combinations": [],
     }
     write_signatures(tmp_path, "anti_vm", signatures)
     monkeypatch.setattr("utils.detection.SIG_PATH", str(tmp_path))
-    
+
     context = FakeContext(listing=FakeListing(data=[]))
-    
+
     findings = analyze(context, "anti_vm")
-    
+
     assert findings == []
+
 
 # -------------------------------------------------------------------
 # --- byte_patterns detection ---
 # -------------------------------------------------------------------
+
 
 def test_analyze_detects_byte_pattern(tmp_path, monkeypatch):
     """analyze() should produce a Finding when a signed byte pattern matches an instruction."""
@@ -216,10 +231,10 @@ def test_analyze_detects_byte_pattern(tmp_path, monkeypatch):
                 "pattern": "0F 31",
                 "severity": "HIGH",
                 "mitre": "T1497.003",
-                "description": "RDTSC instruction, used for timing-based VM/sandbox detection."
+                "description": "RDTSC instruction, used for timing-based VM/sandbox detection.",
             }
         },
-        "combinations": []
+        "combinations": [],
     }
 
     write_signatures(tmp_path, "anti_vm", signatures)
@@ -231,7 +246,7 @@ def test_analyze_detects_byte_pattern(tmp_path, monkeypatch):
 
     context = FakeContext(
         program=FakeProgram(listing=FakeListing(instructions=[instr])),
-        func_manager=FakeFuncManager(function_by_address={addr: func})
+        func_manager=FakeFuncManager(function_by_address={addr: func}),
     )
 
     findings = analyze(context, "anti_vm")
@@ -246,7 +261,9 @@ def test_analyze_detects_byte_pattern(tmp_path, monkeypatch):
     assert findings[0].xrefs == [addr]
 
 
-def test_analyze_byte_pattern_groups_multiple_matches_into_one_finding(tmp_path, monkeypatch):
+def test_analyze_byte_pattern_groups_multiple_matches_into_one_finding(
+    tmp_path, monkeypatch
+):
     """analyze() should group every occurrence of the same byte pattern into a single Finding."""
     signatures = {
         "sig_version": 1,
@@ -257,29 +274,29 @@ def test_analyze_byte_pattern_groups_multiple_matches_into_one_finding(tmp_path,
                 "pattern": "0F 31",
                 "severity": "HIGH",
                 "mitre": "T1497.003",
-                "description": "RDTSC instruction, used for timing-based VM/sandbox detection."
+                "description": "RDTSC instruction, used for timing-based VM/sandbox detection.",
             }
         },
-        "combinations": []
+        "combinations": [],
     }
-    
+
     write_signatures(tmp_path, "anti_vm", signatures)
     monkeypatch.setattr("utils.detection.SIG_PATH", str(tmp_path))
-    
+
     addr1 = FakeAddress(0x1000)
     addr2 = FakeAddress(0x2000)
     func1 = FakeFunction("check_timing_1", addr1)
     func2 = FakeFunction("check_timing_2", addr2)
     instr1 = FakeInstruction(min_address=addr1, byte_values=[0x0F, 0x31])
     instr2 = FakeInstruction(min_address=addr2, byte_values=[0x0F, 0x31])
-    
+
     context = FakeContext(
         program=FakeProgram(listing=FakeListing(instructions=[instr1, instr2])),
-        func_manager=FakeFuncManager(function_by_address={addr1: func1, addr2: func2})
+        func_manager=FakeFuncManager(function_by_address={addr1: func1, addr2: func2}),
     )
-    
+
     findings = analyze(context, "anti_vm")
-    
+
     assert len(findings) == 1
     f = findings[0]
     assert f.category == "anti_vm"
@@ -302,31 +319,35 @@ def test_analyze_skips_byte_pattern_not_present(tmp_path, monkeypatch):
                 "pattern": "0F 31",
                 "severity": "HIGH",
                 "mitre": "T1497.003",
-                "description": "RDTSC instruction, used for timing-based VM/sandbox detection."
+                "description": "RDTSC instruction, used for timing-based VM/sandbox detection.",
             }
         },
-        "combinations": []
+        "combinations": [],
     }
-    
+
     write_signatures(tmp_path, "anti_vm", signatures)
     monkeypatch.setattr("utils.detection.SIG_PATH", str(tmp_path))
-    
+
     addr = FakeAddress(0x1000)
     func = FakeFunction("func", addr)
-    instr = FakeInstruction(min_address=addr, byte_values=[0x90, 0x90])  # NOPs, not RDTSC
-    
+    instr = FakeInstruction(
+        min_address=addr, byte_values=[0x90, 0x90]
+    )  # NOPs, not RDTSC
+
     context = FakeContext(
         program=FakeProgram(listing=FakeListing(instructions=[instr])),
-        func_manager=FakeFuncManager(function_by_address={addr: func})
+        func_manager=FakeFuncManager(function_by_address={addr: func}),
     )
-    
+
     findings = analyze(context, "anti_vm")
-    
+
     assert findings == []
+
 
 # -------------------------------------------------------------------
 # --- combinations detection ---
 # -------------------------------------------------------------------
+
 
 def test_analyze_detects_combination_when_all_requires_present(tmp_path, monkeypatch):
     """
@@ -336,8 +357,12 @@ def test_analyze_detects_combination_when_all_requires_present(tmp_path, monkeyp
     signatures = {
         "sig_version": 1,
         "imports": {
-            "GetTickCount": {"severity": "LOW", "combo_only": True, "description": "..."},
-            "Sleep": {"severity": "LOW", "combo_only": True, "description": "..."}
+            "GetTickCount": {
+                "severity": "LOW",
+                "combo_only": True,
+                "description": "...",
+            },
+            "Sleep": {"severity": "LOW", "combo_only": True, "description": "..."},
         },
         "strings": {},
         "byte_patterns": {},
@@ -347,38 +372,38 @@ def test_analyze_detects_combination_when_all_requires_present(tmp_path, monkeyp
                 "requires": ["GetTickCount", "Sleep"],
                 "severity": "HIGH",
                 "mitre": "T1497.003",
-                "description": "Measures elapsed time around a Sleep call."
+                "description": "Measures elapsed time around a Sleep call.",
             }
-        ]
+        ],
     }
-    
+
     write_signatures(tmp_path, "anti_vm", signatures)
     monkeypatch.setattr("utils.detection.SIG_PATH", str(tmp_path))
-    
+
     addr1 = FakeAddress(0x1000)
     addr2 = FakeAddress(0x2000)
     symbol1 = FakeSymbol("GetTickCount", addr1)
     symbol2 = FakeSymbol("Sleep", addr2)
     func1 = FakeFunction("main", addr1)
     func2 = FakeFunction("main", addr2)
-    
+
     context = FakeContext(
         symbol_table=FakeSymbolTable(symbols=[symbol1, symbol2]),
-        ref_manager=FakeRefManager(refs_by_address={addr1: [FakeReference(addr1)], addr2: [FakeReference(addr2)]}),
-        func_manager=FakeFuncManager(function_by_address={addr1: func1, addr2: func2})
+        ref_manager=FakeRefManager(
+            refs_by_address={
+                addr1: [FakeReference(addr1)],
+                addr2: [FakeReference(addr2)],
+            }
+        ),
+        func_manager=FakeFuncManager(function_by_address={addr1: func1, addr2: func2}),
     )
-    
+
     findings = analyze(context, "anti_vm")
-    
+
     assert len(findings) == 3
-    
+
     for f in findings:
-        if f.name == "GetTickCount":
-            assert f.category == "anti_vm"
-            assert f.type == "imports"
-            assert f.severity == "LOW"
-            assert f.combo_only is True
-        elif f.name == "Sleep":
+        if f.name == "GetTickCount" or f.name == "Sleep":
             assert f.category == "anti_vm"
             assert f.type == "imports"
             assert f.severity == "LOW"
@@ -399,7 +424,11 @@ def test_analyze_skips_combination_when_partial_requires_present(tmp_path, monke
     signatures = {
         "sig_version": 1,
         "imports": {
-            "GetTickCount": {"severity": "LOW", "combo_only": True, "description": "..."}
+            "GetTickCount": {
+                "severity": "LOW",
+                "combo_only": True,
+                "description": "...",
+            }
         },
         "strings": {},
         "byte_patterns": {},
@@ -409,26 +438,26 @@ def test_analyze_skips_combination_when_partial_requires_present(tmp_path, monke
                 "requires": ["GetTickCount", "Sleep"],
                 "severity": "HIGH",
                 "mitre": "T1497.003",
-                "description": "Measures elapsed time around a Sleep call."
+                "description": "Measures elapsed time around a Sleep call.",
             }
-        ]
+        ],
     }
-    
+
     write_signatures(tmp_path, "anti_vm", signatures)
     monkeypatch.setattr("utils.detection.SIG_PATH", str(tmp_path))
-    
+
     addr = FakeAddress(0x1000)
     symbol = FakeSymbol("GetTickCount", addr)
     func = FakeFunction("main", addr)
-    
+
     context = FakeContext(
         symbol_table=FakeSymbolTable(symbols=[symbol]),
         ref_manager=FakeRefManager(refs_by_address={addr: [FakeReference(addr)]}),
-        func_manager=FakeFuncManager(function_by_address={addr: func})
+        func_manager=FakeFuncManager(function_by_address={addr: func}),
     )
-    
+
     findings = analyze(context, "anti_vm")
-    
+
     assert len(findings) == 1
     f = findings[0]
     assert f.name == "GetTickCount"
@@ -443,8 +472,12 @@ def test_analyze_combination_finding_has_no_xrefs(tmp_path, monkeypatch):
     signatures = {
         "sig_version": 1,
         "imports": {
-            "GetTickCount": {"severity": "LOW", "combo_only": True, "description": "..."},
-            "Sleep": {"severity": "LOW", "combo_only": True, "description": "..."}
+            "GetTickCount": {
+                "severity": "LOW",
+                "combo_only": True,
+                "description": "...",
+            },
+            "Sleep": {"severity": "LOW", "combo_only": True, "description": "..."},
         },
         "strings": {},
         "byte_patterns": {},
@@ -453,9 +486,9 @@ def test_analyze_combination_finding_has_no_xrefs(tmp_path, monkeypatch):
                 "name": "Sleep-skipping sandbox detection",
                 "requires": ["GetTickCount", "Sleep"],
                 "severity": "HIGH",
-                "description": "Measures elapsed time around a Sleep call."
+                "description": "Measures elapsed time around a Sleep call.",
             }
-        ]
+        ],
     }
 
     write_signatures(tmp_path, "anti_vm", signatures)
@@ -464,44 +497,48 @@ def test_analyze_combination_finding_has_no_xrefs(tmp_path, monkeypatch):
     symbol1 = FakeSymbol("GetTickCount", FakeAddress(0x1000))
     symbol2 = FakeSymbol("Sleep", FakeAddress(0x2000))
 
-    context = FakeContext(
-        symbol_table=FakeSymbolTable(symbols=[symbol1, symbol2])
-    )
+    context = FakeContext(symbol_table=FakeSymbolTable(symbols=[symbol1, symbol2]))
 
     findings = analyze(context, "anti_vm")
 
     combo_finding = next(f for f in findings if f.type == "combinations")
     assert combo_finding.xrefs == []
-    
 
 
 # -------------------------------------------------------------------
 # --- category / signature loading ---
 # -------------------------------------------------------------------
 
+
 def test_analyze_uses_correct_category_in_findings(tmp_path, monkeypatch):
     """Every Finding produced by analyze() should carry the category it was called with."""
     signatures = {
         "sig_version": 1,
         "imports": {
-            "GetTickCount": {"severity": "LOW", "combo_only": True, "description": "..."}
+            "GetTickCount": {
+                "severity": "LOW",
+                "combo_only": True,
+                "description": "...",
+            }
         },
-        "strings": {
-            "VMware, Inc.": {"severity": "HIGH", "description": "..."}
-        },
+        "strings": {"VMware, Inc.": {"severity": "HIGH", "description": "..."}},
         "byte_patterns": {
-            "rdtsc_timing": {"pattern": "0F 31", "severity": "HIGH", "description": "..."}
+            "rdtsc_timing": {
+                "pattern": "0F 31",
+                "severity": "HIGH",
+                "description": "...",
+            }
         },
         "combinations": [
             {
                 "name": "Some combo",
                 "requires": ["GetTickCount"],
                 "severity": "HIGH",
-                "description": "..."
+                "description": "...",
             }
-        ]
+        ],
     }
-    
+
     write_signatures(tmp_path, "anti_vm", signatures)
     monkeypatch.setattr("utils.detection.SIG_PATH", str(tmp_path))
 
@@ -513,20 +550,22 @@ def test_analyze_uses_correct_category_in_findings(tmp_path, monkeypatch):
     data = FakeData("VMware, Inc.", addr_string)
     instr = FakeInstruction(min_address=addr_instr, byte_values=[0x0F, 0x31])
     func = FakeFunction("main", FakeAddress(0x1000))
-    
+
     context = FakeContext(
         symbol_table=FakeSymbolTable(symbols=[symbol]),
         listing=FakeListing(data=[data]),
         program=FakeProgram(listing=FakeListing(instructions=[instr])),
-        ref_manager=FakeRefManager(refs_by_address={
-            addr_import: [FakeReference(addr_import)],
-            addr_string: [FakeReference(addr_string)]
-        }),
-        func_manager=FakeFuncManager(function_by_address={
-            addr_import: func, addr_string: func, addr_instr: func
-        })
+        ref_manager=FakeRefManager(
+            refs_by_address={
+                addr_import: [FakeReference(addr_import)],
+                addr_string: [FakeReference(addr_string)],
+            }
+        ),
+        func_manager=FakeFuncManager(
+            function_by_address={addr_import: func, addr_string: func, addr_instr: func}
+        ),
     )
-    
+
     findings = analyze(context, "anti_vm")
 
     assert len(findings) == 4
@@ -543,9 +582,9 @@ def test_analyze_empty_signatures_produces_no_findings(tmp_path, monkeypatch):
         "imports": {},
         "strings": {},
         "byte_patterns": {},
-        "combinations": []
+        "combinations": [],
     }
-    
+
     write_signatures(tmp_path, "anti_vm", signatures)
     monkeypatch.setattr("utils.detection.SIG_PATH", str(tmp_path))
 
@@ -555,9 +594,11 @@ def test_analyze_empty_signatures_produces_no_findings(tmp_path, monkeypatch):
 
     assert findings == []
 
+
 # -------------------------------------------------------------------
 # --- monitor interaction ---
 # -------------------------------------------------------------------
+
 
 def test_analyze_sets_monitor_message_when_monitor_present(tmp_path, monkeypatch):
     """analyze() should call monitor.setMessage() with the category name when a monitor is present."""
@@ -566,7 +607,7 @@ def test_analyze_sets_monitor_message_when_monitor_present(tmp_path, monkeypatch
         "imports": {},
         "strings": {},
         "byte_patterns": {},
-        "combinations": []
+        "combinations": [],
     }
 
     write_signatures(tmp_path, "anti_vm", signatures)
@@ -588,7 +629,7 @@ def test_analyze_skips_monitor_message_when_monitor_none(tmp_path, monkeypatch):
         "imports": {},
         "strings": {},
         "byte_patterns": {},
-        "combinations": []
+        "combinations": [],
     }
 
     write_signatures(tmp_path, "anti_vm", signatures)

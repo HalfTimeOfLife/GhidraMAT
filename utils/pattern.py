@@ -26,8 +26,7 @@ def scan_byte_pattern(context, pattern_str):
         unsigned_bytes = [b & 0xFF for b in instr.getBytes()]
         for i in range(len(unsigned_bytes) - len(pattern) + 1):
             if all(
-                p is None or unsigned_bytes[i + j] == p
-                for j, p in enumerate(pattern)
+                p is None or unsigned_bytes[i + j] == p for j, p in enumerate(pattern)
             ):
                 matches.append(instr.getMinAddress().add(i))
                 break

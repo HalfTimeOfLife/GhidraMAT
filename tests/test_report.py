@@ -10,6 +10,7 @@ from core.finding import Finding
 # --- fixtures / helpers ---
 # -------------------------------------------------------------------
 
+
 def make_finding(**kwargs):
     """Create a Finding with sensible defaults, overridable via kwargs."""
     defaults = {
@@ -51,6 +52,7 @@ def patch_reports_dir(tmp_path, monkeypatch):
 # --- generate_json ---
 # -------------------------------------------------------------------
 
+
 def test_generate_json_top_level_keys(program_info, now):
     """The json report should contain exactly the expected top-level keys."""
     findings = [make_finding()]
@@ -75,7 +77,10 @@ def test_generate_json_summary_by_severity(program_info, now):
         data = json.load(f)
 
     assert data["summary"]["by_severity"] == {
-        "CRITICAL": 0, "HIGH": 2, "MEDIUM": 0, "LOW": 1
+        "CRITICAL": 0,
+        "HIGH": 2,
+        "MEDIUM": 0,
+        "LOW": 1,
     }
 
 
@@ -83,10 +88,16 @@ def test_generate_json_summary_by_category(program_info, now):
     """The json report should break down totals."""
     findings = [
         make_finding(category="anti_vm", type_of_technique="imports", severity="HIGH"),
-        make_finding(category="anti_vm", type_of_technique="strings", severity="MEDIUM"),
-        make_finding(category="anti_debug", type_of_technique="combinations", severity="CRITICAL"),
+        make_finding(
+            category="anti_vm", type_of_technique="strings", severity="MEDIUM"
+        ),
+        make_finding(
+            category="anti_debug", type_of_technique="combinations", severity="CRITICAL"
+        ),
     ]
-    filename = report.generate_json(findings, program_info, ["anti_vm", "anti_debug"], now)
+    filename = report.generate_json(
+        findings, program_info, ["anti_vm", "anti_debug"], now
+    )
 
     with open(filename, encoding="utf-8") as f:
         data = json.load(f)
@@ -96,7 +107,6 @@ def test_generate_json_summary_by_category(program_info, now):
     assert data["summary"]["by_category"]["anti_vm"]["by_type"]["strings"] == 1
     assert data["summary"]["by_category"]["anti_debug"]["total"] == 1
     assert data["summary"]["by_category"]["anti_debug"]["by_severity"]["CRITICAL"] == 1
-
 
 
 def test_generate_json_empty_category_present(program_info, now):
@@ -126,6 +136,7 @@ def test_generate_json_combo_only_counted_separately(program_info, now):
     assert by_type["imports"] == 1
     assert by_type["combo_only"] == 1
 
+
 def test_generate_json_mitre_excludes_combo_only(program_info, now):
     """In the json report, a combo_only finding's mitre tag should not appear
     in by_category.mitre unless a non-combo_only finding also carries it."""
@@ -141,6 +152,7 @@ def test_generate_json_mitre_excludes_combo_only(program_info, now):
     mitre = data["summary"]["by_category"]["anti_vm"]["mitre"]
     assert "T1547.001" not in mitre
     assert "T1543.003" in mitre
+
 
 def test_generate_json_findings_serialized(program_info, now):
     """In the json report, the findings list should contain the serialized Finding objects (via to_dict)."""
@@ -171,10 +183,13 @@ def test_generate_json_meta_fields(program_info, now):
 # generate_report (txt)
 # -------------------------------------------------------------------
 
+
 def test_generate_report_contains_category_section(program_info, now):
     """The txt report should contain a CATEGORY header for each requested category."""
     findings = [make_finding(category="anti_vm")]
-    filename = report.generate_report(findings, program_info, ["anti_vm", "anti_debug"], now)
+    filename = report.generate_report(
+        findings, program_info, ["anti_vm", "anti_debug"], now
+    )
 
     with open(filename, encoding="utf-8") as f:
         output = f.read()
@@ -258,7 +273,8 @@ def test_generate_report_header_summary_counts(program_info, now):
 
     assert "Total findings : 2" in output
     assert "anti_vm" in output
-    
+
+
 def test_generate_report_mitre_excludes_combo_only(program_info, now):
     """The header MITRE summary line should not list a mitre tag that only
     appears on combo_only (unconfirmed) findings."""

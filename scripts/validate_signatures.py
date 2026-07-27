@@ -15,13 +15,21 @@ SIGNATURES_DIR = os.path.join(os.path.dirname(__file__), "..", "signatures")
 
 VALID_SEVERITIES = {"LOW", "MEDIUM", "HIGH", "CRITICAL"}
 
-REQUIRED_TOP_LEVEL = {"imports", "strings", "byte_patterns", "combinations", "sig_version"}
+REQUIRED_TOP_LEVEL = {
+    "imports",
+    "strings",
+    "byte_patterns",
+    "combinations",
+    "sig_version",
+}
 
 errors = []
 
+
 def err(filepath, msg):
     errors.append(f"[{os.path.basename(filepath)}] {msg}")
-    
+
+
 def validate_import(filepath, api_name, data):
     if not isinstance(data, dict):
         err(filepath, f"imports.{api_name}: expected object, got {type(data).__name__}")
@@ -34,10 +42,14 @@ def validate_import(filepath, api_name, data):
         err(filepath, f"imports.{api_name}: missing required field 'description'")
     if "combo_only" in data and not isinstance(data["combo_only"], bool):
         err(filepath, f"imports.{api_name}: 'combo_only' must be a boolean")
-    
+
+
 def validate_string(filepath, string_val, data):
     if not isinstance(data, dict):
-        err(filepath, f"strings.{string_val!r}: expected object, got {type(data).__name__}")
+        err(
+            filepath,
+            f"strings.{string_val!r}: expected object, got {type(data).__name__}",
+        )
         return
     if "severity" not in data:
         err(filepath, f"strings.{string_val!r}: missing required field 'severity'")
@@ -46,22 +58,32 @@ def validate_string(filepath, string_val, data):
     if "description" not in data:
         err(filepath, f"strings.{string_val!r}: missing required field 'description'")
 
+
 def validate_byte_pattern(filepath, sig_name, data):
     if not isinstance(data, dict):
-        err(filepath, f"byte_patterns.{sig_name}: expected object, got {type(data).__name__}")
+        err(
+            filepath,
+            f"byte_patterns.{sig_name}: expected object, got {type(data).__name__}",
+        )
         return
     if "pattern" not in data:
         err(filepath, f"byte_patterns.{sig_name}: missing required field 'pattern'")
     else:
         for byte in data["pattern"].split():
             if byte != "??" and not all(c in "0123456789abcdefABCDEF" for c in byte):
-                err(filepath, f"byte_patterns.{sig_name}: invalid byte token '{byte}' in pattern")
+                err(
+                    filepath,
+                    f"byte_patterns.{sig_name}: invalid byte token '{byte}' in pattern",
+                )
     if "severity" not in data:
         err(filepath, f"byte_patterns.{sig_name}: missing required field 'severity'")
     elif data["severity"] not in VALID_SEVERITIES:
-        err(filepath, f"byte_patterns.{sig_name}: invalid severity '{data['severity']}'")
+        err(
+            filepath, f"byte_patterns.{sig_name}: invalid severity '{data['severity']}'"
+        )
     if "description" not in data:
         err(filepath, f"byte_patterns.{sig_name}: missing required field 'description'")
+
 
 def validate_combination(filepath, i, combo):
     if not isinstance(combo, dict):
@@ -72,12 +94,16 @@ def validate_combination(filepath, i, combo):
             err(filepath, f"combinations[{i}]: missing required field '{field}'")
     if "requires" in combo:
         if not isinstance(combo["requires"], list):
-            err(filepath, f"combinations[{i}]: 'requires' must be a non-empty list, got {type(combo['requires']).__name__}")
+            err(
+                filepath,
+                f"combinations[{i}]: 'requires' must be a non-empty list, got {type(combo['requires']).__name__}",
+            )
         elif not combo["requires"]:
             err(filepath, f"combinations[{i}]: 'requires' must not be empty")
     if "severity" in combo and combo["severity"] not in VALID_SEVERITIES:
         err(filepath, f"combinations[{i}]: invalid severity '{combo['severity']}'")
-    
+
+
 def validate_file(filepath):
     with open(filepath, encoding="utf-8") as f:
         try:
@@ -85,7 +111,7 @@ def validate_file(filepath):
         except json.JSONDecodeError as e:
             err(filepath, f"invalid JSON: {e}")
             return
-    
+
     missing = REQUIRED_TOP_LEVEL - data.keys()
     if missing:
         err(filepath, f"missing detection types (top-level keys): {missing}")
@@ -93,11 +119,13 @@ def validate_file(filepath):
     unknown = data.keys() - REQUIRED_TOP_LEVEL
     if unknown:
         err(filepath, f"unknown top-level keys (typo?): {unknown}")
-        
+
     sig_ver = data.get("sig_version")
     if sig_ver != SIGNATURES_VERSION:
-        err(filepath, f"sig_version mismatch: expected {SIGNATURES_VERSION}, got {sig_ver!r}")
-    
+        err(
+            filepath,
+            f"sig_version mismatch: expected {SIGNATURES_VERSION}, got {sig_ver!r}",
+        )
 
     for api_name, entry in data.get("imports", {}).items():
         validate_import(filepath, api_name, entry)
@@ -110,21 +138,22 @@ def validate_file(filepath):
 
     for i, combo in enumerate(data.get("combinations", [])):
         validate_combination(filepath, i, combo)
-    
+
+
 def main():
     sig_files = [
-        os.path.join(SIGNATURES_DIR, f) 
-        for f in os.listdir(SIGNATURES_DIR) 
+        os.path.join(SIGNATURES_DIR, f)
+        for f in os.listdir(SIGNATURES_DIR)
         if f.endswith(".json")
     ]
-    
+
     if not sig_files:
         print("No signatures files found ...")
         sys.exit(1)
-        
+
     for filepath in sorted(sig_files):
         validate_file(filepath)
-        
+
     if errors:
         print(f"Validation failed — {len(errors)} error(s):\n")
         for e in errors:
@@ -132,6 +161,7 @@ def main():
         sys.exit(1)
 
     print(f"All {len(sig_files)} signature file(s) are valid.")
-    
+
+
 if __name__ == "__main__":
     main()

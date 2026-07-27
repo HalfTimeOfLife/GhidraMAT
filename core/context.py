@@ -16,6 +16,7 @@ class Context:
         ref_manager: Cross-reference manager.
         func_manager: Function manager.
     """
+
     def __init__(self, program, monitor=None):
         self.program = program
         self.monitor = monitor

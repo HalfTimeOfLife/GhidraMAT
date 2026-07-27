@@ -31,7 +31,20 @@ class Finding:
     Attributes:
         type (str): Detection method, stored from type_of_technique.
     """
-    def __init__(self, category, type_of_technique, name, severity, description, combo_only=False, xrefs=None, xref_labels=None, mitre=None, requirements=None):
+
+    def __init__(
+        self,
+        category,
+        type_of_technique,
+        name,
+        severity,
+        description,
+        combo_only=False,
+        xrefs=None,
+        xref_labels=None,
+        mitre=None,
+        requirements=None,
+    ):
         self.category = category
         self.type = type_of_technique
         self.name = name
@@ -61,7 +74,7 @@ class Finding:
             "description": self.description,
             "combo_only": self.combo_only,
             "xref_labels": self.xref_labels,
-            "requirements": self.requirements
+            "requirements": self.requirements,
         }
 
     def __str__(self):
@@ -78,7 +91,11 @@ class Finding:
                 and a combo-only warning if applicable.
         """
 
-        note = "\n   [!] Standalone indicator weak -- meaningful only in combination" if self.combo_only else ""
+        note = (
+            "\n   [!] Standalone indicator weak -- meaningful only in combination"
+            if self.combo_only
+            else ""
+        )
 
         xrefs_str = ""
         if self.xref_labels:
@@ -92,7 +109,7 @@ class Finding:
                 for label in self.xref_labels:
                     last_open = label.rfind("(")
                     if last_open != -1:
-                        inner = label[last_open + 1:].rstrip(")")
+                        inner = label[last_open + 1 :].rstrip(")")
                         fname = inner.split("+")[0]
                     else:
                         fname = label

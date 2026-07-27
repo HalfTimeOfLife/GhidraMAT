@@ -1,7 +1,6 @@
 import json
 import os
 
-
 VERSION = "0.5"
 SIGNATURES_VERSION = 1
 
@@ -20,9 +19,11 @@ BANNER = rf"""
 =======================================================
 """
 
+
 def print_banner():
-    """ Print GhidraMAT banner for report and console."""
+    """Print GhidraMAT banner for report and console."""
     print(BANNER)
+
 
 def get_imports(context):
     """Retrieve imported symbols of a program.
@@ -41,6 +42,7 @@ def get_imports(context):
         imports[symbol.getName()] = symbol.getAddress()
     return imports
 
+
 def get_strings(context):
     """Retrieve all defined strings from a program.
 
@@ -58,7 +60,8 @@ def get_strings(context):
         if s.hasStringValue():
             strings.add(str(s.getValue()))
     return strings
-    
+
+
 def load_signatures(signatures_dir, name):
     """Load a JSON signature file from a directory.
 
@@ -78,15 +81,13 @@ def load_signatures(signatures_dir, name):
         FileNotFoundError: If the signature file does not exist.
     """
 
-    path = os.path.join(signatures_dir, "{}.json".format(name))
+    path = os.path.join(signatures_dir, f"{name}.json")
     with open(path, encoding="utf-8") as f:
         data = json.load(f)
     sig_ver = data.get("sig_version")
     if sig_ver != SIGNATURES_VERSION:
         raise ValueError(
-            "Signature version mismatch for '{}': expected '{}', got '{}'.".format(
-                name, SIGNATURES_VERSION, sig_ver
-            )
+            f"Signature version mismatch for '{name}': expected '{SIGNATURES_VERSION}', got '{sig_ver}'."
         )
     return data
 
@@ -103,15 +104,15 @@ def apply_visual_marking(service, finding):
         finding: Finding object with severity and xrefs attributes.
     """
     from java.awt import Color
-    
+
     # Background colors applied to findings based on their severity level.
     SEVERITY_COLORS = {
-        "CRITICAL": Color(220, 50,  50),
-        "HIGH":     Color(220, 130, 50),
-        "MEDIUM":   Color(220, 200, 50),
-        "LOW":      Color(150, 200, 100)
+        "CRITICAL": Color(220, 50, 50),
+        "HIGH": Color(220, 130, 50),
+        "MEDIUM": Color(220, 200, 50),
+        "LOW": Color(150, 200, 100),
     }
-    
+
     color = SEVERITY_COLORS.get(finding.severity)
     if not color:
         return
@@ -134,14 +135,19 @@ def create_bookmark(program, finding):
             attributes.
     """
     from ghidra.program.model.listing import BookmarkType
-    
+
     bm = program.getBookmarkManager()
 
     for xref in finding.xrefs:
         if not xref.isExternalAddress():
-            bm.setBookmark(xref, BookmarkType.ANALYSIS, finding.category.upper(), finding.description)
-        
-        
+            bm.setBookmark(
+                xref,
+                BookmarkType.ANALYSIS,
+                finding.category.upper(),
+                finding.description,
+            )
+
+
 def resolve_function_context(func_manager, addr):
     """Resolve a memory address to its containing function name and offset.
 
@@ -155,11 +161,11 @@ def resolve_function_context(func_manager, addr):
             if the address is the function entry point. Falls back to the raw
             address string if no containing function is found.
     """
-    func =  func_manager.getFunctionContaining (addr)
+    func = func_manager.getFunctionContaining(addr)
     if func is None:
         return str(addr)
     name = func.getName()
     offset = addr.subtract(func.getEntryPoint())
     if offset == 0:
-        return f"{str(addr)} ({name})"
-    return f"{str(addr)} ({name}+0x{offset:x})"
+        return f"{addr!s} ({name})"
+    return f"{addr!s} ({name}+0x{offset:x})"

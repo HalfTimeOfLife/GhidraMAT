@@ -5,14 +5,15 @@ Tests for scripts.validate_signatures
 """
 
 import json
+
 import pytest
 
-from scripts.validate_signatures import validate_file, errors
-
+from scripts.validate_signatures import errors, validate_file
 
 # -------------------------------------------------------------------
 # --- fixtures / helpers ---
 # -------------------------------------------------------------------
+
 
 @pytest.fixture(autouse=True)
 def clear_errors():
@@ -27,9 +28,10 @@ def minimal_valid_json():
         "imports": {},
         "strings": {},
         "byte_patterns": {},
-        "combinations": []
+        "combinations": [],
     }
-    
+
+
 def build_import(severity="HIGH", description="Test description", combo_only=None):
     entry = {}
 
@@ -44,6 +46,7 @@ def build_import(severity="HIGH", description="Test description", combo_only=Non
 
     return entry
 
+
 def build_string(severity="HIGH", description="Test description"):
     entry = {}
 
@@ -55,7 +58,10 @@ def build_string(severity="HIGH", description="Test description"):
 
     return entry
 
-def build_byte_pattern(pattern="0F A2", severity="HIGH", description="Test description"):
+
+def build_byte_pattern(
+    pattern="0F A2", severity="HIGH", description="Test description"
+):
     entry = {}
 
     if pattern is not None:
@@ -69,7 +75,13 @@ def build_byte_pattern(pattern="0F A2", severity="HIGH", description="Test descr
 
     return entry
 
-def build_combination(name="Test combination", requires=None, severity="HIGH", description="Test description"):
+
+def build_combination(
+    name="Test combination",
+    requires=None,
+    severity="HIGH",
+    description="Test description",
+):
     entry = {}
 
     if name is not None:
@@ -87,6 +99,7 @@ def build_combination(name="Test combination", requires=None, severity="HIGH", d
         entry["description"] = description
 
     return entry
+
 
 def write_json(tmp_path, data, filename="test.json"):
     """Write a JSON object to a temporary file and return its path."""
@@ -111,6 +124,7 @@ def assert_no_errors():
 # --- valid files ---
 # -------------------------------------------------------------------
 
+
 def test_valid_empty_file(tmp_path):
     """A file with sig_version and empty detection sections should produce no errors."""
     data = minimal_valid_json()
@@ -129,10 +143,7 @@ def test_valid_file_with_import(tmp_path):
 def test_valid_file_with_combo_only_import(tmp_path):
     """A file with a valid combo_only import (boolean True) should produce no errors."""
     data = minimal_valid_json()
-    data["imports"]["TestAPI"] = build_import(
-        severity="LOW",
-        combo_only=True
-    )
+    data["imports"]["TestAPI"] = build_import(severity="LOW", combo_only=True)
     run_validation(tmp_path, data)
     assert_no_errors()
 
@@ -164,6 +175,7 @@ def test_valid_file_with_combination(tmp_path):
 # -------------------------------------------------------------------
 # --- top level schema ---
 # -------------------------------------------------------------------
+
 
 def test_missing_sig_version(tmp_path):
     """Missing top-level key 'sig_version' should produce an error."""
@@ -209,12 +221,12 @@ def test_missing_combinations_key(tmp_path):
 # --- import validation ---
 # -------------------------------------------------------------------
 
+
 def test_missing_severity_in_import(tmp_path):
     """Import entry without severity should produce an error."""
     data = minimal_valid_json()
     data["imports"]["TestAPI"] = build_import(
-        severity=None,
-        description="Test description"
+        severity=None, description="Test description"
     )
     run_validation(tmp_path, data)
     assert any("severity" in e for e in errors)
@@ -223,10 +235,7 @@ def test_missing_severity_in_import(tmp_path):
 def test_missing_description_in_import(tmp_path):
     """Import entry without description should produce an error."""
     data = minimal_valid_json()
-    data["imports"]["TestAPI"] = build_import(
-        severity="HIGH",
-        description=None
-    )
+    data["imports"]["TestAPI"] = build_import(severity="HIGH", description=None)
     run_validation(tmp_path, data)
     assert any("description" in e for e in errors)
 
@@ -235,9 +244,7 @@ def test_combo_only_not_boolean(tmp_path):
     """Import entry with non-boolean combo_only should produce an error."""
     data = minimal_valid_json()
     data["imports"]["TestAPI"] = build_import(
-        severity="HIGH",
-        description="Test description",
-        combo_only="True"
+        severity="HIGH", description="Test description", combo_only="True"
     )
     run_validation(tmp_path, data)
     assert any("combo_only" in e for e in errors)
@@ -247,8 +254,7 @@ def test_invalid_severity_in_import(tmp_path):
     """Import entry with invalid severity should produce an error."""
     data = minimal_valid_json()
     data["imports"]["TestAPI"] = build_import(
-        severity="SeverityTest",
-        description="Test description"
+        severity="SeverityTest", description="Test description"
     )
     run_validation(tmp_path, data)
     assert any("severity" in e for e in errors)
@@ -258,12 +264,12 @@ def test_invalid_severity_in_import(tmp_path):
 # --- strings validation ---
 # -------------------------------------------------------------------
 
+
 def test_missing_severity_in_string(tmp_path):
     """String entry without severity should produce an error."""
     data = minimal_valid_json()
     data["strings"]["TestString"] = build_string(
-        severity=None,
-        description="Test description"
+        severity=None, description="Test description"
     )
     run_validation(tmp_path, data)
     assert any("severity" in e for e in errors)
@@ -272,19 +278,16 @@ def test_missing_severity_in_string(tmp_path):
 def test_missing_description_in_string(tmp_path):
     """String entry without description should produce an error."""
     data = minimal_valid_json()
-    data["strings"]["TestString"] = build_string(
-        severity="HIGH",
-        description=None
-    )
+    data["strings"]["TestString"] = build_string(severity="HIGH", description=None)
     run_validation(tmp_path, data)
     assert any("description" in e for e in errors)
-    
+
+
 def test_invalid_severity_in_strings(tmp_path):
     """String entry with invalid severity should produce an error."""
     data = minimal_valid_json()
     data["strings"]["TestString"] = build_string(
-        severity="SeverityTest",
-        description="Test description"
+        severity="SeverityTest", description="Test description"
     )
     run_validation(tmp_path, data)
     assert any("severity" in e for e in errors)
@@ -294,13 +297,12 @@ def test_invalid_severity_in_strings(tmp_path):
 # --- byte patterns validation ---
 # -------------------------------------------------------------------
 
+
 def test_missing_pattern_in_byte_pattern(tmp_path):
     """Byte pattern entry without pattern should produce an error."""
     data = minimal_valid_json()
     data["byte_patterns"]["TestPattern"] = build_byte_pattern(
-        pattern=None,
-        severity="HIGH",
-        description="Test description"
+        pattern=None, severity="HIGH", description="Test description"
     )
     run_validation(tmp_path, data)
     assert any("pattern" in e for e in errors)
@@ -310,9 +312,7 @@ def test_invalid_byte_in_pattern(tmp_path):
     """Byte pattern contains invalid hex token should produce an error."""
     data = minimal_valid_json()
     data["byte_patterns"]["TestPattern"] = build_byte_pattern(
-        pattern="ZZ A2",
-        severity="HIGH",
-        description="Test description"
+        pattern="ZZ A2", severity="HIGH", description="Test description"
     )
     run_validation(tmp_path, data)
     assert any("ZZ" in e for e in errors)
@@ -322,9 +322,7 @@ def test_invalid_severity_in_byte_pattern(tmp_path):
     """Byte pattern with invalid severity should produce an error."""
     data = minimal_valid_json()
     data["byte_patterns"]["TestPattern"] = build_byte_pattern(
-        pattern="0F A2",
-        severity="SeverityTest",
-        description="Test description"
+        pattern="0F A2", severity="SeverityTest", description="Test description"
     )
     run_validation(tmp_path, data)
     assert any("severity" in e for e in errors)
@@ -334,15 +332,18 @@ def test_invalid_severity_in_byte_pattern(tmp_path):
 # --- combinations validation ---
 # -------------------------------------------------------------------
 
+
 def test_missing_name_in_combination(tmp_path):
     """Combination entry without name should produce an error."""
     data = minimal_valid_json()
-    data["combinations"].append(build_combination(
-        name=None,
-        requires=["Requirement1", "Requirement2", "Requirement3"],
-        severity="HIGH",
-        description="Test description"
-    ))
+    data["combinations"].append(
+        build_combination(
+            name=None,
+            requires=["Requirement1", "Requirement2", "Requirement3"],
+            severity="HIGH",
+            description="Test description",
+        )
+    )
     run_validation(tmp_path, data)
     assert any("name" in e for e in errors)
 
@@ -350,12 +351,14 @@ def test_missing_name_in_combination(tmp_path):
 def test_missing_requires_in_combination(tmp_path):
     """Combination entry without requires should produce an error."""
     data = minimal_valid_json()
-    data["combinations"].append(build_combination(
-        name="Test Combination",
-        requires=[],
-        severity="HIGH",
-        description="Test description"
-    ))
+    data["combinations"].append(
+        build_combination(
+            name="Test Combination",
+            requires=[],
+            severity="HIGH",
+            description="Test description",
+        )
+    )
     run_validation(tmp_path, data)
     assert any("requires" in e for e in errors)
 
@@ -363,12 +366,14 @@ def test_missing_requires_in_combination(tmp_path):
 def test_requires_not_a_list(tmp_path):
     """Combination entry where requires is not a list should produce an error."""
     data = minimal_valid_json()
-    data["combinations"].append(build_combination(
-        name="Test Combination",
-        requires={"test1" : 1, "test2" : 3},
-        severity="HIGH",
-        description="Test description"
-    ))
+    data["combinations"].append(
+        build_combination(
+            name="Test Combination",
+            requires={"test1": 1, "test2": 3},
+            severity="HIGH",
+            description="Test description",
+        )
+    )
     run_validation(tmp_path, data)
     assert any("requires" in e for e in errors)
 
@@ -376,9 +381,7 @@ def test_requires_not_a_list(tmp_path):
 def test_invalid_severity_in_combination(tmp_path):
     """Combination entry with invalid severity should produce an error."""
     data = minimal_valid_json()
-    data["combinations"].append(build_combination(
-        severity="INVALID"
-    ))
+    data["combinations"].append(build_combination(severity="INVALID"))
     run_validation(tmp_path, data)
     assert any("severity" in e for e in errors)
 
@@ -386,6 +389,7 @@ def test_invalid_severity_in_combination(tmp_path):
 # -------------------------------------------------------------------
 # --- JSON parsing ---
 # -------------------------------------------------------------------
+
 
 def test_invalid_json(tmp_path):
     """Malformed JSON file should produce an error and not crash."""
