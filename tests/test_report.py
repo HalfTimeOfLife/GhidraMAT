@@ -1,5 +1,10 @@
+"""tests/test_report.py
+
+Tests for core.report
+"""
+
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 
 import pytest
 
@@ -38,7 +43,7 @@ def program_info():
 
 @pytest.fixture
 def now():
-    return datetime(2026, 7, 7, 12, 30, 45)
+    return datetime(2026, 7, 7, 12, 30, 45, tzinfo=timezone.utc)
 
 
 @pytest.fixture(autouse=True)
@@ -179,6 +184,19 @@ def test_generate_json_meta_fields(program_info, now):
     assert "signatures_version" in data["meta"]
 
 
+def test_generate_json_contains_risk_score(program_info, now):
+    """In the json report, summary should contain risk_score."""
+    findings = [make_finding(severity="HIGH")]
+
+    filename = report.generate_json(findings, program_info, ["anti_vm"], now)
+
+    with open(filename, encoding="utf-8") as f:
+        data = json.load(f)
+
+    assert "risk_score" in data["summary"]
+    assert "level" in data["summary"]["risk_score"]
+
+
 # -------------------------------------------------------------------
 # generate_report (txt)
 # -------------------------------------------------------------------
@@ -289,3 +307,15 @@ def test_generate_report_mitre_excludes_combo_only(program_info, now):
 
     assert "T1547.001" not in output
     assert "T1543.003" in output
+
+
+def test_generate_report_displays_risk_score(program_info, now):
+    """The txt report should contain the risk_score."""
+    findings = [make_finding(severity="HIGH")]
+
+    filename = report.generate_report(findings, program_info, ["anti_vm"], now)
+
+    with open(filename, encoding="utf-8") as f:
+        output = f.read()
+
+    assert "RISK SCORE" in output
