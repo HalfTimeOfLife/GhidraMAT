@@ -1,7 +1,7 @@
 import json
 import os
 
-VERSION = "0.5"
+VERSION = "0.6"
 SIGNATURES_VERSION = 1
 
 TOOL = "GhidraMAT"
