@@ -1,7 +1,471 @@
 {
     "sig_version": 1,
-    "imports": {},
-    "strings": {},
-    "byte_patterns": {},
-    "combinations": []
+    "imports": {
+        "OpenSCManagerA": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1562.001",
+            "description": "Opens the service control manager; meaningful only combined with OpenServiceA/ControlService to stop an AV/EDR service."
+        },
+        "OpenSCManagerW": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1562.001",
+            "description": "Unicode variant of OpenSCManagerA; meaningful only combined with service manipulation APIs."
+        },
+        "OpenServiceA": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1562.001",
+            "description": "Opens a handle to a service; meaningful only combined with ControlService or ChangeServiceConfigA to tamper with a security service."
+        },
+        "OpenServiceW": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1562.001",
+            "description": "Unicode variant of OpenServiceA; meaningful only combined with service manipulation APIs."
+        },
+        "ControlService": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1562.001",
+            "description": "Sends a control code (e.g. SERVICE_CONTROL_STOP) to a service; meaningful only combined with OpenSCManager/OpenService targeting an AV/EDR service."
+        },
+        "ChangeServiceConfigA": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1562.001",
+            "description": "Reconfigures a service (e.g. start type to disabled); meaningful only combined with OpenServiceA targeting a security service."
+        },
+        "ChangeServiceConfigW": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1562.001",
+            "description": "Unicode variant of ChangeServiceConfigA; meaningful only combined with OpenServiceW."
+        },
+        "DeleteService": {
+            "severity": "HIGH",
+            "mitre": "T1562.001",
+            "description": "Deletes a service outright; rare enough in legitimate software to flag standalone, often used to remove AV/EDR services."
+        },
+        "OpenProcess": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1562.001",
+            "description": "Opens a handle to a process; meaningful only combined with TerminateProcess targeting an AV/EDR process."
+        },
+        "TerminateProcess": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1562.001",
+            "description": "Terminates a process; ubiquitous, meaningful only combined with OpenProcess targeting a security process."
+        },
+        "RegCreateKeyExA": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1562.001",
+            "description": "Creates or opens a registry key; meaningful only combined with RegSetValueExA to write Defender/AV policy values."
+        },
+        "RegCreateKeyExW": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1562.001",
+            "description": "Unicode variant of RegCreateKeyExA; meaningful only combined with RegSetValueExW."
+        },
+        "RegSetValueExA": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1562.001",
+            "description": "Sets a registry value; meaningful only combined with RegCreateKeyExA -- likely writing DisableAntiSpyware/DisableRealtimeMonitoring."
+        },
+        "RegSetValueExW": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1562.001",
+            "description": "Unicode variant of RegSetValueExA; meaningful only combined with RegCreateKeyExW."
+        },
+        "RegDeleteValueA": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1562.001",
+            "description": "Deletes a registry value; too generic alone, notable only when confirmed against a security-product registry path via strings."
+        },
+        "RegDeleteValueW": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1562.001",
+            "description": "Unicode variant of RegDeleteValueA."
+        },
+        "OpenEventLogA": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1070.001",
+            "description": "Opens a handle to an event log; meaningful only combined with ClearEventLogA to wipe logs."
+        },
+        "OpenEventLogW": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1070.001",
+            "description": "Unicode variant of OpenEventLogA; meaningful only combined with ClearEventLogW."
+        },
+        "ClearEventLogA": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1070.001",
+            "description": "Clears a Windows event log; escalated to CRITICAL only when combined with OpenEventLogA (confirms a targeted log was opened first)."
+        },
+        "ClearEventLogW": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1070.001",
+            "description": "Unicode variant of ClearEventLogA."
+        },
+        "EvtClearLog": {
+            "severity": "MEDIUM",
+            "mitre": "T1070.001",
+            "description": "Clears a Windows event log using the Event Log API; commonly used to remove traces after malicious activity."
+        },
+        "AuditPolicySetSubCategoriesEx": {
+            "severity": "HIGH",
+            "mitre": "T1562.002",
+            "description": "Modifies audit policy subcategories directly; rarely used outside security tooling, commonly abused to disable specific audit event generation."
+        },
+        "AmsiInitialize": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1562.001",
+            "description": "Initializes an AMSI context; meaningful only combined with AmsiScanBuffer and VirtualProtect in an in-memory AMSI patch."
+        },
+        "AmsiScanBuffer": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1562.001",
+            "description": "References the AMSI scan function directly; escalated only when combined with AmsiInitialize and VirtualProtect, indicating an in-memory patch attempt."
+        },
+        "VirtualProtect": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1562.001",
+            "description": "Changes memory page protection; ubiquitous, meaningful only combined with AmsiScanBuffer or EtwEventWrite to patch bytes in a loaded module."
+        },
+        "EtwEventWrite": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1562.006",
+            "description": "References the ETW event write function; meaningful only combined with VirtualProtect, indicating a patch to suppress trace events."
+        },
+        "NtTraceEvent": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1562.006",
+            "description": "Native ETW tracing function; meaningful only combined with VirtualProtect for ETW suppression via patching."
+        },
+        "CoInitializeEx": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1562.004",
+            "description": "COM initialization; meaningful only combined with CoCreateInstance for INetFwPolicy2-based firewall manipulation."
+        },
+        "CoCreateInstance": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1562.004",
+            "description": "Instantiates a COM object; meaningful only combined with CoInitializeEx -- pivot for firewall policy (HNetCfg.FwPolicy2) manipulation."
+        }
+    },
+    "strings": {
+        "Windows Defender": {
+            "severity": "HIGH",
+            "mitre": "T1562.001",
+            "description": "Windows Defender product name string, typically used to target its process, service, or registry keys."
+        },
+        "WinDefend": {
+            "severity": "HIGH",
+            "mitre": "T1562.001",
+            "description": "Windows Defender service name, used with service control APIs to stop/disable it."
+        },
+        "MsMpEng.exe": {
+            "severity": "HIGH",
+            "mitre": "T1562.001",
+            "description": "Windows Defender antimalware service executable name; used for process enumeration/termination."
+        },
+        "SepMasterService": {
+            "severity": "HIGH",
+            "mitre": "T1562.001",
+            "description": "Symantec Endpoint Protection master service name."
+        },
+        "avp.exe": {
+            "severity": "HIGH",
+            "mitre": "T1562.001",
+            "description": "Kaspersky antivirus process name."
+        },
+        "ekrn.exe": {
+            "severity": "HIGH",
+            "mitre": "T1562.001",
+            "description": "ESET antivirus kernel service process name."
+        },
+        "mbamservice.exe": {
+            "severity": "HIGH",
+            "mitre": "T1562.001",
+            "description": "Malwarebytes service process name."
+        },
+        "SAVAdminService.exe": {
+            "severity": "HIGH",
+            "mitre": "T1562.001",
+            "description": "Sophos Anti-Virus administration service process name."
+        },
+        "CSFalconService.exe": {
+            "severity": "HIGH",
+            "mitre": "T1562.001",
+            "description": "CrowdStrike Falcon EDR service process name."
+        },
+        "SentinelAgent.exe": {
+            "severity": "HIGH",
+            "mitre": "T1562.001",
+            "description": "SentinelOne EDR agent process name."
+        },
+        "elastic-endpoint.exe": {
+            "severity": "HIGH",
+            "mitre": "T1562.001",
+            "description": "Elastic Endpoint Security EDR agent process name."
+        },
+        "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows Defender": {
+            "severity": "HIGH",
+            "mitre": "T1562.001",
+            "description": "Windows Defender group policy registry path, used to write DisableAntiSpyware and related policy values."
+        },
+        "HKLM\\SOFTWARE\\Microsoft\\Windows Defender\\Real-Time Protection": {
+            "severity": "HIGH",
+            "mitre": "T1562.001",
+            "description": "Windows Defender Real-Time Protection registry path, used to write DisableRealtimeMonitoring."
+        },
+        "DisableAntiSpyware": {
+            "severity": "CRITICAL",
+            "mitre": "T1562.001",
+            "description": "Registry value name that fully disables Windows Defender when set to 1 under policy."
+        },
+        "DisableRealtimeMonitoring": {
+            "severity": "CRITICAL",
+            "mitre": "T1562.001",
+            "description": "Registry value name that disables Windows Defender real-time protection when set to 1."
+        },
+        "amsi.dll": {
+            "severity": "MEDIUM",
+            "mitre": "T1562.001",
+            "description": "Antimalware Scan Interface library name; referenced when dynamically resolving AmsiScanBuffer for patching."
+        },
+        "HNetCfg.FwPolicy2": {
+            "severity": "HIGH",
+            "mitre": "T1562.004",
+            "description": "COM ProgID for the Windows Firewall policy object (INetFwPolicy2), used to disable firewall profiles programmatically."
+        },
+        "netsh advfirewall set allprofiles state off": {
+            "severity": "CRITICAL",
+            "mitre": "T1562.004",
+            "description": "Embedded command line that disables the Windows Firewall across all profiles."
+        },
+        "netsh firewall set opmode disable": {
+            "severity": "HIGH",
+            "mitre": "T1562.004",
+            "description": "Embedded legacy netsh command line that disables the Windows Firewall."
+        },
+        "wevtutil cl": {
+            "severity": "HIGH",
+            "mitre": "T1070.001",
+            "description": "Embedded wevtutil command line used to clear a Windows event log."
+        },
+        "auditpol /set": {
+            "severity": "MEDIUM",
+            "mitre": "T1562.002",
+            "description": "Embedded auditpol command line used to modify or disable audit policy subcategories."
+        },
+        "sc.exe stop WinDefend": {
+            "severity": "CRITICAL",
+            "mitre": "T1562.001",
+            "description": "Embedded sc.exe command line that stops the Windows Defender service."
+        },
+        "sc stop WinDefend": {
+            "severity": "HIGH",
+            "mitre": "T1562.001",
+            "description": "Embedded sc command line (without .exe extension) that stops the Windows Defender service."
+        },
+        "Sysmon": {
+            "severity": "HIGH",
+            "mitre": "T1562.001",
+            "description": "Sysmon service name; often targeted by malware attempting to disable security monitoring."
+        },
+        "Sysmon64.exe": {
+            "severity": "HIGH",
+            "mitre": "T1562.001",
+            "description": "Sysmon monitoring executable name, commonly targeted by service/process termination attempts."
+        },
+        "vssadmin delete shadows": {
+            "severity": "CRITICAL",
+            "mitre": "T1490",
+            "description": "Command used to delete Volume Shadow Copies and prevent system recovery."
+        },
+        "vssadmin.exe delete shadows": {
+            "severity": "CRITICAL",
+            "mitre": "T1490",
+            "description": "Command used to delete Volume Shadow Copies and prevent system recovery."
+        },
+        "wmic shadowcopy delete": {
+            "severity": "CRITICAL",
+            "mitre": "T1490",
+            "description": "WMIC command used to delete Volume Shadow Copies."
+        },
+        "wmic.exe shadowcopy delete": {
+            "severity": "CRITICAL",
+            "mitre": "T1490",
+            "description": "WMIC command used to delete Volume Shadow Copies."
+        },
+        "wbadmin delete catalog": {
+            "severity": "HIGH",
+            "mitre": "T1490",
+            "description": "Command used to remove Windows backup catalog information."
+        },
+        "wbadmin.exe delete catalog": {
+            "severity": "HIGH",
+            "mitre": "T1490",
+            "description": "Command used to remove Windows backup catalog information."
+        },
+        "wuauserv": {
+            "severity": "MEDIUM",
+            "mitre": "T1562.001",
+            "description": "Windows Update service name; targeted by some malware to disable system updates."
+        }
+    },
+    "byte_patterns": {
+        "amsi_scanbuffer_patch": {
+            "pattern": "B8 57 00 07 80 C3",
+            "severity": "HIGH",
+            "mitre": "T1562.001",
+            "description": "MOV EAX, 0x80070057; RET -- classic in-memory patch that forces AmsiScanBuffer to always return E_INVALIDARG, bypassing AMSI."
+        }
+    },
+    "combinations": [
+        {
+            "name": "AV/EDR service termination via SCM",
+            "requires": [
+                "OpenSCManagerA",
+                "OpenServiceA",
+                "ControlService"
+            ],
+            "severity": "HIGH",
+            "mitre": "T1562.001",
+            "description": "Opens the SCM and a specific service, then sends a control code -- consistent with stopping an AV/EDR service."
+        },
+        {
+            "name": "AV/EDR service termination via SCM (Unicode)",
+            "requires": [
+                "OpenSCManagerW",
+                "OpenServiceW",
+                "ControlService"
+            ],
+            "severity": "HIGH",
+            "mitre": "T1562.001",
+            "description": "Unicode variant of SCM-based service termination."
+        },
+        {
+            "name": "AV/EDR service auto-start disabling",
+            "requires": [
+                "OpenServiceA",
+                "ChangeServiceConfigA"
+            ],
+            "severity": "HIGH",
+            "mitre": "T1562.001",
+            "description": "Opens a service and reconfigures it -- consistent with setting a security service's start type to disabled."
+        },
+        {
+            "name": "AV/EDR service auto-start disabling (Unicode)",
+            "requires": [
+                "OpenServiceW",
+                "ChangeServiceConfigW"
+            ],
+            "severity": "HIGH",
+            "mitre": "T1562.001",
+            "description": "Unicode variant of service auto-start disabling."
+        },
+        {
+            "name": "AV/EDR process termination",
+            "requires": [
+                "OpenProcess",
+                "TerminateProcess"
+            ],
+            "severity": "HIGH",
+            "mitre": "T1562.001",
+            "description": "Opens and terminates a process -- combined with security-product process name strings, indicates AV/EDR process killing."
+        },
+        {
+            "name": "Registry-based Defender/security policy tampering",
+            "requires": [
+                "RegCreateKeyExA",
+                "RegSetValueExA"
+            ],
+            "severity": "HIGH",
+            "mitre": "T1562.001",
+            "description": "Creates a registry key and writes a value -- likely setting DisableAntiSpyware or DisableRealtimeMonitoring."
+        },
+        {
+            "name": "Registry-based Defender/security policy tampering (Unicode)",
+            "requires": [
+                "RegCreateKeyExW",
+                "RegSetValueExW"
+            ],
+            "severity": "HIGH",
+            "mitre": "T1562.001",
+            "description": "Unicode variant of registry-based Defender tampering."
+        },
+        {
+            "name": "Windows Event Log clearing",
+            "requires": [
+                "OpenEventLogA",
+                "ClearEventLogA"
+            ],
+            "severity": "CRITICAL",
+            "mitre": "T1070.001",
+            "description": "Opens a specific event log handle and clears it -- deliberate log wipe rather than incidental API presence."
+        },
+        {
+            "name": "Windows Event Log clearing (Unicode)",
+            "requires": [
+                "OpenEventLogW",
+                "ClearEventLogW"
+            ],
+            "severity": "CRITICAL",
+            "mitre": "T1070.001",
+            "description": "Unicode variant of Windows Event Log clearing."
+        },
+        {
+            "name": "AMSI bypass via in-memory patch",
+            "requires": [
+                "AmsiInitialize",
+                "AmsiScanBuffer",
+                "VirtualProtect"
+            ],
+            "severity": "CRITICAL",
+            "mitre": "T1562.001",
+            "description": "Initializes AMSI, references AmsiScanBuffer, and changes memory protection -- the full pattern of patching AmsiScanBuffer in memory to bypass AMSI scanning."
+        },
+        {
+            "name": "ETW tracing suppression via memory patch",
+            "requires": [
+                "EtwEventWrite",
+                "VirtualProtect"
+            ],
+            "severity": "HIGH",
+            "mitre": "T1562.006",
+            "description": "References EtwEventWrite and changes memory protection -- consistent with patching the ETW write function to stub it out and suppress telemetry."
+        },
+        {
+            "name": "COM-based firewall policy manipulation",
+            "requires": [
+                "CoInitializeEx",
+                "CoCreateInstance"
+            ],
+            "severity": "HIGH",
+            "mitre": "T1562.004",
+            "description": "Initializes COM and instantiates an object -- required to obtain an INetFwPolicy2 instance (HNetCfg.FwPolicy2) for programmatic firewall disabling."
+        }
+    ]
 }
