@@ -1,3 +1,8 @@
+"""tests/test_finding.py
+
+Tests for core.finding
+"""
+
 from core.finding import MAX_DISPLAY, Finding
 
 
