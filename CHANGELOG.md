@@ -4,6 +4,50 @@ All notable changes to this project are documented in this file.
 
 ---
 
+## v0.6
+
+**Global risk scoring**
+
+Aggregate all findings into a single risk level for the analyzed binary.
+
+- Added `compute_risk_score(findings)` in new file `core/scoring.py`
+- Global risk levels: `CRITICAL`, `HIGH`, `MEDIUM`, `LOW`, `CLEAN`
+- Risk level computed from findings aggregation (e.g. at least one `CRITICAL` finding results in `CRITICAL`, multiple `HIGH` findings increase the overall risk level)
+- Displayed at the top of the plaintext report and exported in JSON under `summary.risk_score`
+
+**Configurable scoring thresholds**
+
+Risk scoring thresholds can now be adjusted without modifying the source code.
+
+- Added `config/scoring_config.json`
+- Thresholds loaded dynamically at analysis time
+
+**Signatures: `impair_defenses.json`**
+
+Detection of defense impairment techniques targeting security controls and analysis mechanisms.
+
+- MITRE ATT&CK coverage: `T1562.001`, `T1562.004`, `T1070.001`
+- Detection of AV/EDR termination, Microsoft Defender registry tampering, security process termination, event log clearing, and firewall configuration manipulation
+- AMSI patch detection via byte patterns
+
+**Tested against**
+
+Custom test binary compiled with mingw-w64 from C source
+(`sample_test/test_impair_defenses.c`) exercising targeted technique APIs directly.
+
+Confirmed detections:
+- `T1562.001` — AV/EDR service termination (SCM): combination triggered
+- `T1562.001` — Registry-based Defender tampering: combination + CRITICAL strings
+- `T1562.001` — AV/EDR process termination: combination triggered
+- `T1070.001` — Event log clearing: CRITICAL combination triggered
+- `T1562.004` — Firewall command string: CRITICAL string triggered
+
+*Known false positive*:
+- `T1547.001` Registry Run Key persistence triggered by generic `RegCreateKeyExA` + `RegSetValueExA` usage regardless of the target registry key.
+
+---
+
+
 ## v0.5
 
 **Unit tests for the detection engine**

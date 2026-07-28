@@ -2,27 +2,7 @@
 
 This document describes the planned release schedule for GhidraMAT. Each version ships one core feature and one signature file. Secondary features are possible in each release if they don't affect the scope.
 
-Current version: **v0.5**
-
----
-
-## v0.6 - Global risk scoring + `impair_defenses.json`
-
-**Feature: Global risk score**
-
-Aggregate all findings into a single risk level for the analyzed binary.
-
-- `compute_risk_score(findings)` in new file `core/scoring.py`
-- Global level: `CRITICAL` / `HIGH` / `MEDIUM` / `LOW` / `CLEAN` based on findings aggregation (e.g. ≥1 CRITICAL → CRITICAL, ≥3 HIGH → HIGH, etc.)
-- Displayed at the top of the TXT report and in the JSON output under `summary.risk_score`
-
-**Secondary feature: configurable scoring thresholds**
-
-- `config/scoring_config.json` - thresholds adjustable without touching code
-
-**Signatures: `impair_defenses.json`**
-
-Detection of defense impairment techniques (specific MITRE ATT&CK Technique IDs will be added during the development of this version).
+Current version: **v0.6**
 
 ---
 
