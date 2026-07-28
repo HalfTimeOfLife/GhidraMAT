@@ -386,6 +386,5 @@ Custom test binary compiled with mingw-w64 from C source ([./sample_test/test_im
 | T1562.001 — AV/EDR process termination | Confirmed | combination triggered |
 | T1070.001 — Event log clearing | Confirmed | CRITICAL combination triggered |
 | T1562.004 — Firewall command string | Confirmed | CRITICAL string triggered |
-| T1562.001 — AMSI patch byte pattern | Not confirmed | I suppose inline asm eliminated by GCC |
 
 Known false positive: `Registry Run Key persistence` (T1547.001) triggers on `RegCreateKeyExA + RegSetValueExA` regardless of the target key.
