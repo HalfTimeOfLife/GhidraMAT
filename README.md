@@ -25,7 +25,7 @@ The file `detection.py` provides the generic detection engine for all GhidraMAT 
 | `crypto` | AES S-box constants, RC4 key scheduling patterns, rolling XOR, custom magic constants | WIP |
 | `injection` | Classic DLL injection, Process Hollowing, APC injection, Thread Hijacking -- detected via dangerous API combinations | UP |
 | `persistence` | Run registry keys, scheduled tasks, service installation, startup folder writes, WMI/COM/LSA event-triggered execution | UP |
-| `impair_defenses` | Active defense neutralization — disabling Windows Defender, clearing event logs, patching AMSI, firewall tampering, security tool termination | WIP |
+| `impair_defenses` | Active defense neutralization — disabling Windows Defender, clearing event logs, patching AMSI, firewall tampering, security tool termination | UP |
 
 > Categories marked WIP have empty signature files and produce no findings.
 > The detection engine runs normally for all categories.
@@ -71,7 +71,7 @@ GhidraMAT/
 
 ## Signatures
 
-Each category has a dedicated JSON file under `signatures/`. A signature file contains four detection types: `imports`, `strings`, `byte_patterns`, and `combinations`. See [signatures/README.md](signatures/README.md) for the full format specification.
+Each category has a dedicated JSON file under [signatures/](signatures/). A signature file contains four detection types: `imports`, `strings`, `byte_patterns`, and `combinations`. See [signatures/README.md](signatures/README.md) for the full format specification.
 
 Every signature file carries a `sig_version` field. At load time, `load_signatures()` checks that `sig_version` matches the `SIGNATURES_VERSION` constant defined in `utils/utils.py`. A mismatch raises a `ValueError` and aborts the analysis for that category. This guarantees that the running code and the signature files are always in sync.
 
@@ -91,13 +91,13 @@ To validate all signature files against the schema without running Ghidra, use t
 python scripts/validate_signatures.py
 ```
 
-The validator is also registered as a pre-commit hook and runs automatically on every `git commit` that touches a `.json` file under `signatures/`.
+The validator is also registered as a pre-commit hook and runs automatically on every `git commit` that touches a `.json` file under [signatures/](signatures/).
 
 ---
 
 ## Report generation
 
-After analysis, GhidraMAT writes two report files to the `reports/` directory (created automatically if absent):
+After analysis, GhidraMAT writes two report files to the [reports/](reports/) directory (created automatically if absent):
 
 | Format | Filename | Contents |
 |---|---|---|
@@ -106,14 +106,14 @@ After analysis, GhidraMAT writes two report files to the `reports/` directory (c
 
 Both files share the same timestamp, so they can always be matched to the same analysis run. The JSON report includes tool version, signature version, program hashes, and a summary broken down by severity and category.
 
-The `reports/` directory is excluded from version control via `.gitignore`.
+The [reports/](reports/) directory is excluded from version control via [.gitignore](.gitignore).
 
 ---
 
 ## Requirements
 
 - Ghidra 10.x or later
-- PyGhidra — [Installation guide](https://github.com/NationalSecurityAgency/ghidra/blob/master/Ghidra/Features/PyGhidra/src/main/py/README.md)
+- PyGhidra: See [Installation guide](https://github.com/NationalSecurityAgency/ghidra/blob/master/Ghidra/Features/PyGhidra/src/main/py/README.md)
 - `pre-commit`, `ruff`, and `pytest` — `pip install pre-commit ruff pytest && pre-commit install`
 
 ---
@@ -138,23 +138,23 @@ pytest
 
 You can then launch **GhidraMAT** using one of the following methods:
 
-### Option 1 — Script Manager
+### Option 1: Script Manager
 
 Run the main script in the script manager of Ghidra:
 
 `analyzer.py`
 
-### Option 2 — Analysis Menu (Recommended)
+### Option 2: Analysis Menu (Recommended)
 
 Once the scripts directory is added, the analyzer is also available directly from:
 
 `Analysis → GhidraMAT`
 
-### Option 3 — Toolbar
+### Option 3: Toolbar
 
 The analyzer can be launched using the toolbar icon: ![GhidraMAT](ghidramat_icon_small.png)
 
-### Option 4 — Key Binding
+### Option 4: Key Binding
 
 By default, the analyzer can be launched using the key binding `Ctrl+Shift+A`.
 

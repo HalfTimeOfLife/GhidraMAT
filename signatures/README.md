@@ -261,6 +261,10 @@ Signatures in this project are based on and cross-referenced against the followi
 - [CheckPoint Evasions](https://evasions.checkpoint.com/)
 - [Unprotect Project](https://www.unprotect.it/)
 - [malapi.io](https://malapi.io/)
+- [LOLBAS Project](https://lolbas-project.github.io/)
+- [SigmaHQ](https://github.com/SigmaHQ/sigma)
+- [Atomic Red Team](https://github.com/redcanaryco/atomic-red-team)
+- [YARA-Forge](https://yarahq.github.io/)
 
 ---
 
@@ -368,3 +372,20 @@ Tested against real-world malware samples from [MalwareBazaar](https://bazaar.ab
 | `T1543.003` | Windows Service (including the "existing service hijack" variant, confirmed on Hupigon) | Confirmed |
 
 Remaining sub-techniques (`T1546.003/.009/.010/.012/.015`, `T1053.005`, `T1197`, `T1547.002/.003/.005/.009/.014`) were not observed in this sample set.
+
+---
+
+### Impair defences:
+
+Custom test binary compiled with mingw-w64 from C source ([./sample_test/test_impair_defenses.c](sample_test/test_impair_defenses.c)) exercising all targeted technique APIs directly.
+
+| Technique | Status | Notes |
+|---|---|---|
+| T1562.001 — AV/EDR service termination (SCM) | Confirmed | combination triggered |
+| T1562.001 — Registry-based Defender tampering | Confirmed | combination + CRITICAL strings |
+| T1562.001 — AV/EDR process termination | Confirmed | combination triggered |
+| T1070.001 — Event log clearing | Confirmed | CRITICAL combination triggered |
+| T1562.004 — Firewall command string | Confirmed | CRITICAL string triggered |
+| T1562.001 — AMSI patch byte pattern | Not confirmed | I suppose inline asm eliminated by GCC |
+
+Known false positive: `Registry Run Key persistence` (T1547.001) triggers on `RegCreateKeyExA + RegSetValueExA` regardless of the target key.
