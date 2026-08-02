@@ -9,7 +9,7 @@ REPORTS_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "r
 
 SEVERITY_ORDER = ["CRITICAL", "HIGH", "MEDIUM", "LOW"]
 
-TYPES = ["imports", "strings", "byte_patterns", "combinations"]
+TYPES = ["imports", "strings", "byte_patterns", "string_patterns", "combinations"]
 
 
 def build_header(program_info, findings):
@@ -66,14 +66,17 @@ def build_header(program_info, findings):
         )
         n_strings = len([f for f in cat_findings if f.type == "strings"])
         n_bytes = len([f for f in cat_findings if f.type == "byte_patterns"])
+        n_string_patterns = len(
+            [f for f in cat_findings if f.type == "string_patterns"]
+        )
         n_combos = len([f for f in cat_findings if f.type == "combinations"])
         n_combo_only = len([f for f in cat_findings if f.combo_only])
 
         lines.append(
             f"  {cat:<20} : {len(cat_findings)} findings "
             f"({n_imports} imports, {n_strings} strings, "
-            f"{n_bytes} byte_patterns, {n_combos} combinations, "
-            f"{n_combo_only} combo_only)"
+            f"{n_bytes} byte_patterns, {n_string_patterns} string_patterns, "
+            f"{n_combos} combinations, {n_combo_only} combo_only)"
         )
 
         mitre_ids = sorted(
@@ -223,6 +226,7 @@ def generate_json(findings, program_info, categories, now):
                     "imports": 0,
                     "strings": 0,
                     "byte_patterns": 0,
+                    "string_patterns": 0,
                     "combinations": 0,
                     "combo_only": 0,
                 },
@@ -249,6 +253,9 @@ def generate_json(findings, program_info, categories, now):
                 "strings": len([f for f in cat_findings if f.type == "strings"]),
                 "byte_patterns": len(
                     [f for f in cat_findings if f.type == "byte_patterns"]
+                ),
+                "string_patterns": len(
+                    [f for f in cat_findings if f.type == "string_patterns"]
                 ),
                 "combinations": len(
                     [f for f in cat_findings if f.type == "combinations"]
