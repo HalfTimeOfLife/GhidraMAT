@@ -53,6 +53,7 @@ def test_analyze_detects_import(tmp_path, monkeypatch):
         },
         "strings": {},
         "byte_patterns": {},
+        "string_patterns": {},
         "combinations": [],
     }
     write_signatures(tmp_path, "anti_vm", signatures)
@@ -95,6 +96,7 @@ def test_analyze_skips_import_not_present(tmp_path, monkeypatch):
         },
         "strings": {},
         "byte_patterns": {},
+        "string_patterns": {},
         "combinations": [],
     }
     write_signatures(tmp_path, "anti_vm", signatures)
@@ -121,6 +123,7 @@ def test_analyze_import_combo_only_flag_set(tmp_path, monkeypatch):
         },
         "strings": {},
         "byte_patterns": {},
+        "string_patterns": {},
         "combinations": [],
     }
     write_signatures(tmp_path, "anti_vm", signatures)
@@ -166,6 +169,7 @@ def test_analyze_detects_string(tmp_path, monkeypatch):
             }
         },
         "byte_patterns": {},
+        "string_patterns": {},
         "combinations": [],
     }
 
@@ -203,6 +207,7 @@ def test_analyze_skips_string_not_present(tmp_path, monkeypatch):
             }
         },
         "byte_patterns": {},
+        "string_patterns": {},
         "combinations": [],
     }
     write_signatures(tmp_path, "anti_vm", signatures)
@@ -213,6 +218,142 @@ def test_analyze_skips_string_not_present(tmp_path, monkeypatch):
     findings = analyze(context, "anti_vm")
 
     assert findings == []
+
+
+# -------------------------------------------------------------------
+# --- string_patterns detection ---
+# -------------------------------------------------------------------
+
+
+def test_analyze_detects_string_pattern(tmp_path, monkeypatch):
+    """analyze() should produce a Finding when a string in the binary matches a signed regex pattern."""
+    signatures = {
+        "sig_version": 1,
+        "imports": {},
+        "strings": {},
+        "byte_patterns": {},
+        "string_patterns": {
+            "hardcoded_url": {
+                "pattern": r"https?://[^\s\"'<>]{4,}",
+                "severity": "HIGH",
+                "mitre": "T1071.001",
+                "description": "Hardcoded HTTP/HTTPS URL found in binary strings.",
+            }
+        },
+        "combinations": [],
+    }
+    write_signatures(tmp_path, "network", signatures)
+    monkeypatch.setattr("utils.detection.SIG_PATH", str(tmp_path))
+
+    addr = FakeAddress(0x1000)
+    data = FakeData("https://evil.example.com/payload", addr)
+    context = FakeContext(listing=FakeListing(data=[data]))
+
+    findings = analyze(context, "network")
+
+    assert len(findings) == 1
+    f = findings[0]
+    assert f.category == "network"
+    assert f.type == "string_patterns"
+    assert f.name == "hardcoded_url"
+    assert f.severity == "HIGH"
+    assert f.mitre == "T1071.001"
+    assert f.xrefs == []
+    assert "https://evil.example.com/payload" in f.xref_labels
+
+
+def test_analyze_skips_string_pattern_not_matched(tmp_path, monkeypatch):
+    """analyze() should not produce a Finding when no string in the binary matches the signed regex."""
+    signatures = {
+        "sig_version": 1,
+        "imports": {},
+        "strings": {},
+        "byte_patterns": {},
+        "string_patterns": {
+            "hardcoded_url": {
+                "pattern": r"https?://[^\s\"'<>]{4,}",
+                "severity": "HIGH",
+                "mitre": "T1071.001",
+                "description": "Hardcoded HTTP/HTTPS URL found in binary strings.",
+            }
+        },
+        "combinations": [],
+    }
+    write_signatures(tmp_path, "network", signatures)
+    monkeypatch.setattr("utils.detection.SIG_PATH", str(tmp_path))
+
+    addr = FakeAddress(0x1000)
+    data = FakeData("just a regular string", addr)
+    context = FakeContext(listing=FakeListing(data=[data]))
+
+    findings = analyze(context, "network")
+
+    assert findings == []
+
+
+def test_analyze_string_pattern_groups_all_matches_into_one_finding(
+    tmp_path, monkeypatch
+):
+    """analyze() should group every string matching the same regex into a single Finding."""
+    signatures = {
+        "sig_version": 1,
+        "imports": {},
+        "strings": {},
+        "byte_patterns": {},
+        "string_patterns": {
+            "hardcoded_url": {
+                "pattern": r"https?://[^\s\"'<>]{4,}",
+                "severity": "HIGH",
+                "mitre": "T1071.001",
+                "description": "Hardcoded HTTP/HTTPS URL found in binary strings.",
+            }
+        },
+        "combinations": [],
+    }
+    write_signatures(tmp_path, "network", signatures)
+    monkeypatch.setattr("utils.detection.SIG_PATH", str(tmp_path))
+
+    data1 = FakeData("https://c2.example.com/beacon", FakeAddress(0x1000))
+    data2 = FakeData("https://c2.example.com/upload", FakeAddress(0x2000))
+    context = FakeContext(listing=FakeListing(data=[data1, data2]))
+
+    findings = analyze(context, "network")
+
+    assert len(findings) == 1
+    f = findings[0]
+    assert f.type == "string_patterns"
+    assert f.name == "hardcoded_url"
+    assert set(f.xref_labels) == {
+        "https://c2.example.com/beacon",
+        "https://c2.example.com/upload",
+    }
+
+
+def test_analyze_string_pattern_finding_has_no_xrefs(tmp_path, monkeypatch):
+    """string_patterns findings never carry raw address xrefs."""
+    signatures = {
+        "sig_version": 1,
+        "imports": {},
+        "strings": {},
+        "byte_patterns": {},
+        "string_patterns": {
+            "hardcoded_url": {
+                "pattern": r"https?://[^\s\"'<>]{4,}",
+                "severity": "HIGH",
+                "description": "Hardcoded HTTP/HTTPS URL found in binary strings.",
+            }
+        },
+        "combinations": [],
+    }
+    write_signatures(tmp_path, "network", signatures)
+    monkeypatch.setattr("utils.detection.SIG_PATH", str(tmp_path))
+
+    data = FakeData("https://evil.example.com/payload", FakeAddress(0x1000))
+    context = FakeContext(listing=FakeListing(data=[data]))
+
+    findings = analyze(context, "network")
+
+    assert findings[0].xrefs == []
 
 
 # -------------------------------------------------------------------
@@ -234,6 +375,7 @@ def test_analyze_detects_byte_pattern(tmp_path, monkeypatch):
                 "description": "RDTSC instruction, used for timing-based VM/sandbox detection.",
             }
         },
+        "string_patterns": {},
         "combinations": [],
     }
 
@@ -277,6 +419,7 @@ def test_analyze_byte_pattern_groups_multiple_matches_into_one_finding(
                 "description": "RDTSC instruction, used for timing-based VM/sandbox detection.",
             }
         },
+        "string_patterns": {},
         "combinations": [],
     }
 
@@ -322,6 +465,7 @@ def test_analyze_skips_byte_pattern_not_present(tmp_path, monkeypatch):
                 "description": "RDTSC instruction, used for timing-based VM/sandbox detection.",
             }
         },
+        "string_patterns": {},
         "combinations": [],
     }
 
@@ -366,6 +510,7 @@ def test_analyze_detects_combination_when_all_requires_present(tmp_path, monkeyp
         },
         "strings": {},
         "byte_patterns": {},
+        "string_patterns": {},
         "combinations": [
             {
                 "name": "Sleep-skipping sandbox detection",
@@ -432,6 +577,7 @@ def test_analyze_skips_combination_when_partial_requires_present(tmp_path, monke
         },
         "strings": {},
         "byte_patterns": {},
+        "string_patterns": {},
         "combinations": [
             {
                 "name": "Sleep-skipping sandbox detection",
@@ -481,6 +627,7 @@ def test_analyze_combination_finding_has_no_xrefs(tmp_path, monkeypatch):
         },
         "strings": {},
         "byte_patterns": {},
+        "string_patterns": {},
         "combinations": [
             {
                 "name": "Sleep-skipping sandbox detection",
@@ -529,6 +676,7 @@ def test_analyze_uses_correct_category_in_findings(tmp_path, monkeypatch):
                 "description": "...",
             }
         },
+        "string_patterns": {},
         "combinations": [
             {
                 "name": "Some combo",
@@ -582,6 +730,7 @@ def test_analyze_empty_signatures_produces_no_findings(tmp_path, monkeypatch):
         "imports": {},
         "strings": {},
         "byte_patterns": {},
+        "string_patterns": {},
         "combinations": [],
     }
 
@@ -607,6 +756,7 @@ def test_analyze_sets_monitor_message_when_monitor_present(tmp_path, monkeypatch
         "imports": {},
         "strings": {},
         "byte_patterns": {},
+        "string_patterns": {},
         "combinations": [],
     }
 
@@ -629,6 +779,7 @@ def test_analyze_skips_monitor_message_when_monitor_none(tmp_path, monkeypatch):
         "imports": {},
         "strings": {},
         "byte_patterns": {},
+        "string_patterns": {},
         "combinations": [],
     }
 

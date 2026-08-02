@@ -1,4 +1,6 @@
+import re
 import os
+
 
 from core.finding import Finding
 from utils.pattern import scan_byte_pattern
@@ -75,6 +77,23 @@ def analyze(context, category):
                     description=data["description"],
                     xrefs=xrefs,
                     xref_labels=xref_labels,
+                    mitre=data.get("mitre"),
+                )
+            )
+
+    for sig_name, data in signatures["string_patterns"].items():
+        pattern = re.compile(data["pattern"])
+        matched_values = [s for s in strings if pattern.search(s)]
+        if matched_values:
+            findings.append(
+                Finding(
+                    category=category,
+                    type_of_technique="string_patterns",
+                    name=sig_name,
+                    severity=data["severity"],
+                    description=data["description"],
+                    xrefs=[],
+                    xref_labels=matched_values,
                     mitre=data.get("mitre"),
                 )
             )
