@@ -553,129 +553,190 @@
             "description": "MOV EAX, FS:[0x18] -- reads the TEB pointer on x86 as part of GetThreadContext-free DR register access to detect hardware breakpoints in DR0-DR3."
         }
     },
+    "string_patterns": {},
     "combinations": [
         {
             "name": "Hardware breakpoint detection",
-            "requires": ["GetThreadContext", "GetCurrentThread"],
+            "requires": [
+                "GetThreadContext",
+                "GetCurrentThread"
+            ],
             "severity": "CRITICAL",
             "mitre": "T1622",
             "description": "Retrieves the current thread context with CONTEXT_DEBUG_REGISTERS and checks DR0-DR3. A non-zero value in any debug register signals that a hardware breakpoint has been set by an attached debugger."
         },
         {
             "name": "Anti-Step-Over (WriteProcessMemory)",
-            "requires": ["WriteProcessMemory", "VirtualProtect"],
+            "requires": [
+                "WriteProcessMemory",
+                "VirtualProtect"
+            ],
             "severity": "HIGH",
             "mitre": "T1622",
             "description": "Checks the byte at the function's return address for 0xCC (INT3 step-over breakpoint) and patches it with 0x90 (NOP) using WriteProcessMemory after making it writable with VirtualProtect. Breaks the debugger's step-over or causes a crash."
         },
         {
             "name": "Memory breakpoint detection (guard page)",
-            "requires": ["VirtualAlloc", "VirtualProtect"],
+            "requires": [
+                "VirtualAlloc",
+                "VirtualProtect"
+            ],
             "severity": "HIGH",
             "mitre": "T1622",
             "description": "Allocates an executable buffer containing 0xC3 (RET), marks it as a guard page (PAGE_GUARD), then jumps to it. OllyDbg and ImmunityDebugger implement memory breakpoints via guard pages -- their presence causes execution to reach the pushed 'debugger detected' address instead of the SEH handler."
         },
         {
             "name": "Write-watch debugger detection",
-            "requires": ["VirtualAlloc", "GetWriteWatch"],
+            "requires": [
+                "VirtualAlloc",
+                "GetWriteWatch"
+            ],
             "severity": "HIGH",
             "mitre": "T1622",
             "description": "Allocates a MEM_WRITE_WATCH region and calls APIs that should not write to it. If GetWriteWatch reports unexpected writes, a debugger or API hook is probing the buffer (e.g. reading parameters passed to APIs)."
         },
         {
             "name": "Function patch detection (IsDebuggerPresent hook)",
-            "requires": ["ReadProcessMemory", "CreateToolhelp32Snapshot", "Process32Next"],
+            "requires": [
+                "ReadProcessMemory",
+                "CreateToolhelp32Snapshot",
+                "Process32Next"
+            ],
             "severity": "HIGH",
             "mitre": "T1622",
             "description": "Reads the first bytes of kernel32!IsDebuggerPresent from another process and compares them to the current process. A mismatch reveals that the function was patched or hooked by a debugger (e.g. ScyllaHide). Windows libraries share the same base address across all processes in a session."
         },
         {
             "name": "DbgBreakPoint patch (anti-attach)",
-            "requires": ["GetModuleHandle", "GetProcAddress", "VirtualProtect"],
+            "requires": [
+                "GetModuleHandle",
+                "GetProcAddress",
+                "VirtualProtect"
+            ],
             "severity": "HIGH",
             "mitre": "T1622",
             "description": "Resolves ntdll!DbgBreakPoint via GetProcAddress, makes it writable, and patches the INT3 with RET (0xC3). Prevents the debugger from breaking in when attaching to the process -- the attach thread exits silently instead."
         },
         {
             "name": "DbgUiRemoteBreakin patch (anti-attach / self-termination)",
-            "requires": ["GetProcAddress", "VirtualProtect", "TerminateProcess"],
+            "requires": [
+                "GetProcAddress",
+                "VirtualProtect",
+                "TerminateProcess"
+            ],
             "severity": "CRITICAL",
             "mitre": "T1622",
             "description": "Resolves ntdll!DbgUiRemoteBreakin via GetProcAddress, makes it writable with VirtualProtect, and overwrites it with a TerminateProcess stub. Any attempt to attach a debugger triggers immediate self-termination. TerminateProcess distinguishes this from benign GetProcAddress + VirtualProtect usage."
         },
         {
             "name": "Self-debugging anti-attach",
-            "requires": ["DebugActiveProcess", "CreateProcess"],
+            "requires": [
+                "DebugActiveProcess",
+                "CreateProcess"
+            ],
             "severity": "HIGH",
             "mitre": "T1622",
             "description": "Spawns a child process that calls DebugActiveProcess on the parent. Failure (returns FALSE) reveals that another debugger is already attached, as only one debugger can be attached to a process at a time."
         },
         {
             "name": "OutputDebugString GetLastError trick",
-            "requires": ["OutputDebugStringA", "SetLastError", "GetLastError"],
+            "requires": [
+                "OutputDebugStringA",
+                "SetLastError",
+                "GetLastError"
+            ],
             "severity": "MEDIUM",
             "mitre": "T1622",
             "description": "Sets a known error code, calls OutputDebugStringA, then checks GetLastError. A debugger consuming the DBG_PRINTEXCEPTION_C event leaves the error code unchanged. Pre-Vista technique; ineffective against modern debuggers."
         },
         {
             "name": "Parent process check (NtQueryInformationProcess)",
-            "requires": ["NtQueryInformationProcess", "GetShellWindow", "GetWindowThreadProcessId"],
+            "requires": [
+                "NtQueryInformationProcess",
+                "GetShellWindow",
+                "GetWindowThreadProcessId"
+            ],
             "severity": "CRITICAL",
             "mitre": "T1622",
             "description": "Compares the parent process PID (from ProcessBasicInformation) against the PID of explorer.exe (obtained via GetShellWindow + GetWindowThreadProcessId). A different parent indicates the process was launched from a debugger."
         },
         {
             "name": "Parent process check (Toolhelp32)",
-            "requires": ["CreateToolhelp32Snapshot", "Process32First", "Process32Next"],
+            "requires": [
+                "CreateToolhelp32Snapshot",
+                "Process32First",
+                "Process32Next"
+            ],
             "severity": "HIGH",
             "mitre": "T1622",
             "description": "Iterates processes via Toolhelp32 to find the current process's parent PID and compare its name against 'explorer.exe'. A parent other than explorer.exe (e.g. a debugger or cmd.exe) triggers detection."
         },
         {
             "name": "VEH instruction counting anti-debug",
-            "requires": ["AddVectoredExceptionHandler", "RemoveVectoredExceptionHandler"],
+            "requires": [
+                "AddVectoredExceptionHandler",
+                "RemoveVectoredExceptionHandler"
+            ],
             "severity": "HIGH",
             "mitre": "T1622",
             "description": "Registers a VEH to count EXCEPTION_SINGLE_STEP events triggered by hardware breakpoints set on a NOP sled. Under a debugger, single-step events are intercepted before the VEH, causing the counter to reach an unexpected value."
         },
         {
             "name": "SwitchToThread anti-tracing",
-            "requires": ["SwitchToThread", "NtYieldExecution"],
+            "requires": [
+                "SwitchToThread",
+                "NtYieldExecution"
+            ],
             "severity": "MEDIUM",
             "mitre": "T1622",
             "description": "Loops calling SwitchToThread (wrapping NtYieldExecution). Under single-step tracing in a debugger, no context switch can occur and both return 0/STATUS_NO_YIELD_PERFORMED respectively. A counter reaching the expected value confirms tracing."
         },
         {
             "name": "CreateFile process binary exclusive open",
-            "requires": ["CreateFileA", "GetModuleFileNameA"],
+            "requires": [
+                "CreateFileA",
+                "GetModuleFileNameA"
+            ],
             "severity": "HIGH",
             "mitre": "T1622",
             "description": "Attempts to exclusively open the current process's own executable file (GENERIC_READ, share=0). Fails if a debugger holds an unclosed handle from the CREATE_PROCESS_DEBUG_EVENT, revealing debugger presence."
         },
         {
             "name": "LoadLibrary handle leak detection",
-            "requires": ["LoadLibraryA","CreateFileA"],
+            "requires": [
+                "LoadLibraryA",
+                "CreateFileA"
+            ],
             "severity": "MEDIUM",
             "mitre": "T1622",
             "description": "Loads a DLL via LoadLibraryA then immediately tries to open it with exclusive access via CreateFileA. If the open fails, the debugger did not close the LOAD_DLL_DEBUG_INFO handle from the LOAD_DLL_DEBUG_EVENT."
         },
         {
             "name": "Dynamic NTAPI resolution for anti-debug",
-            "requires": ["LoadLibraryA", "GetProcAddress"],
+            "requires": [
+                "LoadLibraryA",
+                "GetProcAddress"
+            ],
             "severity": "HIGH",
             "mitre": "T1622",
             "description": "Loads ntdll.dll at runtime and resolves native NT APIs (NtQueryInformationProcess, NtClose, NtSetInformationThread, etc.) via GetProcAddress. Bypasses static import analysis and hooks placed on Win32 wrappers."
         },
         {
             "name": "LoadLibrary handle leak detection (Unicode)",
-            "requires": ["LoadLibraryW", "CreateFileW"],
+            "requires": [
+                "LoadLibraryW",
+                "CreateFileW"
+            ],
             "severity": "MEDIUM",
             "mitre": "T1622",
             "description": "Unicode variant: loads a DLL via LoadLibraryW then exclusively opens it with CreateFileW. If the open fails, the debugger did not close the LOAD_DLL_DEBUG_INFO handle from the LOAD_DLL_DEBUG_EVENT."
         },
         {
             "name": "CreateFile process binary exclusive open (Unicode)",
-            "requires": ["CreateFileW", "GetModuleFileNameW"],
+            "requires": [
+                "CreateFileW",
+                "GetModuleFileNameW"
+            ],
             "severity": "HIGH",
             "mitre": "T1622",
             "description": "Unicode variant: attempts to exclusively open the current process executable via CreateFileW. Fails if a debugger holds an unclosed CREATE_PROCESS_DEBUG_EVENT handle, revealing debugger presence."

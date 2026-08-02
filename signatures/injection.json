@@ -418,6 +418,7 @@
             "description": "Common TLS callback function prologue -- TLS callbacks execute before the PE entry point and are abused to inject and run code before debuggers or security tools initialize."
         }
     },
+    "string_patterns": {},
     "combinations": [
         {
             "name": "Classic DLL injection",

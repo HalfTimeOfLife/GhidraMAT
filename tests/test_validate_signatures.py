@@ -28,6 +28,7 @@ def minimal_valid_json():
         "imports": {},
         "strings": {},
         "byte_patterns": {},
+        "string_patterns": {},
         "combinations": [],
     }
 
@@ -61,6 +62,23 @@ def build_string(severity="HIGH", description="Test description"):
 
 def build_byte_pattern(
     pattern="0F A2", severity="HIGH", description="Test description"
+):
+    entry = {}
+
+    if pattern is not None:
+        entry["pattern"] = pattern
+
+    if severity is not None:
+        entry["severity"] = severity
+
+    if description is not None:
+        entry["description"] = description
+
+    return entry
+
+
+def build_string_pattern(
+    pattern=r"https?://[^\s\"'<>]{4,}", severity="HIGH", description="Test description"
 ):
     entry = {}
 
@@ -164,6 +182,14 @@ def test_valid_file_with_byte_pattern(tmp_path):
     assert_no_errors()
 
 
+def test_valid_file_with_string_pattern(tmp_path):
+    """A file with a well-formed string_pattern entry should produce no errors."""
+    data = minimal_valid_json()
+    data["string_patterns"]["Test pattern"] = build_string_pattern()
+    run_validation(tmp_path, data)
+    assert_no_errors()
+
+
 def test_valid_file_with_combination(tmp_path):
     """A file with a well-formed combination entry should produce no errors."""
     data = minimal_valid_json()
@@ -207,6 +233,14 @@ def test_missing_byte_patterns_key(tmp_path):
     data.pop("byte_patterns", None)
     run_validation(tmp_path, data)
     assert any("byte_patterns" in e for e in errors)
+
+
+def test_missing_string_patterns_key(tmp_path):
+    """Missing top-level key 'string_patterns' should produce an error."""
+    data = minimal_valid_json()
+    data.pop("string_patterns", None)
+    run_validation(tmp_path, data)
+    assert any("string_patterns" in e for e in errors)
 
 
 def test_missing_combinations_key(tmp_path):
@@ -326,6 +360,51 @@ def test_invalid_severity_in_byte_pattern(tmp_path):
     )
     run_validation(tmp_path, data)
     assert any("severity" in e for e in errors)
+
+
+# -------------------------------------------------------------------
+# --- string patterns validation ---
+# -------------------------------------------------------------------
+
+
+def test_missing_pattern_in_string_pattern(tmp_path):
+    """String pattern entry without pattern should produce an error."""
+    data = minimal_valid_json()
+    data["string_patterns"]["TestPattern"] = build_string_pattern(pattern=None)
+    run_validation(tmp_path, data)
+    assert any("pattern" in e for e in errors)
+
+
+def test_invalid_regex_in_string_pattern(tmp_path):
+    """String pattern entry with invalid regex should produce an error."""
+    data = minimal_valid_json()
+    data["string_patterns"]["TestPattern"] = build_string_pattern(pattern="[invalid(")
+    run_validation(tmp_path, data)
+    assert any("invalid regex" in e for e in errors)
+
+
+def test_missing_severity_in_string_pattern(tmp_path):
+    """String pattern entry without severity should produce an error."""
+    data = minimal_valid_json()
+    data["string_patterns"]["TestPattern"] = build_string_pattern(severity=None)
+    run_validation(tmp_path, data)
+    assert any("severity" in e for e in errors)
+
+
+def test_invalid_severity_in_string_pattern(tmp_path):
+    """String pattern entry with invalid severity should produce an error."""
+    data = minimal_valid_json()
+    data["string_patterns"]["TestPattern"] = build_string_pattern(severity="INVALID")
+    run_validation(tmp_path, data)
+    assert any("severity" in e for e in errors)
+
+
+def test_missing_description_in_string_pattern(tmp_path):
+    """String pattern entry without description should produce an error."""
+    data = minimal_valid_json()
+    data["string_patterns"]["TestPattern"] = build_string_pattern(description=None)
+    run_validation(tmp_path, data)
+    assert any("description" in e for e in errors)
 
 
 # -------------------------------------------------------------------

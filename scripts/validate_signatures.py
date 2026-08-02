@@ -6,6 +6,7 @@ each entry respects the expected schema. Exits with code 1 on any error.
 
 import json
 import os
+import re
 import sys
 
 # Must match SIGNATURES_VERSION in utils/utils.py
@@ -19,6 +20,7 @@ REQUIRED_TOP_LEVEL = {
     "imports",
     "strings",
     "byte_patterns",
+    "string_patterns",
     "combinations",
     "sig_version",
 }
@@ -85,6 +87,34 @@ def validate_byte_pattern(filepath, sig_name, data):
         err(filepath, f"byte_patterns.{sig_name}: missing required field 'description'")
 
 
+def validate_string_pattern(filepath, sig_name, data):
+    if not isinstance(data, dict):
+        err(
+            filepath,
+            f"string_patterns.{sig_name}: expected object, got {type(data).__name__}",
+        )
+        return
+    if "pattern" not in data:
+        err(filepath, f"string_patterns.{sig_name}: missing required field 'pattern'")
+    else:
+        try:
+            re.compile(data["pattern"])
+        except re.error as e:
+            err(filepath, f"string_patterns.{sig_name}: invalid regex pattern: {e}")
+    if "severity" not in data:
+        err(filepath, f"string_patterns.{sig_name}: missing required field 'severity'")
+    elif data["severity"] not in VALID_SEVERITIES:
+        err(
+            filepath,
+            f"string_patterns.{sig_name}: invalid severity '{data['severity']}'",
+        )
+    if "description" not in data:
+        err(
+            filepath,
+            f"string_patterns.{sig_name}: missing required field 'description'",
+        )
+
+
 def validate_combination(filepath, i, combo):
     if not isinstance(combo, dict):
         err(filepath, f"combinations[{i}]: expected object, got {type(combo).__name__}")
@@ -135,6 +165,9 @@ def validate_file(filepath):
 
     for sig_name, entry in data.get("byte_patterns", {}).items():
         validate_byte_pattern(filepath, sig_name, entry)
+
+    for sig_name, entry in data.get("string_patterns", {}).items():
+        validate_string_pattern(filepath, sig_name, entry)
 
     for i, combo in enumerate(data.get("combinations", [])):
         validate_combination(filepath, i, combo)

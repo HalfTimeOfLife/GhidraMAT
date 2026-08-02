@@ -774,157 +774,226 @@
             "description": "STR EAX -- Store Task Register; value differs between physical and virtualized environments."
         }
     },
+    "string_patterns": {},
     "combinations": [
         {
             "name": "Registry-based VM detection",
-            "requires": ["RegOpenKeyEx", "RegQueryValueEx"],
+            "requires": [
+                "RegOpenKeyEx",
+                "RegQueryValueEx"
+            ],
             "severity": "HIGH",
             "mitre": "T1497.001",
             "description": "Opens and queries registry keys -- likely reading VM-specific paths (VMware Tools, VBoxGuest, Hyper-V)."
         },
         {
             "name": "Registry enumeration VM detection",
-            "requires": ["RegOpenKeyEx", "RegEnumKeyEx"],
+            "requires": [
+                "RegOpenKeyEx",
+                "RegEnumKeyEx"
+            ],
             "severity": "HIGH",
             "mitre": "T1497.001",
             "description": "Opens and enumerates registry sub-keys -- likely scanning for VM-related service names."
         },
         {
             "name": "Dynamic API resolution VM check",
-            "requires": ["GetModuleHandle", "GetProcAddress"],
+            "requires": [
+                "GetModuleHandle",
+                "GetProcAddress"
+            ],
             "severity": "HIGH",
             "mitre": "T1497.001",
             "description": "Dynamically resolves APIs at runtime -- likely checking for Wine-exclusive or sandbox-specific exports."
         },
         {
             "name": "Mutex-based VM/sandbox detection",
-            "requires": ["CreateMutexA", "OpenMutexA"],
+            "requires": [
+                "CreateMutexA",
+                "OpenMutexA"
+            ],
             "severity": "HIGH",
             "mitre": "T1497.001",
             "description": "Creates and opens mutexes -- likely probing for VM/sandbox-specific mutex names."
         },
         {
             "name": "Device path VM detection",
-            "requires": ["CreateFileA", "DeviceIoControl"],
+            "requires": [
+                "CreateFileA",
+                "DeviceIoControl"
+            ],
             "severity": "HIGH",
             "mitre": "T1497.001",
             "description": "Opens device paths and sends IOCTLs -- likely probing VM-specific paths (\\\\.\\VBoxMiniRdrDN, \\\\.\\vmci)."
         },
         {
             "name": "Sleep-skipping sandbox detection",
-            "requires": ["GetTickCount", "Sleep"],
+            "requires": [
+                "GetTickCount",
+                "Sleep"
+            ],
             "severity": "HIGH",
             "mitre": "T1497.003",
             "description": "Measures elapsed time around a Sleep call -- sandboxes that accelerate Sleep show an anomalously short delta."
         },
         {
             "name": "High-resolution timing anomaly detection",
-            "requires": ["QueryPerformanceCounter", "QueryPerformanceFrequency"],
+            "requires": [
+                "QueryPerformanceCounter",
+                "QueryPerformanceFrequency"
+            ],
             "severity": "HIGH",
             "mitre": "T1497.003",
             "description": "Uses high-resolution timer to detect VM timing anomalies or RDTSC skew."
         },
         {
             "name": "Hardware fingerprinting",
-            "requires": ["GetSystemInfo", "GlobalMemoryStatusEx"],
+            "requires": [
+                "GetSystemInfo",
+                "GlobalMemoryStatusEx"
+            ],
             "severity": "MEDIUM",
             "mitre": "T1497.001",
             "description": "Reads CPU count and total RAM -- low values (1 CPU, < 2 GB RAM) are classic VM/sandbox indicators."
         },
         {
             "name": "Headless environment detection",
-            "requires": ["GetSystemMetrics", "GetCursorPos"],
+            "requires": [
+                "GetSystemMetrics",
+                "GetCursorPos"
+            ],
             "severity": "MEDIUM",
             "mitre": "T1497.002",
             "description": "Checks screen resolution and cursor position -- static cursor in low-res environment = headless sandbox."
         },
         {
             "name": "User activity absence check",
-            "requires": ["GetLastInputInfo", "GetSystemMetrics"],
+            "requires": [
+                "GetLastInputInfo",
+                "GetSystemMetrics"
+            ],
             "severity": "MEDIUM",
             "mitre": "T1497.002",
             "description": "Combines input idle time with screen metrics -- no activity in low-resolution environment = sandbox."
         },
         {
             "name": "Window enumeration sandbox detection",
-            "requires": ["FindWindowA", "EnumWindows"],
+            "requires": [
+                "FindWindowA",
+                "EnumWindows"
+            ],
             "severity": "MEDIUM",
             "mitre": "T1497.001",
             "description": "Searches for specific windows and enumerates all -- low count or VM class names indicate sandbox."
         },
         {
             "name": "Process enumeration VM detection",
-            "requires": ["CreateToolhelp32Snapshot", "OpenProcess"],
+            "requires": [
+                "CreateToolhelp32Snapshot",
+                "OpenProcess"
+            ],
             "severity": "HIGH",
             "mitre": "T1497.001",
             "description": "Enumerates processes and attempts to open them -- likely scanning for VM/sandbox-specific process names."
         },
         {
             "name": "Process name enumeration (Toolhelp32)",
-            "requires": ["CreateToolhelp32Snapshot", "Process32First", "Process32Next"],
+            "requires": [
+                "CreateToolhelp32Snapshot",
+                "Process32First",
+                "Process32Next"
+            ],
             "severity": "HIGH",
             "mitre": "T1497.001",
             "description": "Full Toolhelp32 process iteration -- iterates all running processes to compare names against known VM/sandbox process list."
         },
         {
             "name": "Module enumeration for sandbox DLLs",
-            "requires": ["CreateToolhelp32Snapshot", "Module32First", "Module32Next"],
+            "requires": [
+                "CreateToolhelp32Snapshot",
+                "Module32First",
+                "Module32Next"
+            ],
             "severity": "HIGH",
             "mitre": "T1497.001",
             "description": "Iterates loaded modules -- likely scanning for sandbox-specific DLLs (sbiedll.dll, snxhk.dll, pstorec.dll)."
         },
         {
             "name": "Filesystem VM artifact check",
-            "requires": ["GetFileAttributesA", "FindFirstFileA"],
+            "requires": [
+                "GetFileAttributesA",
+                "FindFirstFileA"
+            ],
             "severity": "HIGH",
             "mitre": "T1497.001",
             "description": "Checks file existence and scans directories -- likely probing for VM driver files (VBoxMouse.sys, vmhgfs.sys, vmmouse.sys)."
         },
         {
             "name": "Alternate sleep timing detection",
-            "requires": ["WaitForSingleObject", "GetTickCount"],
+            "requires": [
+                "WaitForSingleObject",
+                "GetTickCount"
+            ],
             "severity": "HIGH",
             "mitre": "T1497.003",
             "description": "Measures elapsed time across a WaitForSingleObject call -- bypasses sandboxes that only hook Sleep()."
         },
         {
             "name": "Native sleep timing bypass",
-            "requires": ["NtDelayExecution", "NtQuerySystemInformation"],
+            "requires": [
+                "NtDelayExecution",
+                "NtQuerySystemInformation"
+            ],
             "severity": "HIGH",
             "mitre": "T1497.003",
             "description": "Uses native sleep to avoid Win32 Sleep() hooks, combined with system time queries to confirm sandbox time acceleration."
         },
         {
             "name": "Comprehensive disk size check",
-            "requires": ["GetDiskFreeSpaceExA", "DeviceIoControl"],
+            "requires": [
+                "GetDiskFreeSpaceExA",
+                "DeviceIoControl"
+            ],
             "severity": "HIGH",
             "mitre": "T1497.001",
             "description": "Combines free space query with IOCTL disk size check -- disk < 80 GB or free space < 10 GB strongly indicates a VM or sandbox."
         },
         {
             "name": "Service-based VM detection",
-            "requires": ["OpenSCManagerA", "EnumServicesStatusW"],
+            "requires": [
+                "OpenSCManagerA",
+                "EnumServicesStatusW"
+            ],
             "severity": "HIGH",
             "mitre": "T1497.001",
             "description": "Opens the service control manager and enumerates all services -- scanning for VM-specific services (VBoxService, VMTools, vmci)."
         },
         {
             "name": "WMI-based VM detection",
-            "requires": ["CoInitializeEx", "CoCreateInstance"],
+            "requires": [
+                "CoInitializeEx",
+                "CoCreateInstance"
+            ],
             "severity": "HIGH",
             "mitre": "T1497.001",
             "description": "Initializes COM and instantiates IWbemLocator -- required to issue WMI queries (Win32_ComputerSystem, Win32_BIOS, Win32_DiskDrive) for VM artifact scanning."
         },
         {
             "name": "Sandbox environment check",
-            "requires": ["GetUserNameA", "GetComputerNameA"],
+            "requires": [
+                "GetUserNameA",
+                "GetComputerNameA"
+            ],
             "severity": "HIGH",
             "mitre": "T1497.001",
             "description": "Reads both username and hostname -- compares against known sandbox account names (sandbox, malware, virus) and hostnames (SANDBOX, CUCKOO)."
         },
         {
             "name": "Volume label VM detection",
-            "requires": ["GetVolumeInformationA", "GetDiskFreeSpaceExA"],
+            "requires": [
+                "GetVolumeInformationA",
+                "GetDiskFreeSpaceExA"
+            ],
             "severity": "HIGH",
             "mitre": "T1497.001",
             "description": "Queries volume name and disk size together -- 'VirtualBox Shared Folders' label combined with a small disk confirms a VirtualBox environment."

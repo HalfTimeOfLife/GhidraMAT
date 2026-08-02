@@ -343,6 +343,7 @@
             "description": "MOV EAX, 0x80070057; RET -- classic in-memory patch that forces AmsiScanBuffer to always return E_INVALIDARG, bypassing AMSI."
         }
     },
+    "string_patterns": {},
     "combinations": [
         {
             "name": "AV/EDR service termination via SCM",
