@@ -388,3 +388,37 @@ Custom test binary compiled with mingw-w64 from C source ([./sample_test/test_im
 | T1562.004 — Firewall command string | Confirmed | CRITICAL string triggered |
 
 Known false positive: `Registry Run Key persistence` (T1547.001) triggers on `RegCreateKeyExA + RegSetValueExA` regardless of the target key.
+
+---
+
+### Network:
+
+Tested against a real-world malware sample from [theZoo](https://github.com/ytisf/theZoo):
+
+| Family | SHA256 | Techniques confirmed |
+|---|---|---|
+| Kelihos | `89c2d370bfa36f1d4c3e4f2ff36f966bafef3e1179319e3a4a0f2a344896bc41` | T1071.001 (WinINet HTTP communication), T1071.004 (DNS-based communication capability), T1095 (raw socket communication capability) |
+
+3 of 3 targeted network behaviors were observed through triggered API combinations:
+
+| Technique | Description | Status |
+|---|---|---|
+| `T1071.001` | Web protocols: HTTP communication through WinINet APIs (`InternetOpenA`, `InternetConnectA`, `HttpSendRequestA`, `HttpOpenRequestA`) | Confirmed |
+| `T1071.004` | DNS communication capability through direct DNS queries (`DnsQuery_A`) | Confirmed |
+| `T1095` | Non-application layer protocol communication capability through Winsock APIs (`WSASocketA`, `WSASend`, `WSARecv`) | Confirmed |
+
+Triggered network combinations:
+
+| Combination | Evidence |
+|---|---|
+| `WinINet full HTTP with response` | `InternetOpenA` + `InternetConnectA` + `HttpOpenRequestA` + `HttpSendRequestA` + `InternetReadFile` |
+| `WinINet HTTP session with response reading` | `InternetOpenA` + `InternetConnectA` + `HttpSendRequestA` + `InternetReadFile` |
+| `Overlapped socket C2` | `WSASocketA` + `WSASend` + `WSARecv` |
+
+Additional network-related indicators:
+
+| Indicator | Status |
+|---|---|
+| `DnsQuery_A` import | Observed |
+| Dynamic resolution strings (`InternetOpenA`, `InternetConnectA`, `HttpSendRequestA`, `DnsQuery_A`) | Observed |
+| Hardcoded public IP detection | Observed |

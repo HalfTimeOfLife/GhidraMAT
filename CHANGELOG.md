@@ -4,6 +4,54 @@ All notable changes to this project are documented in this file.
 
 ---
 
+## v0.7
+
+**New detection type: `string_patterns`**
+
+Added a fifth detection type alongside `imports`, `strings`, `byte_patterns`, and `combinations`.
+
+`string_patterns` applies regular expression matching against Ghidra-defined strings, enabling detection of variable-length indicators such as URLs, IP addresses, and other patterns that cannot be covered efficiently by exact string matching.
+
+- Added `"string_patterns": {}` section to signature files
+- Updated `validate_signatures.py` schema:
+  - `string_patterns` added to required top-level keys
+  - regex patterns validated at load time and rejected when invalid
+- Added detection support in `utils/detection.py`
+  - One `Finding` generated per matching signature
+  - Matched string values stored as xref labels
+  - Grouping behavior aligned with `byte_patterns`
+- Added `string_patterns` to report generation types
+- Added unit tests covering the new detection path and signature validation
+
+**Signatures: `network.json`**
+
+Detection of network communication capabilities and C2-related indicators.
+MITRE ATT&CK coverage:
+  - `T1071.001`
+  - `T1071.004`
+  - `T1095`
+  - `T1571`
+
+**Tested against**
+
+Real-world malware sample from [theZoo](https://github.com/ytisf/theZoo):
+
+Kelihos (https://github.com/ytisf/theZoo/tree/master/malware/Binaries/Kelihos):
+
+- SHA256:
+  `89c2d370bfa36f1d4c3e4f2ff36f966bafef3e1179319e3a4a0f2a344896bc41` (`dumped.exe`)
+
+Confirmed network behaviors via triggered combinations:
+
+- `T1071.001` - Web Protocols:
+  - `WinINet full HTTP with response`
+- `T1071.004` - DNS:
+  - `DnsQuery_A` capability detected
+- `T1095` - Non-Application Layer Protocol:
+  - Winsock bidirectional communication (`WSASocketA`, `WSASend`, `WSARecv`)
+
+---
+
 ## v0.6
 
 **Global risk scoring**

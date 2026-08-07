@@ -2,29 +2,7 @@
 
 This document describes the planned release schedule for GhidraMAT. Each version ships one core feature and one signature file. Secondary features are possible in each release if they don't affect the scope.
 
-Current version: **v0.6**
-
----
-
-## v0.7 - `string_patterns` detection type + `network.json`
-
-**Feature: `string_patterns` detection type**
-
-Add a fifth detection type alongside `imports`, `strings`, `byte_patterns`, and `combinations`. `string_patterns` applies regex matching against Ghidra's defined strings, enabling detection of hardcoded URLs, IP addresses, and other variable-length indicators that exact-string matching cannot cover.
-
-- New `"string_patterns": {}` section in every signature file
-- Schema update in `validate_signatures.py`: `string_patterns` added to required top-level keys, regex pattern validated at load time (must compile without error)
-- Detection loop in `utils/detection.py`: one Finding per matching signature, matched values stored as xref labels (same grouping logic as `byte_patterns`)
-- `"string_patterns"` added to `TYPES` in `core/report.py`
-- Unit tests for the new detection path and the validator
-
-**Signatures: `network.json`**
-
-Detection of C2 communication and network indicators.
-
-- MITRE ATT&CK coverage: `T1071.001` (Web Protocols), `T1071.004` (DNS), `T1095` (Non-Application Layer Protocol), `T1571` (Non-Standard Port)
-- Import and combination coverage: WinINet (`InternetOpenA/W`, `InternetConnectA/W`, `HttpOpenRequestA/W`, `HttpSendRequestA/W`, `InternetReadFile`), WinHTTP (`WinHttpOpen`, `WinHttpConnect`, `WinHttpOpenRequest`, `WinHttpSendRequest`), Winsock (`WSAStartup`, `socket`, `connect`, `send`, `recv`, `bind`), DNS (`DnsQuery_A/W`, `getaddrinfo`), download helpers (`URLDownloadToFileA/W`, `DeleteUrlCacheEntryA/W`)
-- `string_patterns` coverage: hardcoded HTTP/HTTPS URLs and non-private routable IP addresses
+Current version: **v0.7**
 
 ---
 
@@ -125,7 +103,6 @@ be added if a genuine need is identified.
 
 | Version | Core feature | Small additions | Signatures | Status |
 |---|---|---|---|---|
-| v0.7 | `string_patterns` detection type | - | `network.json` | Planned |
 | v0.8 | Cross-category detections | `requires` field, YARA export | `crypto.json` | Planned |
 | v0.9 | Ghidra results panel | - | `packer.json` | Planned |
 | v1.0 | Documentation + signature review | Basic runtime string detection | - | Planned |
