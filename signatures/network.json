@@ -1,8 +1,470 @@
 {
     "sig_version": 1,
-    "imports": {},
-    "strings": {},
+    "imports": {
+        "InternetOpenA": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1071.001",
+            "description": "Initializes a WinINet session; meaningful only combined with InternetConnectA and HTTP request APIs -- the entry point of all WinINet-based HTTP C2."
+        },
+        "InternetOpenW": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1071.001",
+            "description": "Unicode variant of InternetOpenA; meaningful only combined with InternetConnectW and HTTP request APIs."
+        },
+        "InternetConnectA": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1071.001",
+            "description": "Opens a connection to a remote host and port via WinINet; meaningful only combined with InternetOpenA and HttpSendRequestA."
+        },
+        "InternetConnectW": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1071.001",
+            "description": "Unicode variant of InternetConnectA."
+        },
+        "HttpOpenRequestA": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1071.001",
+            "description": "Creates an HTTP request handle; meaningful only combined with InternetConnectA and HttpSendRequestA."
+        },
+        "HttpOpenRequestW": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1071.001",
+            "description": "Unicode variant of HttpOpenRequestA."
+        },
+        "HttpSendRequestA": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1071.001",
+            "description": "Sends an HTTP request to the server; meaningful only combined with InternetOpenA and InternetConnectA."
+        },
+        "HttpSendRequestW": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1071.001",
+            "description": "Unicode variant of HttpSendRequestA."
+        },
+        "InternetReadFile": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1071.001",
+            "description": "Reads data from an open WinINet handle; meaningful only combined with HTTP request APIs -- reads the C2 server response."
+        },
+        "WinHttpOpen": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1071.001",
+            "description": "Initializes a WinHTTP session; meaningful only combined with WinHttpConnect and request APIs. WinHTTP runs in the user session context and handles proxy authentication, making it preferred by stealthier malware families."
+        },
+        "WinHttpConnect": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1071.001",
+            "description": "Specifies the target server for a WinHTTP session; meaningful only combined with WinHttpOpen and WinHttpSendRequest."
+        },
+        "WinHttpOpenRequest": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1071.001",
+            "description": "Creates an HTTP request handle in WinHTTP; meaningful only combined with WinHttpConnect and WinHttpSendRequest."
+        },
+        "WinHttpSendRequest": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1071.001",
+            "description": "Sends an HTTP request via WinHTTP; meaningful only combined with WinHttpOpen and WinHttpConnect."
+        },
+        "WinHttpReceiveResponse": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1071.001",
+            "description": "Waits for and processes the server HTTP response; meaningful only combined with WinHttpSendRequest."
+        },
+        "WinHttpReadData": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1071.001",
+            "description": "Reads HTTP response body data from a WinHTTP handle; meaningful only combined with WinHttpReceiveResponse."
+        },
+        "WSAStartup": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1095",
+            "description": "Initializes Winsock; mandatory first call for all socket-based networking, too generic alone -- meaningful only combined with socket/connect/send or bind/listen/accept."
+        },
+        "socket": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1095",
+            "description": "Creates a socket endpoint; meaningful only combined with connect/send for an outbound raw C2 channel or bind/listen/accept for a backdoor listener."
+        },
+        "connect": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1095",
+            "description": "Connects a socket to a remote address; meaningful only combined with socket and send/recv for outbound raw TCP/UDP C2."
+        },
+        "send": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1095",
+            "description": "Sends data on a connected socket; meaningful only combined with socket and connect for raw C2 communication."
+        },
+        "recv": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1095",
+            "description": "Receives data on a connected socket; meaningful only combined with socket and connect for raw C2 communication."
+        },
+        "bind": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1095",
+            "description": "Binds a socket to a local port; combined with listen and accept, indicates a backdoor listener waiting for inbound attacker connections."
+        },
+        "listen": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1095",
+            "description": "Sets a socket to passive listening mode; meaningful only combined with bind and accept -- the bind-shell backdoor pattern."
+        },
+        "accept": {
+            "severity": "HIGH",
+            "combo_only": true,
+            "mitre": "T1095",
+            "description": "Accepts an inbound connection on a listening socket; meaningful only combined with bind and listen -- strong indicator of a bind-shell backdoor or reverse shell listener."
+        },
+        "WSAConnect": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1095",
+            "description": "Extended Winsock connect with QoS support; meaningful only combined with socket and send/recv for outbound raw socket C2."
+        },
+        "WSASend": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1095",
+            "description": "Overlapped/extended send variant; meaningful only combined with socket and connect for raw socket C2 communication."
+        },
+        "WSARecv": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1095",
+            "description": "Overlapped/extended receive variant; meaningful only combined with socket and connect for raw socket C2 communication."
+        },
+        "DnsQuery_A": {
+            "severity": "MEDIUM",
+            "mitre": "T1071.004",
+            "description": "Sends a direct DNS query bypassing the system resolver; used for DNS-based C2 to tunnel data in DNS records (TXT, CNAME, A) or to resolve DGA-generated domain names."
+        },
+        "DnsQuery_W": {
+            "severity": "MEDIUM",
+            "mitre": "T1071.004",
+            "description": "Unicode variant of DnsQuery_A; same DNS C2 and tunneling indicators."
+        },
+        "getaddrinfo": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1071.004",
+            "description": "Resolves a hostname to a network address; too generic alone, meaningful only combined with socket and connect to confirm outbound C2 activity."
+        },
+        "gethostbyname": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1071.004",
+            "description": "Legacy hostname resolution; meaningful only combined with socket and connect for C2 activity."
+        },
+        "URLDownloadToFileA": {
+            "severity": "HIGH",
+            "mitre": "T1105",
+            "description": "Downloads a file from a URL and saves it to disk -- primary Ingress Tool Transfer mechanism used by droppers and stagers to fetch next-stage payloads."
+        },
+        "URLDownloadToFileW": {
+            "severity": "HIGH",
+            "mitre": "T1105",
+            "description": "Unicode variant of URLDownloadToFileA; same payload download indicator."
+        },
+        "DeleteUrlCacheEntryA": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1105",
+            "description": "Removes a URL from the WinINet/IE cache; combined with URLDownloadToFileA, the download URL is deliberately erased to hinder forensic reconstruction of the fetch chain."
+        },
+        "DeleteUrlCacheEntryW": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1105",
+            "description": "Unicode variant of DeleteUrlCacheEntryA; same anti-forensic cache erasure indicator."
+        },
+        "WSASocketA": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1095",
+            "description": "Creates an asynchronous socket; meaningful only combined with connect/send/recv for overlapped I/O C2 channels."
+        },
+        "closesocket": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1095",
+            "description": "Closes a socket; cleanup indicator, meaningful in combo only."
+        },
+        "InternetCloseHandle": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1071.001",
+            "description": "Closes a WinINet handle; cleanup indicator, meaningful in combo only."
+        }
+    },
+    "strings": {
+        "wininet.dll": {
+            "severity": "LOW",
+            "mitre": "T1071.001",
+            "description": "WinINet library name loaded dynamically via LoadLibraryA to resolve HTTP APIs at runtime, bypassing IAT-based detection."
+        },
+        "winhttp.dll": {
+            "severity": "LOW",
+            "mitre": "T1071.001",
+            "description": "WinHTTP library name loaded dynamically via LoadLibraryA to resolve WinHTTP APIs at runtime, bypassing IAT-based detection."
+        },
+        "ws2_32.dll": {
+            "severity": "LOW",
+            "mitre": "T1095",
+            "description": "Winsock library name loaded dynamically via LoadLibraryA to resolve socket APIs at runtime and bypass static import analysis."
+        },
+        "dnsapi.dll": {
+            "severity": "MEDIUM",
+            "mitre": "T1071.004",
+            "description": "DNS API library name loaded dynamically to resolve DnsQuery_A/W at runtime; used to issue direct DNS queries for DNS-based C2 or DGA domain resolution while avoiding IAT detection."
+        },
+        "InternetOpenA": {
+            "severity": "MEDIUM",
+            "mitre": "T1071.001",
+            "description": "WinINet session initialization function resolved via GetProcAddress at runtime; its presence as a string indicates dynamic HTTP session setup bypassing static import detection."
+        },
+        "InternetConnectA": {
+            "severity": "MEDIUM",
+            "mitre": "T1071.001",
+            "description": "WinINet connection function resolved via GetProcAddress at runtime; indicates dynamic construction of an HTTP connection to a remote C2 server."
+        },
+        "HttpSendRequestA": {
+            "severity": "MEDIUM",
+            "mitre": "T1071.001",
+            "description": "WinINet HTTP send function resolved via GetProcAddress at runtime; indicates dynamically-constructed HTTP beaconing or data exfiltration."
+        },
+        "WinHttpOpen": {
+            "severity": "MEDIUM",
+            "mitre": "T1071.001",
+            "description": "WinHTTP session function resolved via GetProcAddress at runtime; its presence as a string indicates dynamic WinHTTP-based C2 setup bypassing static import detection."
+        },
+        "WinHttpSendRequest": {
+            "severity": "MEDIUM",
+            "mitre": "T1071.001",
+            "description": "WinHTTP request send function resolved via GetProcAddress at runtime; indicates dynamically-constructed WinHTTP C2 communication."
+        },
+        "WSAStartup": {
+            "severity": "MEDIUM",
+            "mitre": "T1095",
+            "description": "Winsock initialization function resolved via GetProcAddress at runtime; its presence as a string indicates dynamic raw socket setup to bypass static import analysis."
+        },
+        "URLDownloadToFileA": {
+            "severity": "HIGH",
+            "mitre": "T1105",
+            "description": "File download function resolved via GetProcAddress at runtime; used by droppers and stagers to fetch next-stage payloads while avoiding static import detection."
+        },
+        "DnsQuery_A": {
+            "severity": "MEDIUM",
+            "mitre": "T1071.004",
+            "description": "DNS query function resolved via GetProcAddress at runtime; indicates dynamic DNS querying for DNS-based C2 or DGA domain resolution bypassing static analysis."
+        },
+        "Mozilla/4.0": {
+            "severity": "MEDIUM",
+            "mitre": "T1071.001",
+            "description": "Hardcoded Internet Explorer 7/8 User-Agent string -- common spoofing pattern in malware HTTP requests (e.g., Kelihos, Emotet)."
+        },
+        "Mozilla/5.0": {
+            "severity": "LOW",
+            "mitre": "T1071.001",
+            "description": "Generic User-Agent string; less specific than Mozilla/4.0 but still indicates potential HTTP client spoofing."
+        }
+    },
     "byte_patterns": {},
-    "string_patterns": {},
-    "combinations": []
+    "string_patterns": {
+        "hardcoded_http_url": {
+            "pattern": "https?://[^\\s\"'<>]{4,}",
+            "severity": "HIGH",
+            "mitre": "T1071.001",
+            "description": "Hardcoded HTTP or HTTPS URL found in binary strings -- likely a C2 server address, download URL, or exfiltration endpoint. Check for non-standard ports in the matched URL (e.g. :4444, :8888) which may additionally indicate T1571."
+        },
+        "hardcoded_public_ip": {
+            "pattern": "\\b(?!127\\.)(?!10\\.)(?!192\\.168\\.)(?!169\\.254\\.)(?!172\\.(?:1[6-9]|2[0-9]|3[01])\\.)(?:\\d{1,3}\\.){3}\\d{1,3}\\b",
+            "severity": "MEDIUM",
+            "mitre": "T1071.001",
+            "description": "Hardcoded public IPv4 address (excluding loopback 127.x, link-local 169.254.x, and RFC1918 private ranges 10.x, 172.16-31.x, 192.168.x) -- likely a hardcoded C2 server address or exfiltration target."
+        },
+        "nonstandard_port_url": {
+            "pattern": "https?://[^\\s\"'<>:]+:\\d{4,5}(?:[/\\s\"'<>]|$)",
+            "severity": "HIGH",
+            "mitre": "T1571",
+            "description": "URL with an explicit 4-5 digit port number -- indicates use of a non-standard port (outside the common 80/443) for C2 communication to evade network inspection filtering on standard web ports."
+        }
+    },
+    "combinations": [
+        {
+            "name": "WinINet HTTP session (ANSI)",
+            "requires": [
+                "InternetOpenA",
+                "InternetConnectA",
+                "HttpSendRequestA"
+            ],
+            "severity": "MEDIUM",
+            "mitre": "T1071.001",
+            "description": "Full WinINet HTTP session: initializes a session, connects to a remote server, and sends a request -- canonical WinINet-based HTTP C2 beaconing pattern."
+        },
+        {
+            "name": "WinINet HTTP session (Unicode)",
+            "requires": [
+                "InternetOpenW",
+                "InternetConnectW",
+                "HttpSendRequestW"
+            ],
+            "severity": "MEDIUM",
+            "mitre": "T1071.001",
+            "description": "Unicode variant of the WinINet HTTP session pattern."
+        },
+        {
+            "name": "WinINet HTTP session with response reading",
+            "requires": [
+                "InternetOpenA",
+                "InternetConnectA",
+                "HttpSendRequestA",
+                "InternetReadFile"
+            ],
+            "severity": "MEDIUM",
+            "mitre": "T1071.001",
+            "description": "Complete WinINet HTTP exchange including response body reading -- full C2 beacon: sends request and retrieves commands or next-stage payload from the server."
+        },
+        {
+            "name": "WinHTTP session",
+            "requires": [
+                "WinHttpOpen",
+                "WinHttpConnect",
+                "WinHttpSendRequest"
+            ],
+            "severity": "MEDIUM",
+            "mitre": "T1071.001",
+            "description": "Full WinHTTP session: initializes, connects, and sends."
+        },
+        {
+            "name": "WinHTTP session with response reading",
+            "requires": [
+                "WinHttpOpen",
+                "WinHttpConnect",
+                "WinHttpSendRequest",
+                "WinHttpReceiveResponse"
+            ],
+            "severity": "MEDIUM",
+            "mitre": "T1071.001",
+            "description": "Complete WinHTTP exchange including response receipt -- full C2 beacon or file download pattern over WinHTTP."
+        },
+        {
+            "name": "Raw TCP outbound connection",
+            "requires": [
+                "WSAStartup",
+                "socket",
+                "connect",
+                "send"
+            ],
+            "severity": "MEDIUM",
+            "mitre": "T1095",
+            "description": "Initializes Winsock, creates a socket, connects to a remote address and sends data -- raw TCP C2 channel bypassing application-layer protocol detection."
+        },
+        {
+            "name": "Raw TCP bidirectional communication",
+            "requires": [
+                "WSAStartup",
+                "socket",
+                "connect",
+                "send",
+                "recv"
+            ],
+            "severity": "HIGH",
+            "mitre": "T1095",
+            "description": "Full raw TCP duplex session with send and receive -- interactive C2 shell or custom binary protocol data exchange over a raw socket."
+        },
+        {
+            "name": "Backdoor listener (bind shell)",
+            "requires": [
+                "WSAStartup",
+                "socket",
+                "bind",
+                "listen",
+                "accept"
+            ],
+            "severity": "CRITICAL",
+            "mitre": "T1095",
+            "description": "Full bind-shell pattern: initializes Winsock, creates a socket, binds to a local port, listens and accepts inbound connections -- canonical backdoor waiting for attacker connections on a fixed port."
+        },
+        {
+            "name": "Download and cache cleanup (ANSI)",
+            "requires": [
+                "URLDownloadToFileA",
+                "DeleteUrlCacheEntryA"
+            ],
+            "severity": "HIGH",
+            "mitre": "T1105",
+            "description": "Downloads a file from a URL then erases the corresponding WinINet cache entry -- anti-forensic measure to hide the payload download URL from cache artifacts."
+        },
+        {
+            "name": "Download and cache cleanup (Unicode)",
+            "requires": [
+                "URLDownloadToFileW",
+                "DeleteUrlCacheEntryW"
+            ],
+            "severity": "HIGH",
+            "mitre": "T1105",
+            "description": "Unicode variant: downloads a file then erases the cache entry to hinder forensic reconstruction of the download URL."
+        },
+        {
+            "name": "DNS resolution with raw socket C2",
+            "requires": [
+                "DnsQuery_A",
+                "socket",
+                "connect"
+            ],
+            "severity": "MEDIUM",
+            "mitre": "T1071.004",
+            "description": "Combines direct DNS querying with raw socket communication -- consistent with DNS-tunneled C2: encodes data in DNS records for covert exfiltration, then uses a raw socket for payload delivery or secondary channel."
+        },
+        {
+            "name": "WinINet full HTTP with response",
+            "requires": [
+                "InternetOpenA",
+                "InternetConnectA",
+                "HttpOpenRequestA",
+                "HttpSendRequestA",
+                "InternetReadFile"
+            ],
+            "severity": "MEDIUM",
+            "mitre": "T1071.001",
+            "description": "Complete WinINet HTTP session with request creation, send, and response reading -- full C2 beacon including command retrieval."
+        },
+        {
+            "name": "Overlapped socket C2",
+            "requires": [
+                "WSAStartup",
+                "WSASocketA",
+                "WSAConnect",
+                "WSASend",
+                "WSARecv"
+            ],
+            "severity": "HIGH",
+            "mitre": "T1095",
+            "description": "Asynchronous socket-based C2 using overlapped I/O -- indicates sophisticated malware with non-blocking network operations (e.g., Kelihos P2P module)."
+        }
+    ]
 }
