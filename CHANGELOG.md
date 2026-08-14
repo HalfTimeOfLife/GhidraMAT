@@ -4,6 +4,32 @@ All notable changes to this project are documented in this file.
 
 ---
 
+## v0.8
+
+**Refactoring: generalized config loading**
+
+`load_scoring_config` in `core/scoring.py` replaced by a generic `load_config(path)`
+in `utils/utils.py`, reusable for any JSON config file. `compute_risk_score` updated
+accordingly. Tests added in `test_utils.py`.
+
+**New feature: YARA rule generation**
+
+GhidraMAT can now export findings as YARA rules.
+
+- One rule per category, grouped in a single `.yar` file alongside the txt/JSON reports
+- Eligible findings: non-combo_only, non-LOW, of type strings, byte_patterns, or string_patterns
+- Condition threshold: 3 of them
+- Rule naming: `GhidraMAT_<sample>_<category>`
+- Controlled via `config/ghidramat_config.json` (`generate_yara: true/false`)
+- Added `pattern` attribute to `Finding` for byte_patterns and string_patterns
+- Tests added in `test_report.py`, `test_finding.py`, `test_detection.py`
+
+**Tested against**
+
+al-khaser x64 (`0cd8a40f...`) - 3 rules generated: `anti_debug`, `anti_vm`, `injection`
+
+---
+
 ## v0.7
 
 **New detection type: `string_patterns`**

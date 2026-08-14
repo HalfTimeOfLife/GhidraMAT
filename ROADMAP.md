@@ -103,7 +103,7 @@ be added if a genuine need is identified.
 
 | Version | Core feature | Small additions | Signatures | Status |
 |---|---|---|---|---|
-| v0.8 | Cross-category detections | `requires` field, YARA export | `crypto.json` | Planned |
+| v0.8 | Cross-category detections | `requires` field, YARA export | `crypto.json` | WIP |
 | v0.9 | Ghidra results panel | - | `packer.json` | Planned |
 | v1.0 | Documentation + signature review | Basic runtime string detection | - | Planned |
 | v1.1 | Full runtime string detection | - | - | Deferred |
