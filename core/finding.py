@@ -27,6 +27,9 @@ class Finding:
         mitre (str): Technique: Sub-technique
         requirements (list[str]): Imports required for a combination finding.
             Defaults to None.
+        pattern (str): Raw signature pattern used for YARA rule generation.
+            Set for byte_patterns (hex pattern) and string_patterns (regex).
+            None for other detection types. Defaults to None.
 
     Attributes:
         type (str): Detection method, stored from type_of_technique.
@@ -44,6 +47,7 @@ class Finding:
         xref_labels=None,
         mitre=None,
         requirements=None,
+        pattern=None,
     ):
         self.category = category
         self.type = type_of_technique
@@ -55,13 +59,14 @@ class Finding:
         self.xref_labels = xref_labels or []
         self.mitre = mitre if isinstance(mitre, str) else None
         self.requirements = requirements
+        self.pattern = pattern
 
     def to_dict(self):
         """Serialize the finding to a JSON-compatible dictionary.
 
         Returns:
             dict: A dictionary with keys category, type, name, severity, mitre,
-                description, combo_only, xref_labels, and requirements.
+                description, combo_only, xref_labels, requirements and pattern.
                 xref_labels contains human-readable location strings, not raw
                 Ghidra Address objects.
         """
@@ -75,6 +80,7 @@ class Finding:
             "combo_only": self.combo_only,
             "xref_labels": self.xref_labels,
             "requirements": self.requirements,
+            "pattern": self.pattern,
         }
 
     def __str__(self):

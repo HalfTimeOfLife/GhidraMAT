@@ -95,6 +95,7 @@ def analyze(context, category):
                     xrefs=[],
                     xref_labels=matched_values,
                     mitre=data.get("mitre"),
+                    pattern=data["pattern"],
                 )
             )
 
@@ -115,6 +116,7 @@ def analyze(context, category):
                     xrefs=matches,
                     xref_labels=xref_labels,
                     mitre=data.get("mitre"),
+                    pattern=data["pattern"],
                 )
             )
 

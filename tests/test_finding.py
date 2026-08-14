@@ -39,6 +39,7 @@ def test_to_dict_keys_present():
         "combo_only",
         "xref_labels",
         "requirements",
+        "pattern",
     }
     assert set(result.keys()) == expected_keys
 
@@ -94,6 +95,18 @@ def test_to_dict_xref_labels():
     result = f.to_dict()
 
     assert result["xref_labels"] == labels
+
+
+def test_to_dict_pattern_none_by_default():
+    """to_dict should return None for pattern when not provided."""
+    f = make_finding()
+    assert f.to_dict()["pattern"] is None
+
+
+def test_to_dict_pattern_stored_correctly():
+    """to_dict should return the pattern value when provided."""
+    f = make_finding(pattern="0F 31")
+    assert f.to_dict()["pattern"] == "0F 31"
 
 
 # -------------------------------------------------------------------

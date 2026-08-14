@@ -81,6 +81,7 @@ def test_analyze_detects_import(tmp_path, monkeypatch):
     assert f.combo_only is False
     assert f.xrefs == [addr]
     assert f.xref_labels == ["0x1000 (main)"]
+    assert f.pattern is None
 
 
 def test_analyze_skips_import_not_present(tmp_path, monkeypatch):
@@ -192,6 +193,7 @@ def test_analyze_detects_string(tmp_path, monkeypatch):
     assert f.name == "VMware, Inc."
     assert f.severity == "HIGH"
     assert f.mitre == "T1497.001"
+    assert f.pattern is None
 
 
 def test_analyze_skips_string_not_present(tmp_path, monkeypatch):
@@ -260,6 +262,7 @@ def test_analyze_detects_string_pattern(tmp_path, monkeypatch):
     assert f.mitre == "T1071.001"
     assert f.xrefs == []
     assert "https://evil.example.com/payload" in f.xref_labels
+    assert f.pattern == r"https?://[^\s\"'<>]{4,}"
 
 
 def test_analyze_skips_string_pattern_not_matched(tmp_path, monkeypatch):
@@ -401,6 +404,7 @@ def test_analyze_detects_byte_pattern(tmp_path, monkeypatch):
     assert f.severity == "HIGH"
     assert f.mitre == "T1497.003"
     assert findings[0].xrefs == [addr]
+    assert f.pattern == "0F 31"
 
 
 def test_analyze_byte_pattern_groups_multiple_matches_into_one_finding(

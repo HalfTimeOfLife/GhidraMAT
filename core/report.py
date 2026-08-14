@@ -1,4 +1,5 @@
 import json
+import re
 import os
 
 from core.scoring import compute_risk_score
@@ -10,6 +11,129 @@ REPORTS_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "r
 SEVERITY_ORDER = ["CRITICAL", "HIGH", "MEDIUM", "LOW"]
 
 TYPES = ["imports", "strings", "byte_patterns", "string_patterns", "combinations"]
+
+YARA_TYPES = [_type for _type in TYPES if _type not in ("imports", "combinations")]
+YARA_THRESHOLD = 3
+
+# -------------------------------------------------------------------
+# --- Helpers for yara rule generation ---
+# -------------------------------------------------------------------
+
+
+def _sanitize_identifier(name):
+    """Convert a finding name to a valid YARA string identifier.
+
+    Replaces any character that is not alphanumeric or underscore with
+    an underscore. Prepends an underscore if the result starts with a digit.
+
+    Args:
+        name (str): A finding's name.
+
+    Returns:
+        str: A sanitized finding's name.
+    """
+    sanitized = re.sub(r"[^a-zA-Z0-9_]", "_", name)
+    if sanitized and sanitized[0].isdigit():
+        sanitized = "_" + sanitized
+    return sanitized
+
+
+def _generate_meta(yara_candidates, program_info, category):
+    """Build the meta section of a YARA rule for a given category.
+
+    Args:
+        yara_candidates (list[Finding]): A list of finding candidates.
+        program_info (dict): Metadata about the analyzed program, expected
+            keys: name, path, format, md5, sha256.
+        category (str): The category name the rule is generated for.
+
+    Returns:
+        str: The metadata section of the rule as a formatted string.
+    """
+    mitre_ids = sorted({f.mitre for f in yara_candidates if f.mitre})
+    lines = [
+        f'        tool = "{TOOL}"',
+        f'        version = "{VERSION}"',
+        f'        category = "{category}"',
+        f'        sample = "{program_info["name"]}"',
+        f'        mitre = "{", ".join(mitre_ids)}"',
+    ]
+    return "\n".join(lines)
+
+
+def _generate_strings(yara_candidates):
+    """Build the strings section of a YARA rule from a list of findings.
+
+    Uses YARA_THRESHOLD but caps it at the number of available candidates
+    to avoid a condition that can never be satisfied.
+
+    Args:
+        yara_candidates (list[Finding]): A list of finding candidates.
+
+    Returns:
+        str: The strings of the rule.
+    """
+    lines = []
+    seen_ids = {}
+    for candidate in yara_candidates:
+        base_id = _sanitize_identifier(candidate.name)
+        if base_id in seen_ids:
+            seen_ids[base_id] += 1
+            identifier = f"{base_id}_{seen_ids[base_id]}"
+        else:
+            seen_ids[base_id] = 0
+            identifier = base_id
+
+        if candidate.type == "strings":
+            escaped = candidate.name.replace("\\", "\\\\").replace('"', '\\"')
+            lines.append(f'        ${identifier} = "{escaped}" nocase')
+        elif candidate.type == "byte_patterns":
+            lines.append(f"        ${identifier} = {{ {candidate.pattern} }}")
+        elif candidate.type == "string_patterns":
+            lines.append(f"        ${identifier} = /{candidate.pattern}/")
+
+    return "\n".join(lines)
+
+
+def _generate_condition(yara_candidates):
+    """Build the condition section of a YARA rule.
+
+    Uses YARA_THRESHOLD but caps it at the number of available candidates
+    to avoid a condition that can never be satisfied.
+
+    Args:
+        yara_candidates (list[dict]): A list of finding candidates.
+
+    Returns:
+        str: The condition as a string.
+    """
+    threshold = min(YARA_THRESHOLD, len(yara_candidates))
+    return f"{threshold} of them"
+
+
+def _build_yara_rule(name, meta, strings, condition):
+    """Build the YARA rule.
+
+    Args:
+        name (str): Name of the rule.
+        meta (str): Metadata of the rule.
+        strings (str): Strings of the rule.
+        condition (str): Condition of the rule.
+
+    Returns:
+        str: The rule as a string.
+    """
+    return f"""rule {name}
+{{
+    meta:
+{meta}
+
+    strings:
+{strings}
+
+    condition:
+        {condition}
+}}"""
 
 
 def build_header(program_info, findings):
@@ -290,5 +414,59 @@ def generate_json(findings, program_info, categories, now):
     os.makedirs(REPORTS_DIR, exist_ok=True)
     with open(filename, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4)
+
+    return filename
+
+
+def generate_yara_rule(findings, program_info, now):
+    """Generate and write a YARA rules file from analysis findings.
+
+    Produces one rule per category, only for categories that have at least
+    one eligible finding. Eligible findings are non-combo_only, non-LOW,
+    and of type strings, byte_patterns, or string_patterns.
+
+    Args:
+        findings (list[Finding]): All findings from the analysis.
+        program_info (dict): Metadata about the analyzed program.
+        now (datetime): Timezone-aware datetime shared with the other
+            report generators to guarantee matching timestamps.
+
+    Returns:
+        str or None: Path to the generated .yar file, or None if no
+            eligible candidates were found.
+    """
+    candidates_by_category = {}
+    for finding in findings:
+        if finding.combo_only or finding.type not in YARA_TYPES:
+            continue
+        if finding.severity == "LOW":
+            continue
+        cat = finding.category
+        if cat not in candidates_by_category:
+            candidates_by_category[cat] = []
+        candidates_by_category[cat].append(finding)
+
+    if not candidates_by_category:
+        return None
+
+    rules = []
+    for category, candidates in sorted(candidates_by_category.items()):
+        meta = _generate_meta(candidates, program_info, category)
+        strings_section = _generate_strings(candidates)
+        condition = _generate_condition(candidates)
+        rule_prefix = _sanitize_identifier(program_info["name"])
+        rule = _build_yara_rule(
+            f"{TOOL}_{rule_prefix}_{category}", meta, strings_section, condition
+        )
+        rules.append(rule)
+
+    os.makedirs(REPORTS_DIR, exist_ok=True)
+    timestamp = now.strftime("%d-%m-%Y_%Hh%Mmin%Ss")
+    filename = os.path.join(
+        REPORTS_DIR, f"rules_{program_info['name']}_{timestamp}.yar"
+    )
+
+    with open(filename, "w", encoding="utf-8", newline="\n") as f:
+        f.write("\n\n".join(rules))
 
     return filename

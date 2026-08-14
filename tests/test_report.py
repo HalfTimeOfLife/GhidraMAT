@@ -4,6 +4,7 @@ Tests for core.report
 """
 
 import json
+import os
 from datetime import datetime, timezone
 
 import pytest
@@ -319,3 +320,157 @@ def test_generate_report_displays_risk_score(program_info, now):
         output = f.read()
 
     assert "RISK SCORE" in output
+
+
+# -------------------------------------------------------------------
+# --- generate_yara ---
+# -------------------------------------------------------------------
+
+
+def test_generate_yara_returns_none_when_no_candidates(program_info, now):
+    """generate_yara() should return None when no eligible findings exist."""
+    findings = [make_finding(type_of_technique="imports")]
+    result = report.generate_yara(findings, program_info, now)
+    assert result is None
+
+
+def test_generate_yara_filters_low_severity(program_info, now):
+    """generate_yara() should exclude LOW severity findings."""
+    findings = [make_finding(type_of_technique="strings", severity="LOW")]
+    result = report.generate_yara(findings, program_info, now)
+    assert result is None
+
+
+def test_generate_yara_filters_combo_only(program_info, now):
+    """generate_yara() should exclude combo_only findings."""
+    findings = [
+        make_finding(type_of_technique="strings", severity="HIGH", combo_only=True)
+    ]
+    result = report.generate_yara(findings, program_info, now)
+    assert result is None
+
+
+def test_generate_yara_filters_imports_and_combinations(program_info, now):
+    """generate_yara() should exclude imports and combinations type findings."""
+    findings = [
+        make_finding(type_of_technique="imports", severity="HIGH"),
+        make_finding(type_of_technique="combinations", severity="CRITICAL"),
+    ]
+    result = report.generate_yara(findings, program_info, now)
+    assert result is None
+
+
+def test_generate_yara_returns_filename(program_info, now):
+    """generate_yara() should return a path to a .yar file when candidates exist."""
+    findings = [make_finding(type_of_technique="strings", severity="HIGH")]
+    filename = report.generate_yara(findings, program_info, now)
+    assert filename is not None
+    assert filename.endswith(".yar")
+
+
+def test_generate_yara_file_written(program_info, now):
+    """generate_yara() should write the .yar file to disk."""
+    findings = [make_finding(type_of_technique="strings", severity="HIGH")]
+    filename = report.generate_yara(findings, program_info, now)
+    assert os.path.exists(filename)
+
+
+def test_generate_yara_rule_contains_category(program_info, now):
+    """The generated rule name should contain the finding category."""
+    findings = [
+        make_finding(category="anti_vm", type_of_technique="strings", severity="HIGH")
+    ]
+    filename = report.generate_yara(findings, program_info, now)
+    with open(filename, encoding="utf-8") as f:
+        content = f.read()
+    assert "GhidraMAT_anti_vm" in content
+
+
+def test_generate_yara_strings_type(program_info, now):
+    """Strings findings should produce a quoted string entry with nocase."""
+    findings = [
+        make_finding(
+            type_of_technique="strings",
+            name="VMware",
+            severity="HIGH",
+        )
+    ]
+    filename = report.generate_yara(findings, program_info, now)
+    with open(filename, encoding="utf-8") as f:
+        content = f.read()
+    assert '"VMware" nocase' in content
+
+
+def test_generate_yara_byte_patterns_type(program_info, now):
+    """Byte pattern findings should produce a hex pattern entry."""
+    findings = [
+        make_finding(
+            type_of_technique="byte_patterns",
+            name="rdtsc",
+            severity="HIGH",
+            pattern="0F 31",
+        )
+    ]
+    filename = report.generate_yara(findings, program_info, now)
+    with open(filename, encoding="utf-8") as f:
+        content = f.read()
+    assert "{ 0F 31 }" in content
+
+
+def test_generate_yara_string_patterns_type(program_info, now):
+    """String pattern findings should produce a regex entry."""
+    findings = [
+        make_finding(
+            type_of_technique="string_patterns",
+            name="hardcoded_url",
+            severity="HIGH",
+            pattern=r"https?://[^\s]{4,}",
+        )
+    ]
+    filename = report.generate_yara(findings, program_info, now)
+    with open(filename, encoding="utf-8") as f:
+        content = f.read()
+    assert r"/https?://[^\s]{4,}/" in content
+
+
+def test_generate_yara_multiple_categories(program_info, now):
+    """Multiple categories should produce multiple rules in the same file."""
+    findings = [
+        make_finding(category="anti_vm", type_of_technique="strings", severity="HIGH"),
+        make_finding(
+            category="anti_debug", type_of_technique="strings", severity="HIGH"
+        ),
+    ]
+    filename = report.generate_yara(findings, program_info, now)
+    with open(filename, encoding="utf-8") as f:
+        content = f.read()
+    assert "GhidraMAT_anti_vm" in content
+    assert "GhidraMAT_anti_debug" in content
+
+
+def test_generate_yara_meta_fields(program_info, now):
+    """The generated rule should contain expected meta fields."""
+    findings = [
+        make_finding(
+            type_of_technique="strings",
+            severity="HIGH",
+            mitre="T1497.001",
+        )
+    ]
+    filename = report.generate_yara(findings, program_info, now)
+    with open(filename, encoding="utf-8") as f:
+        content = f.read()
+    assert "tool" in content
+    assert "version" in content
+    assert "category" in content
+    assert "sample" in content
+    assert "T1497.001" in content
+
+
+def test_generate_yara_condition_capped_at_candidates(program_info, now):
+    """Condition threshold should be capped at the number of candidates."""
+    findings = [make_finding(type_of_technique="strings", severity="HIGH")]
+    filename = report.generate_yara(findings, program_info, now)
+    with open(filename, encoding="utf-8") as f:
+        content = f.read()
+    assert "1 of them" in content
