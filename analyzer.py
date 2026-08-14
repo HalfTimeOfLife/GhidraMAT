@@ -23,9 +23,15 @@ for _mod_name in list(sys.modules.keys()):
 from ghidra.app.plugin.core.colorizer import ColorizingService
 
 from core.context import Context
-from core.report import generate_json, generate_report
+from core.report import generate_json, generate_report, generate_yara_rule
 from utils.detection import analyze
-from utils.utils import apply_visual_marking, create_bookmark, print_banner
+from utils.utils import apply_visual_marking, create_bookmark, print_banner, load_config
+
+CONFIG_PATH = os.path.join(
+    script_dir,
+    "config",
+    "ghidramat_config.json",
+)
 
 CATEGORIES = [
     "anti_vm",
@@ -52,6 +58,9 @@ def _get_program_info():
 
 def run():
     """Run the full GhidraMAT analysis on the current program."""
+
+    config = load_config(CONFIG_PATH)
+    generate_yara = config.get("generate_yara", False)
 
     program_info = _get_program_info()
     print_banner()
@@ -91,6 +100,13 @@ def run():
 
     generate_report(findings, program_info, CATEGORIES, now)
     generate_json(findings, program_info, CATEGORIES, now)
+
+    if generate_yara:
+        filename = generate_yara_rule(findings, program_info, now)
+        if filename:
+            popup(f"[GhidraMAT] YARA rules written to:\n{filename}")
+        else:
+            popup("[GhidraMAT] YARA generation: no eligible candidates found.")
 
 
 run()
