@@ -1,5 +1,6 @@
-import json
 import os
+
+from utils.utils import load_config
 
 CONFIG_PATH = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
@@ -8,19 +9,6 @@ CONFIG_PATH = os.path.join(
 )
 
 SEVERITIES = ["CRITICAL", "HIGH", "MEDIUM", "LOW"]
-
-
-def load_scoring_config(path=CONFIG_PATH):
-    """Load the risk scoring configuration from disk.
-
-    Args:
-        path (str): Path to the scoring config JSON file.
-
-    Returns:
-        dict: Parsed config, expected to contain a "rules" list.
-    """
-    with open(path, encoding="utf-8") as f:
-        return json.load(f)
 
 
 def compute_risk_score(findings, config=None):
@@ -35,7 +23,7 @@ def compute_risk_score(findings, config=None):
         dict: {"level": str, "counts": dict[str, int]}
     """
     if config is None:
-        config = load_scoring_config()
+        config = load_config(CONFIG_PATH)
 
     counts = dict.fromkeys(SEVERITIES, 0)
     for f in findings:

@@ -1,7 +1,7 @@
 import json
 import os
 
-VERSION = "0.7"
+VERSION = "0.8"
 SIGNATURES_VERSION = 1
 
 TOOL = "GhidraMAT"
@@ -169,3 +169,16 @@ def resolve_function_context(func_manager, addr):
     if offset == 0:
         return f"{addr!s} ({name})"
     return f"{addr!s} ({name}+0x{offset:x})"
+
+
+def load_config(path):
+    """Load the risk scoring configuration from disk.
+
+    Args:
+        path (str): Path to a config JSON file.
+
+    Returns:
+        dict: Parsed config.
+    """
+    with open(path, encoding="utf-8") as f:
+        return json.load(f)
