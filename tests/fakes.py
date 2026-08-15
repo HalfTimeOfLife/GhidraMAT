@@ -168,13 +168,17 @@ class FakeMemoryBlock:
     scan_byte_pattern implementation (which iterates instructions instead),
     but kept for any code path that still walks raw memory blocks."""
 
-    def __init__(self, start, content_bytes, is_execute=True):
+    def __init__(self, start, content_bytes, is_execute=True, is_initialized=True):
         self.start = start
         self._bytes = content_bytes
         self._is_execute = is_execute
+        self._is_initialized = is_initialized
 
     def isExecute(self):
         return self._is_execute
+
+    def isInitialized(self):
+        return self._is_initialized
 
     def getSize(self):
         return len(self._bytes)
@@ -196,6 +200,14 @@ class FakeMemory:
 
     def getBlocks(self):
         return self._blocks
+
+    def getByte(self, addr):
+        for block in self._blocks:
+            start = block.getStart().offset
+            size = block.getSize()
+            if start <= addr.offset < start + size:
+                return block._bytes[addr.offset - start]
+        raise Exception(f"No memory at {addr}")
 
 
 class FakeProgram:

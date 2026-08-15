@@ -31,4 +31,16 @@ def scan_byte_pattern(context, pattern_str):
                 matches.append(instr.getMinAddress().add(i))
                 break
 
+    # Scan non-executable sections (data) for crypto constants
+    for block in context.memory.getBlocks():
+        if block.isExecute() or not block.isInitialized():
+            continue
+        addr = block.getStart()
+        size = int(block.getSize())
+        # Read byte by byte to avoid Java<->Python array bridge issue
+        buf = [context.memory.getByte(addr.add(i)) & 0xFF for i in range(size)]
+        for i in range(len(buf) - len(pattern) + 1):
+            if all(p is None or buf[i + j] == p for j, p in enumerate(pattern)):
+                matches.append(addr.add(i))
+
     return matches
