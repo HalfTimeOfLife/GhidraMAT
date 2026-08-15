@@ -1,8 +1,495 @@
 {
     "sig_version": 1,
-    "imports": {},
-    "strings": {},
-    "byte_patterns": {},
+    "imports": {
+        "CryptAcquireContext": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1573.001",
+            "description": "Acquires a handle to a CSP (Cryptographic Service Provider) key container; mandatory entry point of any CryptoAPI operation. Meaningful only combined with CryptEncrypt, CryptDecrypt, CryptCreateHash, or CryptGenKey."
+        },
+        "CryptEncrypt": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1573.001",
+            "description": "Encrypts data using a CryptoAPI key handle. Combined with CryptAcquireContext and CryptGenKey or CryptDeriveKey, canonical CryptoAPI encryption chain used by ransomware (AES-CBC payload encryption) and malware for C2 data protection."
+        },
+        "CryptDecrypt": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1140",
+            "description": "Decrypts data using a CryptoAPI key handle. Combined with CryptAcquireContext, frequently used in droppers and loaders to decrypt embedded payloads or C2 responses at runtime."
+        },
+        "CryptCreateHash": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1573.001",
+            "description": "Creates a CSP hash object; first step of any CryptoAPI hashing operation. Meaningful only combined with CryptHashData and CryptGetHashParam."
+        },
+        "CryptHashData": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1573.001",
+            "description": "Feeds data into a CSP hash object; meaningful only combined with CryptCreateHash and CryptGetHashParam."
+        },
+        "CryptGetHashParam": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1573.001",
+            "description": "Retrieves the computed hash value from a CSP hash object; meaningful only combined with CryptCreateHash and CryptHashData."
+        },
+        "CryptDeriveKey": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1573.001",
+            "description": "Derives a symmetric key from a password hash (PBE); combined with CryptAcquireContext and CryptEncrypt, indicates password-based symmetric encryption -- used by ransomware to derive file encryption key from a hardcoded passphrase."
+        },
+        "CryptGenKey": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1573.001",
+            "description": "Generates a random symmetric or asymmetric key pair; meaningful combined with CryptEncrypt (payload encryption) or CryptSignHash (asymmetric signing for C2 authentication)."
+        },
+        "CryptImportKey": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1573.001",
+            "description": "Imports an externally generated or hardcoded key blob into a CSP; used in malware shipping with a hardcoded public key for hybrid encryption (encrypt AES session key with embedded RSA public key)."
+        },
+        "CryptExportKey": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1573.002",
+            "description": "Exports a CSP key as a blob; used in ransomware to exfiltrate the session key encrypted with the attacker public key before discarding the plaintext key."
+        },
+        "CryptGenRandom": {
+            "severity": "MEDIUM",
+            "mitre": "T1573.001",
+            "description": "Generates cryptographically secure random bytes via the CSP; used standalone as a CSPRNG for key material or IV generation. Combined with encryption APIs, confirms full key generation infrastructure."
+        },
+        "CryptSignHash": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1573.002",
+            "description": "Signs a hash with a private key; used in C2 channels to sign beacons or authenticate server responses. Combined with CryptAcquireContext and CryptCreateHash."
+        },
+        "CryptVerifySignature": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1573.002",
+            "description": "Verifies an asymmetric signature; used to authenticate C2 server commands before executing them, preventing command injection. Combined with CryptAcquireContext and CryptCreateHash."
+        },
+        "CryptDestroyKey": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1573.001",
+            "description": "Destroys a CSP key handle; cleanup paired with CryptGenKey or CryptDeriveKey. Meaningful only in combination with encryption APIs."
+        },
+        "CryptDestroyHash": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1573.001",
+            "description": "Destroys a CSP hash object; cleanup paired with CryptCreateHash. Meaningful only in combination with hashing APIs."
+        },
+        "BCryptOpenAlgorithmProvider": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1573.001",
+            "description": "Opens a BCrypt (CNG) algorithm provider handle; mandatory entry point of any CNG operation. Too generic alone -- meaningful only combined with BCryptEncrypt, BCryptDecrypt, BCryptHash, or BCryptGenerateKeyPair."
+        },
+        "BCryptCloseAlgorithmProvider": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1573.001",
+            "description": "Closes a BCrypt algorithm provider handle; cleanup paired with BCryptOpenAlgorithmProvider. Meaningful only in combination with CNG crypto operation APIs."
+        },
+        "BCryptEncrypt": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1573.001",
+            "description": "Encrypts data using a BCrypt key handle. Combined with BCryptOpenAlgorithmProvider and BCryptGenerateSymmetricKey, canonical modern CNG encryption chain used by post-Vista malware for AES-CBC/GCM C2 encryption and payload protection."
+        },
+        "BCryptDecrypt": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1140",
+            "description": "Decrypts data using a BCrypt key handle. Combined with BCryptOpenAlgorithmProvider and BCryptImportKey, used in loaders to decrypt embedded or downloaded payloads at runtime."
+        },
+        "BCryptGenerateSymmetricKey": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1573.001",
+            "description": "Creates a BCrypt symmetric key object from raw key material; combined with BCryptOpenAlgorithmProvider and BCryptEncrypt/BCryptDecrypt, indicates a full AES or 3DES symmetric operation."
+        },
+        "BCryptGenerateKeyPair": {
+            "severity": "MEDIUM",
+            "mitre": "T1573.002",
+            "description": "Generates an asymmetric key pair (RSA, ECDH, ECDSA) via CNG. Standalone indicator of asymmetric cryptography. Used in ransomware for hybrid encryption (generate ephemeral RSA/EC key pair, encrypt AES session key with attacker public key) and in C2 channels for ECDH key exchange."
+        },
+        "BCryptImportKey": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1573.001",
+            "description": "Imports a raw symmetric key blob into BCrypt; used when a key is hardcoded in the binary or received from the C2 server. Combined with BCryptEncrypt or BCryptDecrypt."
+        },
+        "BCryptImportKeyPair": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1573.002",
+            "description": "Imports an asymmetric key pair from a blob; used in ransomware to load an embedded public key for hybrid encryption or to process a C2-delivered key. Combined with BCryptEncrypt or BCryptSignHash."
+        },
+        "BCryptExportKey": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1573.002",
+            "description": "Exports a BCrypt key as a blob; used in ransomware to export the generated session key encrypted with the attacker public key for C2 transmission. Combined with BCryptGenerateKeyPair or BCryptGenerateSymmetricKey."
+        },
+        "BCryptGenRandom": {
+            "severity": "MEDIUM",
+            "mitre": "T1573.001",
+            "description": "Generates cryptographically secure random bytes via CNG; used standalone for IV/nonce or key material generation. Combined with symmetric encryption APIs, confirms proper key generation infrastructure rather than hardcoded keys -- common in modern ransomware generating per-victim AES keys."
+        },
+        "BCryptHash": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1573.001",
+            "description": "One-shot CNG hash computation (combines BCryptCreateHash + BCryptHashData + BCryptFinishHash); meaningful only combined with BCryptOpenAlgorithmProvider."
+        },
+        "BCryptCreateHash": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1573.001",
+            "description": "Creates a BCrypt incremental hash object; meaningful only combined with BCryptOpenAlgorithmProvider and BCryptFinishHash."
+        },
+        "BCryptFinishHash": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1573.001",
+            "description": "Finalizes and retrieves a BCrypt hash; meaningful only combined with BCryptCreateHash and BCryptOpenAlgorithmProvider."
+        },
+        "BCryptSignHash": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1573.002",
+            "description": "Signs a hash with a BCrypt private key; used in C2 authentication and malware integrity verification. Combined with BCryptOpenAlgorithmProvider and BCryptGenerateKeyPair or BCryptImportKeyPair."
+        },
+        "BCryptVerifySignature": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1573.002",
+            "description": "Verifies a signature with a BCrypt public key; used by malware to authenticate C2 server commands before execution. Combined with BCryptOpenAlgorithmProvider and BCryptImportKeyPair."
+        },
+        "BCryptSetProperty": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1573.001",
+            "description": "Sets a BCrypt algorithm or key property (e.g., chaining mode BCRYPT_CHAIN_MODE_CBC, key size); meaningful only combined with BCryptOpenAlgorithmProvider -- confirms the cipher mode being configured."
+        },
+        "BCryptDestroyKey": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1573.001",
+            "description": "Destroys a BCrypt key object; cleanup paired with BCryptGenerateSymmetricKey or BCryptGenerateKeyPair. Meaningful only in combination with BCrypt encryption APIs."
+        },
+        "NCryptOpenStorageProvider": {
+            "severity": "LOW",
+            "combo_only": true,
+            "mitre": "T1573.002",
+            "description": "Opens an NCrypt key storage provider; mandatory entry point of NCrypt operations using the Windows certificate store. Meaningful only combined with NCryptCreatePersistedKey or NCryptEncrypt."
+        },
+        "NCryptCreatePersistedKey": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1573.002",
+            "description": "Creates a new persisted asymmetric key in the Windows key store; combined with NCryptEncrypt or NCryptSignHash, indicates abuse of the Windows PKI infrastructure for persistent key material."
+        },
+        "NCryptEncrypt": {
+            "severity": "MEDIUM",
+            "mitre": "T1573.002",
+            "description": "Encrypts data using an NCrypt key stored in the Windows certificate store; used for RSA/EC public key encryption via the CNG key storage layer. Less common than BCrypt equivalents, more targeted use."
+        },
+        "NCryptDecrypt": {
+            "severity": "MEDIUM",
+            "mitre": "T1573.002",
+            "description": "Decrypts data using an NCrypt private key; used for RSA/EC private key decryption via the CNG key storage layer."
+        },
+        "NCryptSignHash": {
+            "severity": "MEDIUM",
+            "combo_only": true,
+            "mitre": "T1573.002",
+            "description": "Signs a hash using an NCrypt private key stored in the Windows certificate store; used for C2 authentication or malware code signing via the Windows PKI."
+        }
+    },
+    "strings": {
+        "AES": {
+            "severity": "LOW",
+            "mitre": "T1573.001",
+            "description": "AES algorithm identifier (BCRYPT_AES_ALGORITHM) passed to BCryptOpenAlgorithmProvider; confirms the algorithm in use when CNG crypto APIs are present."
+        },
+        "RC4": {
+            "severity": "LOW",
+            "mitre": "T1573.001",
+            "description": "RC4 algorithm identifier (BCRYPT_RC4_ALGORITHM) for BCryptOpenAlgorithmProvider; RC4 is cryptographically broken but still common in older malware for fast stream cipher obfuscation of C2 traffic or configuration."
+        },
+        "ARCFOUR": {
+            "severity": "LOW",
+            "mitre": "T1573.001",
+            "description": "Alternative algorithm identifier for RC4 accepted by some CNG providers as an alias for BCRYPT_RC4_ALGORITHM."
+        },
+        "3DES": {
+            "severity": "LOW",
+            "mitre": "T1573.001",
+            "description": "Triple DES algorithm identifier (BCRYPT_3DES_ALGORITHM) for BCryptOpenAlgorithmProvider; present in legacy malware or malware targeting older Windows environments."
+        },
+        "DES": {
+            "severity": "LOW",
+            "mitre": "T1573.001",
+            "description": "DES algorithm identifier for BCryptOpenAlgorithmProvider; effectively broken (56-bit key), occasionally present in older or poorly implemented malware."
+        },
+        "SHA256": {
+            "severity": "LOW",
+            "mitre": "T1573.001",
+            "description": "SHA-256 algorithm identifier (BCRYPT_SHA256_ALGORITHM) for BCryptOpenAlgorithmProvider; used in key derivation (HKDF, PBKDF2), HMAC computation, or integrity verification alongside encryption APIs."
+        },
+        "SHA512": {
+            "severity": "LOW",
+            "mitre": "T1573.001",
+            "description": "SHA-512 algorithm identifier for BCryptOpenAlgorithmProvider; used in key derivation or integrity verification, less common than SHA-256 in malware."
+        },
+        "SHA1": {
+            "severity": "LOW",
+            "mitre": "T1573.001",
+            "description": "SHA-1 algorithm identifier for BCryptOpenAlgorithmProvider; cryptographically weak, present in legacy malware or malware targeting SHA-1-based HMAC/KDF schemes."
+        },
+        "MD5": {
+            "severity": "LOW",
+            "mitre": "T1573.001",
+            "description": "MD5 algorithm identifier for BCryptOpenAlgorithmProvider; cryptographically broken, used in malware for fast (non-secure) hashing, string obfuscation checksum, or as part of a legacy KDF."
+        },
+        "MD4": {
+            "severity": "LOW",
+            "mitre": "T1573.001",
+            "description": "MD4 algorithm identifier for BCryptOpenAlgorithmProvider; weaker than MD5, its presence often indicates NTLM hash computation (Windows NTLM password hashing uses MD4)."
+        },
+        "RSA": {
+            "severity": "LOW",
+            "mitre": "T1573.002",
+            "description": "RSA algorithm identifier (BCRYPT_RSA_ALGORITHM) for BCryptOpenAlgorithmProvider; used for asymmetric key exchange in hybrid encryption (C2 session key wrapping) and digital signatures."
+        },
+        "ECDH_P256": {
+            "severity": "MEDIUM",
+            "mitre": "T1573.002",
+            "description": "ECDH over P-256 algorithm identifier for BCryptOpenAlgorithmProvider; used for elliptic curve Diffie-Hellman key exchange. More compact than RSA for equivalent security, increasingly used in modern malware (Cobalt Strike, Sliver C2) for C2 key exchange."
+        },
+        "ECDSA_P256": {
+            "severity": "MEDIUM",
+            "mitre": "T1573.002",
+            "description": "ECDSA over P-256 algorithm identifier for BCryptOpenAlgorithmProvider; used for elliptic curve digital signatures, likely for C2 command authentication."
+        },
+        "ECDH_P384": {
+            "severity": "MEDIUM",
+            "mitre": "T1573.002",
+            "description": "ECDH over P-384 algorithm identifier; stronger curve variant, less common but present in modern C2 frameworks prioritizing larger key sizes."
+        },
+        "ChaCha20": {
+            "severity": "MEDIUM",
+            "mitre": "T1573.001",
+            "description": "ChaCha20 algorithm identifier; not natively supported by Windows BCrypt before Windows 10 1803. Its presence indicates either a third-party crypto library (libsodium, OpenSSL, BoringSSL embedded) or a custom implementation -- both are more commonly seen in sophisticated malware families avoiding Windows crypto APIs for detection evasion."
+        },
+        "bcrypt.dll": {
+            "severity": "LOW",
+            "mitre": "T1573.001",
+            "description": "BCrypt (CNG) library name loaded dynamically via LoadLibraryA/W to resolve CNG APIs at runtime, bypassing static IAT-based detection of cryptographic activity."
+        },
+        "ncrypt.dll": {
+            "severity": "LOW",
+            "mitre": "T1573.002",
+            "description": "NCrypt (CNG key storage) library name loaded dynamically via LoadLibraryA/W; indicates dynamic resolution of NCrypt key storage APIs at runtime."
+        },
+        "CryptAcquireContextA": {
+            "severity": "MEDIUM",
+            "mitre": "T1573.001",
+            "description": "CryptoAPI session initialization function resolved via GetProcAddress at runtime; indicates dynamic construction of a CryptoAPI chain bypassing static import detection."
+        },
+        "CryptEncrypt": {
+            "severity": "MEDIUM",
+            "mitre": "T1573.001",
+            "description": "CryptoAPI encryption function resolved via GetProcAddress at runtime; indicates dynamic CryptoAPI-based encryption bypassing static IAT analysis."
+        },
+        "CryptDecrypt": {
+            "severity": "MEDIUM",
+            "mitre": "T1140",
+            "description": "CryptoAPI decryption function resolved via GetProcAddress at runtime; indicates dynamic payload decryption capability bypassing static import analysis."
+        },
+        "BCryptOpenAlgorithmProvider": {
+            "severity": "MEDIUM",
+            "mitre": "T1573.001",
+            "description": "CNG algorithm provider function resolved via GetProcAddress at runtime; indicates dynamic BCrypt-based crypto operations bypassing static IAT detection."
+        },
+        "BCryptEncrypt": {
+            "severity": "MEDIUM",
+            "mitre": "T1573.001",
+            "description": "CNG encryption function resolved via GetProcAddress at runtime; indicates dynamic BCrypt-based encryption bypassing static import analysis."
+        },
+        "BCryptDecrypt": {
+            "severity": "MEDIUM",
+            "mitre": "T1140",
+            "description": "CNG decryption function resolved via GetProcAddress at runtime; indicates dynamic BCrypt-based payload decryption bypassing static import analysis."
+        }
+    },
+    "byte_patterns": {
+        "aes_sbox": {
+            "pattern": "63 7C 77 7B F2 6B 6F C5 30 01 67 2B FE D7 AB 76",
+            "severity": "HIGH",
+            "mitre": "T1027.013",
+            "description": "First 16 bytes of the AES forward substitution table (S-box). Present in any custom software AES implementation embedding the full 256-byte S-box lookup table. Values are mandated verbatim by FIPS 197 -- cannot vary across correct implementations. Presence indicates a native AES implementation outside Windows crypto APIs, a common malware evasion approach."
+        },
+        "aes_inv_sbox": {
+            "pattern": "52 09 6A D5 30 36 A5 38 BF 40 A3 9E 81 F3 D7 FB",
+            "severity": "HIGH",
+            "mitre": "T1027.013",
+            "description": "First 16 bytes of the AES inverse substitution table (InvSubBytes), used in AES decryption. Presence alongside aes_sbox confirms a full AES implementation (encrypt + decrypt). Presence alone indicates a decryption-capable payload -- e.g., a loader decrypting a next-stage shellcode."
+        },
+        "aes_rcon": {
+            "pattern": "01 02 04 08 10 20 40 80 1B 36",
+            "severity": "MEDIUM",
+            "mitre": "T1027.013",
+            "description": "AES key schedule round constants Rcon[1..10] stored as a byte array; each value is the previous doubled in GF(2^8) with irreducible polynomial 0x11B. Present in custom AES key expansion routines using a precomputed Rcon table. Short pattern (10 bytes) -- confirm with surrounding S-box patterns or AES-related code."
+        },
+        "sha256_iv": {
+            "pattern": "67 E6 09 6A 85 AE 67 BB 72 F3 6E 3C 3A F5 4F A5",
+            "severity": "HIGH",
+            "mitre": "T1027.013",
+            "description": "First 4 SHA-256 initialization constants (H0=0x6A09E667, H1=0xBB67AE85, H2=0x3C6EF372, H3=0xA54FF53A) in little-endian x86 memory. Derived from fractional parts of square roots of the first 8 primes (FIPS 180-4, Section 5.3.3). Unique to SHA-256 -- present in any custom SHA-256 implementation. Commonly found in malware using custom SHA-256 for key derivation, HMAC, or C2 beacon integrity."
+        },
+        "sha1_md5_iv": {
+            "pattern": "01 23 45 67 89 AB CD EF FE DC BA 98 76 54 32 10",
+            "severity": "MEDIUM",
+            "mitre": "T1027.013",
+            "description": "Shared initialization constants of SHA-1, MD5, and MD4 (A=0x67452301, B=0xEFCDAB89, C=0x98BADCFE, D=0x10325476) in little-endian. All three algorithms inherit these IV values from MD4 (RFC 1320). Algorithm identity requires surrounding context. Common in malware using MD5 for string obfuscation or NTLM (MD4) for credential-related operations."
+        },
+        "chacha20_constant_256": {
+            "pattern": "65 78 70 61 6E 64 20 33 32 2D 62 79 74 65 20 6B",
+            "severity": "HIGH",
+            "mitre": "T1027.013",
+            "description": "ASCII encoding of 'expand 32-byte k', the setup constant hardcoded into ChaCha20 and Salsa20 stream cipher state for 256-bit keys (RFC 7539, Section 2.1.1). Invariant across all correct implementations. Presence in executable memory confirms a custom ChaCha20 or Salsa20 implementation -- increasingly common in modern malware (ransomware, C2 loaders) for avoiding Windows crypto API detection."
+        },
+        "chacha20_constant_128": {
+            "pattern": "65 78 70 61 6E 64 20 31 36 2D 62 79 74 65 20 6B",
+            "severity": "MEDIUM",
+            "mitre": "T1027.013",
+            "description": "ASCII encoding of 'expand 16-byte k', the ChaCha20/Salsa20 setup constant for 128-bit key variant. Less common than the 256-bit variant in malware but indicative of the same cipher family."
+        },
+        "crc32_table_start": {
+            "pattern": "00 00 00 00 96 30 07 77 2C 61 0E EE BA 51 09 99",
+            "severity": "MEDIUM",
+            "mitre": "T1027.013",
+            "description": "First 4 entries of the standard CRC32 lookup table (reflected polynomial 0xEDB88320, used in PKZIP/zlib/Ethernet, ITU-T V.42 Annex B). CRC32 is not cryptographic but appears in malware for fast API name hashing (import table resolution without string comparison), payload integrity verification, or anti-analysis environment fingerprinting."
+        },
+        "blowfish_parray_start": {
+            "pattern": "88 6A 3F 24 D3 08 A3 85 2E 8A 19 13 44 73 70 03",
+            "severity": "HIGH",
+            "mitre": "T1027.013",
+            "description": "First 4 entries of the Blowfish cipher P-array (P1=0x243F6A88, P2=0x85A308D3, P3=0x13198A2E, P4=0x03707344) in little-endian, derived from fractional digits of pi. Required verbatim before key scheduling in all standard Blowfish implementations (Schneier, FSE 1994). Present in malware using Blowfish for C2 data encryption or configuration decryption."
+        },
+        "tea_xtea_delta": {
+            "pattern": "B9 79 37 9E",
+            "severity": "MEDIUM",
+            "mitre": "T1027.013",
+            "description": "TEA/XTEA round constant delta=0x9E3779B9 in little-endian, derived from the golden ratio (Wheeler & Needham, FSE 1994; correction 1998). Required in every TEA and XTEA round function. Popular in resource-constrained malware (router firmware, embedded, IoT) due to minimal code size. Short pattern (4 bytes) -- confirm with surrounding loop structure or XTEA-typical register operations."
+        }
+    },
     "string_patterns": {},
-    "combinations": []
+    "combinations": [
+    {
+        "name": "CryptoAPI symmetric encryption chain",
+        "requires": ["CryptAcquireContext", "CryptEncrypt"],
+        "severity": "HIGH",
+        "mitre": "T1573.001",
+        "description": "Acquires a CSP context and performs symmetric encryption -- minimum viable CryptoAPI encryption chain. Used by ransomware (AES-CBC file encryption) and malware for C2 payload protection."
+    },
+    {
+        "name": "CryptoAPI symmetric decryption chain",
+        "requires": ["CryptAcquireContext", "CryptDecrypt"],
+        "severity": "HIGH",
+        "mitre": "T1140",
+        "description": "Acquires a CSP context and performs symmetric decryption -- used by loaders and droppers to decrypt embedded payloads or C2 responses at runtime."
+    },
+    {
+        "name": "CryptoAPI password-based encryption",
+        "requires": ["CryptAcquireContext", "CryptDeriveKey", "CryptEncrypt"],
+        "severity": "HIGH",
+        "mitre": "T1573.001",
+        "description": "Derives a key from a password hash and encrypts data (PBE pattern). Used by malware to encrypt exfiltrated data or protect configuration with a hardcoded passphrase."
+    },
+    {
+        "name": "CryptoAPI hashing chain",
+        "requires": ["CryptAcquireContext", "CryptCreateHash", "CryptHashData"],
+        "severity": "MEDIUM",
+        "mitre": "T1573.001",
+        "description": "Full CryptoAPI hashing sequence: acquires a CSP, creates a hash object, and feeds data. Used in key derivation, HMAC, or integrity checking for C2 communication or payload validation."
+    },
+    {
+        "name": "CryptoAPI hybrid key export (ransomware pattern)",
+        "requires": ["CryptAcquireContext", "CryptEncrypt", "CryptExportKey"],
+        "severity": "CRITICAL",
+        "mitre": "T1573.002",
+        "description": "Encrypts data and exports the session key -- canonical ransomware hybrid encryption pattern: generates a symmetric key, encrypts files, then exports the session key wrapped with the attacker public key for C2 transmission."
+    },
+    {
+        "name": "BCrypt symmetric encryption",
+        "requires": ["BCryptOpenAlgorithmProvider", "BCryptGenerateSymmetricKey", "BCryptEncrypt"],
+        "severity": "HIGH",
+        "mitre": "T1573.001",
+        "description": "Full CNG symmetric encryption chain: opens an algorithm provider, generates a key from raw material, then encrypts. Modern ransomware and C2 implants use this pattern for AES-CBC or AES-GCM payload encryption."
+    },
+    {
+        "name": "BCrypt symmetric decryption",
+        "requires": ["BCryptOpenAlgorithmProvider", "BCryptGenerateSymmetricKey", "BCryptDecrypt"],
+        "severity": "HIGH",
+        "mitre": "T1140",
+        "description": "Full CNG symmetric decryption chain: opens an algorithm provider, imports key material, then decrypts. Used by loaders to decrypt embedded shellcode or configuration blobs at runtime."
+    },
+    {
+        "name": "BCrypt imported key decryption",
+        "requires": ["BCryptOpenAlgorithmProvider", "BCryptImportKey", "BCryptDecrypt"],
+        "severity": "HIGH",
+        "mitre": "T1140",
+        "description": "Imports key material and decrypts data -- payload decryption using a hardcoded or C2-delivered key. Common in stagers decrypting next-stage shellcode received from the C2 server."
+    },
+    {
+        "name": "BCrypt hash computation",
+        "requires": ["BCryptOpenAlgorithmProvider", "BCryptHash"],
+        "severity": "MEDIUM",
+        "mitre": "T1573.001",
+        "description": "CNG one-shot hash computation; used in key derivation, HMAC, integrity verification, or C2 beacon authentication."
+    },
+    {
+        "name": "BCrypt asymmetric key generation (ransomware pattern)",
+        "requires": ["BCryptOpenAlgorithmProvider", "BCryptGenerateKeyPair", "BCryptExportKey"],
+        "severity": "CRITICAL",
+        "mitre": "T1573.002",
+        "description": "Generates an asymmetric key pair and exports it -- ransomware C2 key exchange pattern: generate ephemeral RSA/EC key pair, export the public key for C2, use the private key to wrap the session key before wiping it from memory."
+    },
+    {
+        "name": "BCrypt asymmetric signing",
+        "requires": ["BCryptOpenAlgorithmProvider", "BCryptGenerateKeyPair", "BCryptSignHash"],
+        "severity": "HIGH",
+        "mitre": "T1573.002",
+        "description": "Generates a key pair and signs data -- C2 command authentication: the malware signs outbound beacons or authenticates server responses using asymmetric cryptography to prevent command injection."
+    },
+    {
+        "name": "BCrypt random symmetric key generation",
+        "requires": ["BCryptGenRandom", "BCryptGenerateSymmetricKey"],
+        "severity": "HIGH",
+        "mitre": "T1573.001",
+        "description": "Generates cryptographically random key material and creates a symmetric key -- indicates proper per-session key generation rather than hardcoded keys. Canonical in modern ransomware generating per-victim AES keys."
+    },
+    {
+        "name": "NCrypt asymmetric encryption",
+        "requires": ["NCryptOpenStorageProvider", "NCryptEncrypt"],
+        "severity": "HIGH",
+        "mitre": "T1573.002",
+        "description": "Opens an NCrypt key storage provider and performs asymmetric encryption -- uses the Windows certificate store for key material. May indicate abuse of the Windows PKI infrastructure for persistent, certificate-backed encryption."
+    }
+]
 }
