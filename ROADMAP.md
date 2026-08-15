@@ -16,11 +16,6 @@ Allow a single signature to surface findings across multiple categories simultan
 - The engine duplicates the finding in secondary categories with a note `(cross-ref from X)`
 - Update `validate_signatures.py`, tests, and report output accordingly
 
-**Small addition: conditional dependency (`requires`)**
-
-- `"requires": "network"` - a finding is only emitted if another category also matched
-- Reduces false positives in ambiguous categories
-
 **Secondary feature: Automatic YARA rule generation**
 
 - `--generate-yara` option: produces a `.yar` file from findings' strings and byte patterns, only when the findings are meaningful signal (not just generic import lists)
