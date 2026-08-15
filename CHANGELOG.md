@@ -24,7 +24,50 @@ GhidraMAT can now export findings as YARA rules.
 - Added `pattern` attribute to `Finding` for byte_patterns and string_patterns
 - Tests added in `test_report.py`, `test_finding.py`, `test_detection.py`
 
+**Bug fix / Change of structure - byte pattern scanner extended to data sections**
+
+`scan_byte_pattern` previously only scanned executable sections via `getInstructions()`,
+missing cryptographic constants stored in `.rodata` and `.data` sections. The scanner
+now also iterates non-executable initialized memory blocks via `getByte()` to detect
+embedded lookup tables (AES S-box, ChaCha20 constants, etc.).
+
+*Known limitation: data-section scanning reads memory byte by byte via `getByte()` to
+avoid the Java<->Python array bridge issue. Scanning large binaries with big data sections
+may be slow.*
+
+**Signatures: `crypto.json`**
+
+Detection of cryptographic primitives and custom encryption implementations.
+MITRE ATT&CK coverage:
+  - `T1027.013`
+  - `T1140`
+  - `T1573.001`
+  - `T1573.002`
+
 **Tested against**
+
+Real-world malware from [MalwareBazaar](https://bazaar.abuse.ch/) and custom test binaries from [B-Con/crypto-algorithms](https://github.com/B-Con/crypto-algorithms) compiled with mingw-w64:
+
+WannaCry (`ed01ebfbc9eb5bbea545af4d01bf5f1071661840480439c6e5babe8e080e41aa`):
+
+- `T1573.001` - Encrypted Channel (Symmetric):
+  - `CryptAcquireContextA`, `CryptEncrypt` resolved dynamically via `GetProcAddress`
+- `T1140` - Deobfuscate/Decode Files or Information:
+  - `CryptDecrypt` resolved dynamically via `GetProcAddress`
+
+test_aes.exe - B-Con/crypto-algorithms (`a0ea502730abcc5df244bc98f4467bfeaea2843864d153f8a5a3b1bd0da748c3`):
+
+- `T1027.013` - Encrypted/Encoded File:
+  - `aes_sbox` detected in `.rodata` section
+  - `aes_inv_sbox` detected in `.rodata` section
+
+test_sha256.exe - B-Con/crypto-algorithms (`ac8f31878ea83109128f71467adaabb52b75767437d6688df55c6298cc407203`):
+
+- No crypto findings - SHA-256 IV constants compiled as immediate values, not stored as a static table
+
+*Note: the string detection layer is essential for crypto.json - without it, zero crypto detections on WannaCry. Crypto combinations were not triggered on any sample - APIs resolved dynamically are absent from the IAT.*
+
+**YARA rules tested against**
 
 al-khaser x64 (`0cd8a40f...`) - 3 rules generated: `anti_debug`, `anti_vm`, `injection`
 

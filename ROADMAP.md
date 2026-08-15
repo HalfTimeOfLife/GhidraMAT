@@ -2,21 +2,7 @@
 
 This document describes the planned release schedule for GhidraMAT. Each version ships one core feature and one signature file. Secondary features are possible in each release if they don't affect the scope.
 
-Current version: **v0.7**
-
----
-
-## v0.8 - Cross-category detections + `crypto.json`
-
-**Feature: Automatic YARA rule generation**
-
-- `--generate-yara` option: produces a `.yar` file from findings' strings and byte patterns, only when the findings are meaningful signal (not just generic import lists)
-- Includes MITRE metadata, grouped by category
-- Gives a concrete, testable output for the v1.0 signature validation pass against public samples (MalwareBazaar/VT)
-
-**Signatures: `crypto.json`**
-
-Detection of cryptographic primitives and custom encryption (specific MITRE ATT&CK Technique IDs will be added during the development of this version).
+Current version: **v0.8**
 
 ---
 
@@ -90,7 +76,6 @@ be added if a genuine need is identified.
 
 | Version | Core feature | Small additions | Signatures | Status |
 |---|---|---|---|---|
-| v0.8 | YARA export | - | `crypto.json` | WIP |
 | v0.9 | Ghidra results panel | - | `packer.json` | Planned |
 | v1.0 | Documentation + signature review | Basic runtime string detection | - | Planned |
 | v1.1 | Full runtime string detection | - | - | Deferred |

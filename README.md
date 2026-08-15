@@ -22,7 +22,7 @@ The file `detection.py` provides the generic detection engine for all GhidraMAT 
 | `anti_debug` | `IsDebuggerPresent`, `NtQueryInformationProcess`, breakpoint scanning, SEH tricks | UP |
 | `packer` | Section entropy (Shannon > 7.2), malformed PE headers, abnormal section names, TLS callbacks, low import count | WIP |
 | `network` | C2 indicators, hardcoded IPs/URLs, suspicious User-Agents, DGA-like strings, raw socket usage | UP |
-| `crypto` | AES S-box constants, RC4 key scheduling patterns, rolling XOR, custom magic constants | WIP |
+| `crypto` | AES S-box constants, RC4 key scheduling patterns, rolling XOR, custom magic constants | UP |
 | `injection` | Classic DLL injection, Process Hollowing, APC injection, Thread Hijacking -- detected via dangerous API combinations | UP |
 | `persistence` | Run registry keys, scheduled tasks, service installation, startup folder writes, WMI/COM/LSA event-triggered execution | UP |
 | `impair_defenses` | Active defense neutralization — disabling Windows Defender, clearing event logs, patching AMSI, firewall tampering, security tool termination | UP |
@@ -103,8 +103,9 @@ After analysis, GhidraMAT writes two report files to the [reports/](reports/) di
 |---|---|---|
 | Plaintext | `report_<name>_<timestamp>.txt` | Human-readable findings grouped by category, type, and severity |
 | JSON | `report_<name>_<timestamp>.json` | Machine-readable findings with full metadata, suitable for pipeline integration |
+| YARA | `rules_<name>_<timestamp>.yar` | One YARA rule per category, generated when `generate_yara: true` in `config/ghidramat_config.json` |
 
-Both files share the same timestamp, so they can always be matched to the same analysis run. The JSON report includes tool version, signature version, program hashes, and a summary broken down by severity and category.
+All files share the same timestamp, so they can always be matched to the same analysis run. The JSON report includes tool version, signature version, program hashes, and a summary broken down by severity and category.
 
 The [reports/](reports/) directory is excluded from version control via [.gitignore](.gitignore).
 
