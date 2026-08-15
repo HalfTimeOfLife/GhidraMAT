@@ -15,6 +15,8 @@ from tests.fakes import (
     FakeFunction,
     FakeInstruction,
     FakeListing,
+    FakeMemory,
+    FakeMemoryBlock,
     FakeMonitor,
     FakeProgram,
     FakeReference,
@@ -795,3 +797,172 @@ def test_analyze_skips_monitor_message_when_monitor_none(tmp_path, monkeypatch):
     findings = analyze(context, "anti_vm")
 
     assert findings == []
+
+
+# -------------------------------------------------------------------
+# --- data-section byte pattern scanning ---
+# -------------------------------------------------------------------
+
+
+def test_scan_byte_pattern_finds_pattern_in_data_section(tmp_path, monkeypatch):
+    """analyze() should detect a byte pattern stored in a non-executable data section."""
+    signatures = {
+        "sig_version": 1,
+        "imports": {},
+        "strings": {},
+        "byte_patterns": {
+            "aes_sbox": {
+                "pattern": "63 7C 77 7B",
+                "severity": "HIGH",
+                "mitre": "T1027.013",
+                "description": "AES S-box start.",
+            }
+        },
+        "string_patterns": {},
+        "combinations": [],
+    }
+    write_signatures(tmp_path, "crypto", signatures)
+    monkeypatch.setattr("utils.detection.SIG_PATH", str(tmp_path))
+
+    data_addr = FakeAddress(0x5000)
+    data_block = FakeMemoryBlock(
+        start=data_addr,
+        content_bytes=[0x63, 0x7C, 0x77, 0x7B, 0x00, 0x00],
+        is_execute=False,
+        is_initialized=True,
+    )
+
+    context = FakeContext(
+        memory=FakeMemory(blocks=[data_block]),
+        program=FakeProgram(listing=FakeListing(instructions=[])),
+    )
+
+    findings = analyze(context, "crypto")
+
+    assert len(findings) == 1
+    f = findings[0]
+    assert f.name == "aes_sbox"
+    assert f.type == "byte_patterns"
+    assert f.xrefs[0].offset == 0x5000
+
+
+def test_scan_byte_pattern_skips_uninitialized_block(tmp_path, monkeypatch):
+    """analyze() should not scan uninitialized memory blocks."""
+    signatures = {
+        "sig_version": 1,
+        "imports": {},
+        "strings": {},
+        "byte_patterns": {
+            "aes_sbox": {
+                "pattern": "63 7C 77 7B",
+                "severity": "HIGH",
+                "mitre": "T1027.013",
+                "description": "AES S-box start.",
+            }
+        },
+        "string_patterns": {},
+        "combinations": [],
+    }
+    write_signatures(tmp_path, "crypto", signatures)
+    monkeypatch.setattr("utils.detection.SIG_PATH", str(tmp_path))
+
+    data_addr = FakeAddress(0x5000)
+    data_block = FakeMemoryBlock(
+        start=data_addr,
+        content_bytes=[0x63, 0x7C, 0x77, 0x7B],
+        is_execute=False,
+        is_initialized=False,
+    )
+
+    context = FakeContext(
+        memory=FakeMemory(blocks=[data_block]),
+        program=FakeProgram(listing=FakeListing(instructions=[])),
+    )
+
+    findings = analyze(context, "crypto")
+
+    assert findings == []
+
+
+def test_scan_byte_pattern_skips_executable_block_in_memory_scan(tmp_path, monkeypatch):
+    """analyze() should not double-scan executable blocks via the data-section path."""
+    signatures = {
+        "sig_version": 1,
+        "imports": {},
+        "strings": {},
+        "byte_patterns": {
+            "aes_sbox": {
+                "pattern": "63 7C 77 7B",
+                "severity": "HIGH",
+                "mitre": "T1027.013",
+                "description": "AES S-box start.",
+            }
+        },
+        "string_patterns": {},
+        "combinations": [],
+    }
+    write_signatures(tmp_path, "crypto", signatures)
+    monkeypatch.setattr("utils.detection.SIG_PATH", str(tmp_path))
+
+    exec_addr = FakeAddress(0x1000)
+    exec_block = FakeMemoryBlock(
+        start=exec_addr,
+        content_bytes=[0x63, 0x7C, 0x77, 0x7B],
+        is_execute=True,
+        is_initialized=True,
+    )
+
+    context = FakeContext(
+        memory=FakeMemory(blocks=[exec_block]),
+        program=FakeProgram(listing=FakeListing(instructions=[])),
+    )
+
+    findings = analyze(context, "crypto")
+
+    assert findings == []
+
+
+def test_scan_byte_pattern_finds_pattern_in_data_and_instructions(
+    tmp_path, monkeypatch
+):
+    """analyze() should find patterns in both instructions and data sections."""
+    signatures = {
+        "sig_version": 1,
+        "imports": {},
+        "strings": {},
+        "byte_patterns": {
+            "aes_sbox": {
+                "pattern": "63 7C 77 7B",
+                "severity": "HIGH",
+                "mitre": "T1027.013",
+                "description": "AES S-box start.",
+            }
+        },
+        "string_patterns": {},
+        "combinations": [],
+    }
+    write_signatures(tmp_path, "crypto", signatures)
+    monkeypatch.setattr("utils.detection.SIG_PATH", str(tmp_path))
+
+    instr_addr = FakeAddress(0x1000)
+    data_addr = FakeAddress(0x5000)
+
+    instr = FakeInstruction(
+        min_address=instr_addr, byte_values=[0x63, 0x7C, 0x77, 0x7B]
+    )
+    data_block = FakeMemoryBlock(
+        start=data_addr,
+        content_bytes=[0x63, 0x7C, 0x77, 0x7B],
+        is_execute=False,
+        is_initialized=True,
+    )
+
+    context = FakeContext(
+        memory=FakeMemory(blocks=[data_block]),
+        program=FakeProgram(listing=FakeListing(instructions=[instr])),
+    )
+
+    findings = analyze(context, "crypto")
+
+    assert len(findings) == 1
+    assert set(x.offset for x in findings[0].xrefs) == {0x1000, 0x5000}
