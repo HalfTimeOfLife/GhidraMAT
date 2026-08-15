@@ -265,6 +265,11 @@ Signatures in this project are based on and cross-referenced against the followi
 - [SigmaHQ](https://github.com/SigmaHQ/sigma)
 - [Atomic Red Team](https://github.com/redcanaryco/atomic-red-team)
 - [YARA-Forge](https://yarahq.github.io/)
+- [FIPS 197 - AES Specification](https://csrc.nist.gov/publications/detail/fips/197/final)
+- [FIPS 180-4 - SHA Standard](https://csrc.nist.gov/publications/detail/fips/180/4/final)
+- [RFC 7539 - ChaCha20 and Poly1305](https://www.rfc-editor.org/rfc/rfc7539)
+- [Microsoft CNG Reference](https://learn.microsoft.com/en-us/windows/win32/seccng/cng-reference)
+- [Microsoft CryptoAPI Reference](https://learn.microsoft.com/en-us/windows/win32/seccrypto/cryptography-functions)
 
 ---
 
@@ -422,3 +427,36 @@ Additional network-related indicators:
 | `DnsQuery_A` import | Observed |
 | Dynamic resolution strings (`InternetOpenA`, `InternetConnectA`, `HttpSendRequestA`, `DnsQuery_A`) | Observed |
 | Hardcoded public IP detection | Observed |
+
+---
+
+### Crypto:
+
+Tested against a real-world malware sample from [MalwareBazaar](https://bazaar.abuse.ch/) and custom test binaries from [B-Con/crypto-algorithms](https://github.com/B-Con/crypto-algorithms) compiled with mingw-w64:
+
+| Family | SHA256 | Techniques confirmed |
+|---|---|---|
+| WannaCry | `ed01ebfbc9eb5bbea545af4d01bf5f1071661840480439c6e5babe8e080e41aa` | T1573.001 (dynamic CryptoAPI resolution), T1140 (dynamic decryption capability) |
+| test_aes.exe (B-Con/crypto-algorithms) | `a0ea502730abcc5df244bc98f4467bfeaea2843864d153f8a5a3b1bd0da748c3` | T1027.013 (custom AES S-box) |
+| test_sha256.exe (B-Con/crypto-algorithms) | `ac8f31878ea83109128f71467adaabb52b75767437d6688df55c6298cc407203` | - |
+
+| Technique | Description | Status |
+|---|---|---|
+| `T1573.001` | CryptoAPI encryption via dynamic resolution (`CryptAcquireContextA`, `CryptEncrypt`) | Confirmed (WannaCry) |
+| `T1140` | CryptoAPI decryption via dynamic resolution (`CryptDecrypt`) | Confirmed (WannaCry) |
+| `T1027.013` | Custom AES implementation via embedded S-box (`aes_sbox`, `aes_inv_sbox`) | Confirmed (test_aes.exe) |
+
+Additional indicators:
+
+| Indicator | Status |
+|---|---|
+| Dynamic resolution strings (`CryptAcquireContextA`, `CryptEncrypt`, `CryptDecrypt`) | Observed (WannaCry) |
+| `aes_sbox` byte pattern | Confirmed |
+| `aes_inv_sbox` byte pattern | Confirmed |
+| `sha256_iv` byte pattern | Not observed |
+| Byte pattern crypto (ChaCha20 constant) | Not tested |
+| Crypto combinations | Not triggered |
+
+*Note: the string detection layer is essential for crypto.json — without it, zero crypto detections on WannaCry.*
+
+*Known limitation: data-section byte pattern scanning reads memory byte by byte via `getByte()` to avoid the Java<->Python array bridge issue. Scanning large binaries with big data sections may be slow.*
