@@ -8,15 +8,7 @@ Current version: **v0.7**
 
 ## v0.8 - Cross-category detections + `crypto.json`
 
-**Feature: Cross-category detection**
-
-Allow a single signature to surface findings across multiple categories simultaneously.
-
-- Optional `also_in` field in signature JSON: `"also_in": ["impair_defenses"]`
-- The engine duplicates the finding in secondary categories with a note `(cross-ref from X)`
-- Update `validate_signatures.py`, tests, and report output accordingly
-
-**Secondary feature: Automatic YARA rule generation**
+**Feature: Automatic YARA rule generation**
 
 - `--generate-yara` option: produces a `.yar` file from findings' strings and byte patterns, only when the findings are meaningful signal (not just generic import lists)
 - Includes MITRE metadata, grouped by category
@@ -98,7 +90,7 @@ be added if a genuine need is identified.
 
 | Version | Core feature | Small additions | Signatures | Status |
 |---|---|---|---|---|
-| v0.8 | Cross-category detections | YARA export | `crypto.json` | WIP |
+| v0.8 | YARA export | - | `crypto.json` | WIP |
 | v0.9 | Ghidra results panel | - | `packer.json` | Planned |
 | v1.0 | Documentation + signature review | Basic runtime string detection | - | Planned |
 | v1.1 | Full runtime string detection | - | - | Deferred |
