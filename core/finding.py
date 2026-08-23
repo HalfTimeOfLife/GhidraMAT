@@ -61,6 +61,15 @@ class Finding:
         self.requirements = requirements
         self.pattern = pattern
 
+    def primary_address(self):
+        """Return the single address this finding should navigate to.
+
+        Returns:
+            Address or None: The first cross-reference address if this
+                finding has any, otherwise None.
+        """
+        return self.xrefs[0] if self.xrefs else None
+
     def to_dict(self):
         """Serialize the finding to a JSON-compatible dictionary.
 

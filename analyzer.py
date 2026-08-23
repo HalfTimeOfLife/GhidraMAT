@@ -3,7 +3,7 @@
 # @author HalfTimeOfLife
 # @category GhidraMAT
 # @keybinding ctrl shift A
-# @menupath Analysis.GhidraMAT
+# @menupath Analysis.GhidraMAT.Analyze
 # @toolbar ghidramat_icon.png
 # @runtime PyGhidra
 
@@ -21,8 +21,10 @@ for _mod_name in list(sys.modules.keys()):
         del sys.modules[_mod_name]
 
 from ghidra.app.plugin.core.colorizer import ColorizingService
+from ghidra.app.services import GoToService
 
 from core.context import Context
+from core.panel import show_results_panel
 from core.report import generate_json, generate_report, generate_yara_rule
 from utils.detection import analyze
 from utils.utils import apply_visual_marking, create_bookmark, print_banner, load_config
@@ -95,6 +97,9 @@ def run():
             apply_visual_marking(service, finding)
     finally:
         currentProgram.endTransaction(transaction, True)
+
+    go_to_service = state.getTool().getService(GoToService)
+    show_results_panel(findings, go_to_service)
 
     now = datetime.now().astimezone()
 

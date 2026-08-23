@@ -20,6 +20,40 @@ def make_finding(**kwargs):
 
 
 # -------------------------------------------------------------------
+# --- primary_address ---
+# -------------------------------------------------------------------
+
+
+def test_primary_address_returns_first_xref():
+    """primary_address() should return the first address in xrefs when present."""
+    addr1, addr2 = object(), object()
+    f = make_finding(xrefs=[addr1, addr2])
+    assert f.primary_address() is addr1
+
+
+def test_primary_address_none_when_no_xrefs():
+    """primary_address() should return None when xrefs is empty (the default)."""
+    f = make_finding()
+    assert f.primary_address() is None
+
+
+def test_primary_address_none_for_combinations():
+    """Combination findings never carry xrefs, so primary_address() should be None."""
+    f = make_finding(type_of_technique="combinations", requirements=["A", "B"])
+    assert f.primary_address() is None
+
+
+def test_primary_address_none_for_string_patterns_without_xrefs():
+    """string_patterns findings carry matched values in xref_labels, not raw
+    xrefs, so primary_address() should be None."""
+    f = make_finding(
+        type_of_technique="string_patterns",
+        xref_labels=["https://evil.example.com/beacon"],
+    )
+    assert f.primary_address() is None
+
+
+# -------------------------------------------------------------------
 # --- to_dict ---
 # -------------------------------------------------------------------
 
