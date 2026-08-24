@@ -7,6 +7,7 @@ from utils.pattern import scan_byte_pattern
 from utils.utils import (
     get_imports,
     get_strings,
+    get_section_names,
     load_signatures,
     resolve_function_context,
 )
@@ -20,8 +21,9 @@ def analyze(context, category):
     """Run all signature-based detections for a given category.
 
     Loads the signature file for the given category and matches it against
-    the binary using four detection methods in order: imported symbols,
-    defined strings, byte patterns, and import combinations.
+    the binary using six detection methods: imported symbols, defined
+    strings, section names, string patterns, byte patterns, and import
+    combinations.
 
     A Finding is created for each match. Combination findings are only
     produced when all required imports are present simultaneously.
@@ -38,6 +40,7 @@ def analyze(context, category):
     signatures = load_signatures(SIG_PATH, category)
     imports = get_imports(context)
     strings = get_strings(context)
+    section_names = get_section_names(context)
 
     if context.monitor:
         context.monitor.setMessage(f"[GhidraMAT] Searching for {category} ...")
@@ -77,6 +80,21 @@ def analyze(context, category):
                     description=data["description"],
                     xrefs=xrefs,
                     xref_labels=xref_labels,
+                    mitre=data.get("mitre"),
+                )
+            )
+
+    for section_name, data in signatures["section_names"].items():
+        if section_name in section_names:
+            findings.append(
+                Finding(
+                    category=category,
+                    type_of_technique="section_names",
+                    name=section_name,
+                    severity=data["severity"],
+                    description=data["description"],
+                    xrefs=[],
+                    xref_labels=[],
                     mitre=data.get("mitre"),
                 )
             )

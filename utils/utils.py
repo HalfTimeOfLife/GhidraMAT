@@ -62,6 +62,18 @@ def get_strings(context):
     return strings
 
 
+def get_section_names(context):
+    """Retrieve all memory block names from a program.
+
+    Args:
+        context (Context): Analysis context of the target program.
+
+    Returns:
+        set[str]: A set of memory block names.
+    """
+    return {str(block.getName()) for block in context.program.getMemory().getBlocks()}
+
+
 def load_signatures(signatures_dir, name):
     """Load a JSON signature file from a directory.
 

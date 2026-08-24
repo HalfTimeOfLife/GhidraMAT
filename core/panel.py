@@ -278,7 +278,7 @@ def show_results_panel(findings, go_to_service):
     content.add(JScrollPane(table), BorderLayout.CENTER)
 
     frame = JFrame(PANEL_TITLE)
-    frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE)
+    frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE)
     frame.setContentPane(content)
     frame.setSize(1100, 620)
     frame.setLocationRelativeTo(None)
