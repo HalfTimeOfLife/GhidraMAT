@@ -10,9 +10,20 @@ REPORTS_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "r
 
 SEVERITY_ORDER = ["CRITICAL", "HIGH", "MEDIUM", "LOW"]
 
-TYPES = ["imports", "strings", "byte_patterns", "string_patterns", "combinations"]
+TYPES = [
+    "imports",
+    "strings",
+    "section_names",
+    "byte_patterns",
+    "string_patterns",
+    "combinations",
+]
 
-YARA_TYPES = [_type for _type in TYPES if _type not in ("imports", "combinations")]
+YARA_TYPES = [
+    _type
+    for _type in TYPES
+    if _type not in ("imports", "combinations", "section_names")
+]
 YARA_THRESHOLD = 3
 
 # -------------------------------------------------------------------
@@ -189,6 +200,7 @@ def build_header(program_info, findings):
             [f for f in cat_findings if f.type == "imports" and not f.combo_only]
         )
         n_strings = len([f for f in cat_findings if f.type == "strings"])
+        n_section_names = len([f for f in cat_findings if f.type == "section_names"])
         n_bytes = len([f for f in cat_findings if f.type == "byte_patterns"])
         n_string_patterns = len(
             [f for f in cat_findings if f.type == "string_patterns"]
@@ -199,6 +211,7 @@ def build_header(program_info, findings):
         lines.append(
             f"  {cat:<20} : {len(cat_findings)} findings "
             f"({n_imports} imports, {n_strings} strings, "
+            f"{n_section_names} section_names, "
             f"{n_bytes} byte_patterns, {n_string_patterns} string_patterns, "
             f"{n_combos} combinations, {n_combo_only} combo_only)"
         )
@@ -349,6 +362,7 @@ def generate_json(findings, program_info, categories, now):
                 "by_type": {
                     "imports": 0,
                     "strings": 0,
+                    "section_names": 0,
                     "byte_patterns": 0,
                     "string_patterns": 0,
                     "combinations": 0,
@@ -375,6 +389,9 @@ def generate_json(findings, program_info, categories, now):
                     ]
                 ),
                 "strings": len([f for f in cat_findings if f.type == "strings"]),
+                "section_names": len(
+                    [f for f in cat_findings if f.type == "section_names"]
+                ),
                 "byte_patterns": len(
                     [f for f in cat_findings if f.type == "byte_patterns"]
                 ),
