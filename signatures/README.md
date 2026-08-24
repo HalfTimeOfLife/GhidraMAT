@@ -36,14 +36,14 @@ The `sig_version` field is required. At load time, `load_signatures()` checks th
 
 | Category | Description | MITRE Technique |
 |---|---|---|
-| `anti_vm` | Techniques used to detect virtualized or sandboxed environments — system checks, timing anomalies, user activity absence | `T1497` — Virtualization/Sandbox Evasion |
-| `anti_debug` | Techniques used to detect or hinder debuggers | `T1622` — Debugger Evasion |
-| `packer` | Indicators of packed or protected binaries | `T1027` — Obfuscated Files or Information |
-| `network` | C2 communication, DNS, socket usage | `T1071` — Application Layer Protocol |
-| `crypto` | Cryptographic constants and key scheduling patterns | `T1027` — Obfuscated Files or Information |
-| `injection` | Process injection and code injection techniques | `T1055` — Process Injection |
-| `persistence` | Mechanisms used to survive reboots | `T1547` — Boot or Logon Autostart Execution |
-| `impair_defenses` | Techniques used to actively disable or modify security tools and defenses | `T1562` — Impair Defenses |
+| `anti_vm` | Techniques used to detect virtualized or sandboxed environments - system checks, timing anomalies, user activity absence | `T1497` - Virtualization/Sandbox Evasion |
+| `anti_debug` | Techniques used to detect or hinder debuggers | `T1622` - Debugger Evasion |
+| `packer` | Indicators of packed or protected binaries | `T1027` - Obfuscated Files or Information |
+| `network` | C2 communication, DNS, socket usage | `T1071` - Application Layer Protocol |
+| `crypto` | Cryptographic constants and key scheduling patterns | `T1027` - Obfuscated Files or Information |
+| `injection` | Process injection and code injection techniques | `T1055` - Process Injection |
+| `persistence` | Mechanisms used to survive reboots | `T1547` - Boot or Logon Autostart Execution |
+| `impair_defenses` | Techniques used to actively disable or modify security tools and defenses | `T1562` - Impair Defenses |
 
 ---
 
@@ -235,7 +235,7 @@ All 8 signature file(s) are valid.
 Else, it will list the error :
 
 ```bash
-Validation failed — 6 error(s):
+Validation failed - 6 error(s):
 
   [anti_vm.json] imports.SetupDiEnumDeviceInfo: invalid severity 'ZMEDIUM'
   [injection.json] missing detection types (top-level keys): {'imports'}
@@ -270,6 +270,7 @@ Signatures in this project are based on and cross-referenced against the followi
 - [RFC 7539 - ChaCha20 and Poly1305](https://www.rfc-editor.org/rfc/rfc7539)
 - [Microsoft CNG Reference](https://learn.microsoft.com/en-us/windows/win32/seccng/cng-reference)
 - [Microsoft CryptoAPI Reference](https://learn.microsoft.com/en-us/windows/win32/seccrypto/cryptography-functions)
+- **PE section names / packers:** [PE section names re-visited](https://www.hexacorn.com/blog/2016/12/15/pe-section-names-re-visited/) and [packing-box/dataset-packed-pe](https://github.com/packing-box/dataset-packed-pe)
 
 ---
 
@@ -386,11 +387,11 @@ Custom test binary compiled with mingw-w64 from C source ([./sample_test/test_im
 
 | Technique | Status | Notes |
 |---|---|---|
-| T1562.001 — AV/EDR service termination (SCM) | Confirmed | combination triggered |
-| T1562.001 — Registry-based Defender tampering | Confirmed | combination + CRITICAL strings |
-| T1562.001 — AV/EDR process termination | Confirmed | combination triggered |
-| T1070.001 — Event log clearing | Confirmed | CRITICAL combination triggered |
-| T1562.004 — Firewall command string | Confirmed | CRITICAL string triggered |
+| T1562.001 - AV/EDR service termination (SCM) | Confirmed | combination triggered |
+| T1562.001 - Registry-based Defender tampering | Confirmed | combination + CRITICAL strings |
+| T1562.001 - AV/EDR process termination | Confirmed | combination triggered |
+| T1070.001 - Event log clearing | Confirmed | CRITICAL combination triggered |
+| T1562.004 - Firewall command string | Confirmed | CRITICAL string triggered |
 
 Known false positive: `Registry Run Key persistence` (T1547.001) triggers on `RegCreateKeyExA + RegSetValueExA` regardless of the target key.
 
@@ -457,6 +458,56 @@ Additional indicators:
 | Byte pattern crypto (ChaCha20 constant) | Not tested |
 | Crypto combinations | Not triggered |
 
-*Note: the string detection layer is essential for crypto.json — without it, zero crypto detections on WannaCry.*
+*Note: the string detection layer is essential for crypto.json - without it, zero crypto detections on WannaCry.*
 
 *Known limitation: data-section byte pattern scanning reads memory byte by byte via `getByte()` to avoid the Java<->Python array bridge issue. Scanning large binaries with big data sections may be slow.*
+
+---
+
+### Packer
+
+The following packed Windows PE binaries were used to validate packer signatures:
+
+| Packer | Test binary | Detected signatures |
+| --- | --- | --- |
+| ASPack | `aspack_AccessEnum.exe` | `.aspack`, `.adata` |
+| MPRESS | `mpress_AccessEnum.exe` | `.MPRESS1`, `.MPRESS2` |
+| Petite | `petite_calc.exe` | `petite`, `upx_unpack_stub_prologue` |
+| UPX | `upx_calc.exe` | `UPX0`, `UPX1`, `upx_unpack_stub_prologue` |
+
+#### ASPack
+
+`aspack_AccessEnum.exe` produced 2 packer findings:
+
+- `.aspack` - ASPack packer section name
+- `.adata` - ASPack auxiliary data section name
+
+Both signatures were detected using the `section_names` technique.
+
+#### MPRESS
+
+`mpress_AccessEnum.exe` produced 2 packer findings:
+
+- `.MPRESS1` - MPRESS packer section name
+- `.MPRESS2` - MPRESS second section name
+
+Both signatures were detected using the `section_names` technique.
+
+#### Petite
+
+`petite_calc.exe` produced 2 packer findings:
+
+- `petite` - Petite packer section name or marker
+- `upx_unpack_stub_prologue` - UPX-style unpacking stub prologue
+
+The first signature uses `section_names`, while the second uses `byte_patterns`.
+
+#### UPX
+
+`upx_calc.exe` produced 3 packer findings:
+
+- `UPX0` - UPX first section
+- `UPX1` - UPX second section
+- `upx_unpack_stub_prologue` - UPX unpacking stub prologue
+
+The `UPX0` and `UPX1` signatures use `section_names`, while the unpacking stub is detected using `byte_patterns`.

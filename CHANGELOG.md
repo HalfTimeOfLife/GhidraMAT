@@ -4,6 +4,84 @@ All notable changes to this project are documented in this file.
 
 ---
 
+## v0.9
+
+**New feature: GhidraMAT findings panel**
+
+Added a dedicated Ghidra findings panel accessible from `Window` / `Analyze > GhidraMAT > Show Findings`.
+
+- Displays findings in a sortable table with:
+  - `Severity`
+  - `Category`
+  - `Name`
+  - `Type`
+  - `MITRE`
+- Added filtering by severity, category, and detection type
+- Findings can be sorted directly from the table
+- Double-clicking a finding navigates to the associated address in Ghidra
+- Added support for grouped xrefs and function context in the findings panel
+- Added a dedicated `Show Findings` action to reopen the panel during the current Ghidra session
+
+**New detection type: `section_names`**
+
+Added PE section-name detection as a dedicated signature type.
+
+This allows packer identification through characteristic PE section names without relying on generic strings or byte patterns.
+
+- Added `get_section_names(context)` to retrieve section names from the analyzed program
+- Added `section_names` to the signature schema
+- Added `section_names` detection support in `utils/detection.py`
+- Added `section_names` to report generation and findings display
+- Section-name matches are represented as `Finding` objects with `type_of_technique="section_names"`
+
+This is particularly useful for packer detection, where section names such as `UPX0`, `UPX1`, `.aspack`, `.adata`, `.MPRESS1`, `.MPRESS2`, and `petite` can provide strong static indicators.
+
+****Signatures: `packer.json`****
+
+Added packer detection signatures covering common Windows PE packers.
+
+Tested packers:
+
+- ASPack
+  - `.aspack`
+  - `.adata`
+- MPRESS
+  - `.MPRESS1`
+  - `.MPRESS2`
+- Petite
+  - `petite`
+  - `upx_unpack_stub_prologue`
+- UPX
+  - `UPX0`
+  - `UPX1`
+  - `upx_unpack_stub_prologue`
+
+Packer detection combines `section_names` and `byte_patterns`, allowing detection to remain effective when one type of indicator is unavailable.
+
+MITRE ATT&CK coverage:
+
+- `T1027.002` - Software Packing
+
+****Tested against****
+
+Packed Windows PE binaries from the [Packing-Box packed PE dataset]([https://github.com/packing-box/dataset-packed-pe/tree/main/packed](https://github.com/packing-box/dataset-packed-pe/tree/main/packed)):
+
+- `aspack_AccessEnum.exe` - ASPack
+  - `.aspack`
+  - `.adata`
+- `mpress_AccessEnum.exe` - MPRESS
+  - `.MPRESS1`
+  - `.MPRESS2`
+- `petite_calc.exe` - Petite
+  - `petite`
+  - `upx_unpack_stub_prologue`
+- `upx_calc.exe` - UPX
+  - `UPX0`
+  - `UPX1`
+  - `upx_unpack_stub_prologue`
+
+---
+
 ## v0.8
 
 **Refactoring: generalized config loading**
@@ -26,14 +104,9 @@ GhidraMAT can now export findings as YARA rules.
 
 **Bug fix / Change of structure - byte pattern scanner extended to data sections**
 
-`scan_byte_pattern` previously only scanned executable sections via `getInstructions()`,
-missing cryptographic constants stored in `.rodata` and `.data` sections. The scanner
-now also iterates non-executable initialized memory blocks via `getByte()` to detect
-embedded lookup tables (AES S-box, ChaCha20 constants, etc.).
+`scan_byte_pattern` previously only scanned executable sections via `getInstructions()`, missing cryptographic constants stored in `.rodata` and `.data` sections. The scanner now also iterates non-executable initialized memory blocks via `getByte()` to detect embedded lookup tables (AES S-box, ChaCha20 constants, etc.).
 
-*Known limitation: data-section scanning reads memory byte by byte via `getByte()` to
-avoid the Java<->Python array bridge issue. Scanning large binaries with big data sections
-may be slow.*
+*Known limitation: data-section scanning reads memory byte by byte via `getByte()` to avoid the Java<->Python array bridge issue. Scanning large binaries with big data sections may be slow.*
 
 **Signatures: `crypto.json`**
 
