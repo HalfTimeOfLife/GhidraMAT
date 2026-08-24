@@ -455,6 +455,7 @@
             "description": "Undocumented ntdll export resolved via GetProcAddress to get the PID of csrss.exe. Used to call OpenProcess on csrss.exe -- succeeds only with SeDebugPrivilege (i.e. under a debugger)."
         }
     },
+    "section_names": {},
     "byte_patterns": {
         "peb_beingdebugged_x86": {
             "pattern": "64 A1 30 00 00 00",

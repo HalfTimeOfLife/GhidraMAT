@@ -724,6 +724,7 @@
             "description": "Parallels Desktop CPUID vendor string returned by leaf 0x40000000."
         }
     },
+    "section_names": {},
     "byte_patterns": {
         "cpuid_check": {
             "pattern": "0F A2",

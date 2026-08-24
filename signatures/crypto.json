@@ -336,6 +336,7 @@
             "description": "CNG decryption function resolved via GetProcAddress at runtime; indicates dynamic BCrypt-based payload decryption bypassing static import analysis."
         }
     },
+    "section_names": {},
     "byte_patterns": {
         "aes_sbox": {
             "pattern": "63 7C 77 7B F2 6B 6F C5 30 01 67 2B FE D7 AB 76",
@@ -400,96 +401,143 @@
     },
     "string_patterns": {},
     "combinations": [
-    {
-        "name": "CryptoAPI symmetric encryption chain",
-        "requires": ["CryptAcquireContext", "CryptEncrypt"],
-        "severity": "HIGH",
-        "mitre": "T1573.001",
-        "description": "Acquires a CSP context and performs symmetric encryption -- minimum viable CryptoAPI encryption chain. Used by ransomware (AES-CBC file encryption) and malware for C2 payload protection."
-    },
-    {
-        "name": "CryptoAPI symmetric decryption chain",
-        "requires": ["CryptAcquireContext", "CryptDecrypt"],
-        "severity": "HIGH",
-        "mitre": "T1140",
-        "description": "Acquires a CSP context and performs symmetric decryption -- used by loaders and droppers to decrypt embedded payloads or C2 responses at runtime."
-    },
-    {
-        "name": "CryptoAPI password-based encryption",
-        "requires": ["CryptAcquireContext", "CryptDeriveKey", "CryptEncrypt"],
-        "severity": "HIGH",
-        "mitre": "T1573.001",
-        "description": "Derives a key from a password hash and encrypts data (PBE pattern). Used by malware to encrypt exfiltrated data or protect configuration with a hardcoded passphrase."
-    },
-    {
-        "name": "CryptoAPI hashing chain",
-        "requires": ["CryptAcquireContext", "CryptCreateHash", "CryptHashData"],
-        "severity": "MEDIUM",
-        "mitre": "T1573.001",
-        "description": "Full CryptoAPI hashing sequence: acquires a CSP, creates a hash object, and feeds data. Used in key derivation, HMAC, or integrity checking for C2 communication or payload validation."
-    },
-    {
-        "name": "CryptoAPI hybrid key export (ransomware pattern)",
-        "requires": ["CryptAcquireContext", "CryptEncrypt", "CryptExportKey"],
-        "severity": "CRITICAL",
-        "mitre": "T1573.002",
-        "description": "Encrypts data and exports the session key -- canonical ransomware hybrid encryption pattern: generates a symmetric key, encrypts files, then exports the session key wrapped with the attacker public key for C2 transmission."
-    },
-    {
-        "name": "BCrypt symmetric encryption",
-        "requires": ["BCryptOpenAlgorithmProvider", "BCryptGenerateSymmetricKey", "BCryptEncrypt"],
-        "severity": "HIGH",
-        "mitre": "T1573.001",
-        "description": "Full CNG symmetric encryption chain: opens an algorithm provider, generates a key from raw material, then encrypts. Modern ransomware and C2 implants use this pattern for AES-CBC or AES-GCM payload encryption."
-    },
-    {
-        "name": "BCrypt symmetric decryption",
-        "requires": ["BCryptOpenAlgorithmProvider", "BCryptGenerateSymmetricKey", "BCryptDecrypt"],
-        "severity": "HIGH",
-        "mitre": "T1140",
-        "description": "Full CNG symmetric decryption chain: opens an algorithm provider, imports key material, then decrypts. Used by loaders to decrypt embedded shellcode or configuration blobs at runtime."
-    },
-    {
-        "name": "BCrypt imported key decryption",
-        "requires": ["BCryptOpenAlgorithmProvider", "BCryptImportKey", "BCryptDecrypt"],
-        "severity": "HIGH",
-        "mitre": "T1140",
-        "description": "Imports key material and decrypts data -- payload decryption using a hardcoded or C2-delivered key. Common in stagers decrypting next-stage shellcode received from the C2 server."
-    },
-    {
-        "name": "BCrypt hash computation",
-        "requires": ["BCryptOpenAlgorithmProvider", "BCryptHash"],
-        "severity": "MEDIUM",
-        "mitre": "T1573.001",
-        "description": "CNG one-shot hash computation; used in key derivation, HMAC, integrity verification, or C2 beacon authentication."
-    },
-    {
-        "name": "BCrypt asymmetric key generation (ransomware pattern)",
-        "requires": ["BCryptOpenAlgorithmProvider", "BCryptGenerateKeyPair", "BCryptExportKey"],
-        "severity": "CRITICAL",
-        "mitre": "T1573.002",
-        "description": "Generates an asymmetric key pair and exports it -- ransomware C2 key exchange pattern: generate ephemeral RSA/EC key pair, export the public key for C2, use the private key to wrap the session key before wiping it from memory."
-    },
-    {
-        "name": "BCrypt asymmetric signing",
-        "requires": ["BCryptOpenAlgorithmProvider", "BCryptGenerateKeyPair", "BCryptSignHash"],
-        "severity": "HIGH",
-        "mitre": "T1573.002",
-        "description": "Generates a key pair and signs data -- C2 command authentication: the malware signs outbound beacons or authenticates server responses using asymmetric cryptography to prevent command injection."
-    },
-    {
-        "name": "BCrypt random symmetric key generation",
-        "requires": ["BCryptGenRandom", "BCryptGenerateSymmetricKey"],
-        "severity": "HIGH",
-        "mitre": "T1573.001",
-        "description": "Generates cryptographically random key material and creates a symmetric key -- indicates proper per-session key generation rather than hardcoded keys. Canonical in modern ransomware generating per-victim AES keys."
-    },
-    {
-        "name": "NCrypt asymmetric encryption",
-        "requires": ["NCryptOpenStorageProvider", "NCryptEncrypt"],
-        "severity": "HIGH",
-        "mitre": "T1573.002",
-        "description": "Opens an NCrypt key storage provider and performs asymmetric encryption -- uses the Windows certificate store for key material. May indicate abuse of the Windows PKI infrastructure for persistent, certificate-backed encryption."
-    }
-]
+        {
+            "name": "CryptoAPI symmetric encryption chain",
+            "requires": [
+                "CryptAcquireContext",
+                "CryptEncrypt"
+            ],
+            "severity": "HIGH",
+            "mitre": "T1573.001",
+            "description": "Acquires a CSP context and performs symmetric encryption -- minimum viable CryptoAPI encryption chain. Used by ransomware (AES-CBC file encryption) and malware for C2 payload protection."
+        },
+        {
+            "name": "CryptoAPI symmetric decryption chain",
+            "requires": [
+                "CryptAcquireContext",
+                "CryptDecrypt"
+            ],
+            "severity": "HIGH",
+            "mitre": "T1140",
+            "description": "Acquires a CSP context and performs symmetric decryption -- used by loaders and droppers to decrypt embedded payloads or C2 responses at runtime."
+        },
+        {
+            "name": "CryptoAPI password-based encryption",
+            "requires": [
+                "CryptAcquireContext",
+                "CryptDeriveKey",
+                "CryptEncrypt"
+            ],
+            "severity": "HIGH",
+            "mitre": "T1573.001",
+            "description": "Derives a key from a password hash and encrypts data (PBE pattern). Used by malware to encrypt exfiltrated data or protect configuration with a hardcoded passphrase."
+        },
+        {
+            "name": "CryptoAPI hashing chain",
+            "requires": [
+                "CryptAcquireContext",
+                "CryptCreateHash",
+                "CryptHashData"
+            ],
+            "severity": "MEDIUM",
+            "mitre": "T1573.001",
+            "description": "Full CryptoAPI hashing sequence: acquires a CSP, creates a hash object, and feeds data. Used in key derivation, HMAC, or integrity checking for C2 communication or payload validation."
+        },
+        {
+            "name": "CryptoAPI hybrid key export (ransomware pattern)",
+            "requires": [
+                "CryptAcquireContext",
+                "CryptEncrypt",
+                "CryptExportKey"
+            ],
+            "severity": "CRITICAL",
+            "mitre": "T1573.002",
+            "description": "Encrypts data and exports the session key -- canonical ransomware hybrid encryption pattern: generates a symmetric key, encrypts files, then exports the session key wrapped with the attacker public key for C2 transmission."
+        },
+        {
+            "name": "BCrypt symmetric encryption",
+            "requires": [
+                "BCryptOpenAlgorithmProvider",
+                "BCryptGenerateSymmetricKey",
+                "BCryptEncrypt"
+            ],
+            "severity": "HIGH",
+            "mitre": "T1573.001",
+            "description": "Full CNG symmetric encryption chain: opens an algorithm provider, generates a key from raw material, then encrypts. Modern ransomware and C2 implants use this pattern for AES-CBC or AES-GCM payload encryption."
+        },
+        {
+            "name": "BCrypt symmetric decryption",
+            "requires": [
+                "BCryptOpenAlgorithmProvider",
+                "BCryptGenerateSymmetricKey",
+                "BCryptDecrypt"
+            ],
+            "severity": "HIGH",
+            "mitre": "T1140",
+            "description": "Full CNG symmetric decryption chain: opens an algorithm provider, imports key material, then decrypts. Used by loaders to decrypt embedded shellcode or configuration blobs at runtime."
+        },
+        {
+            "name": "BCrypt imported key decryption",
+            "requires": [
+                "BCryptOpenAlgorithmProvider",
+                "BCryptImportKey",
+                "BCryptDecrypt"
+            ],
+            "severity": "HIGH",
+            "mitre": "T1140",
+            "description": "Imports key material and decrypts data -- payload decryption using a hardcoded or C2-delivered key. Common in stagers decrypting next-stage shellcode received from the C2 server."
+        },
+        {
+            "name": "BCrypt hash computation",
+            "requires": [
+                "BCryptOpenAlgorithmProvider",
+                "BCryptHash"
+            ],
+            "severity": "MEDIUM",
+            "mitre": "T1573.001",
+            "description": "CNG one-shot hash computation; used in key derivation, HMAC, integrity verification, or C2 beacon authentication."
+        },
+        {
+            "name": "BCrypt asymmetric key generation (ransomware pattern)",
+            "requires": [
+                "BCryptOpenAlgorithmProvider",
+                "BCryptGenerateKeyPair",
+                "BCryptExportKey"
+            ],
+            "severity": "CRITICAL",
+            "mitre": "T1573.002",
+            "description": "Generates an asymmetric key pair and exports it -- ransomware C2 key exchange pattern: generate ephemeral RSA/EC key pair, export the public key for C2, use the private key to wrap the session key before wiping it from memory."
+        },
+        {
+            "name": "BCrypt asymmetric signing",
+            "requires": [
+                "BCryptOpenAlgorithmProvider",
+                "BCryptGenerateKeyPair",
+                "BCryptSignHash"
+            ],
+            "severity": "HIGH",
+            "mitre": "T1573.002",
+            "description": "Generates a key pair and signs data -- C2 command authentication: the malware signs outbound beacons or authenticates server responses using asymmetric cryptography to prevent command injection."
+        },
+        {
+            "name": "BCrypt random symmetric key generation",
+            "requires": [
+                "BCryptGenRandom",
+                "BCryptGenerateSymmetricKey"
+            ],
+            "severity": "HIGH",
+            "mitre": "T1573.001",
+            "description": "Generates cryptographically random key material and creates a symmetric key -- indicates proper per-session key generation rather than hardcoded keys. Canonical in modern ransomware generating per-victim AES keys."
+        },
+        {
+            "name": "NCrypt asymmetric encryption",
+            "requires": [
+                "NCryptOpenStorageProvider",
+                "NCryptEncrypt"
+            ],
+            "severity": "HIGH",
+            "mitre": "T1573.002",
+            "description": "Opens an NCrypt key storage provider and performs asymmetric encryption -- uses the Windows certificate store for key material. May indicate abuse of the Windows PKI infrastructure for persistent, certificate-backed encryption."
+        }
+    ]
 }

@@ -386,6 +386,7 @@
             "description": "ntdll module name loaded via LoadLibraryA or GetModuleHandle to resolve native NT APIs at runtime, bypassing IAT-based detection."
         }
     },
+    "section_names": {},
     "byte_patterns": {
         "shellcode_stub_x86": {
             "pattern": "60 E8 00 00 00 00 5B",

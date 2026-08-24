@@ -1,8 +1,569 @@
 {
     "sig_version": 1,
     "imports": {},
-    "strings": {},
-    "byte_patterns": {},
+    "strings": {
+        "UPX0": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "UPX packer section name (first section, holds decompressed code at runtime)."
+        },
+        "UPX1": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "UPX packer section name (second section, typically holds the compressed data and unpacking stub)."
+        },
+        "UPX2": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "UPX packer section name (optional third section, present in some UPX-packed binaries)."
+        },
+        "UPX3": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "UPX packer section name."
+        },
+        ".UPX0": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "UPX packer section name."
+        },
+        ".UPX1": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "UPX packer section name."
+        },
+        ".UPX2": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "UPX packer section name."
+        },
+        "UPX!": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "UPX magic marker embedded in the packed binary, used by the UPX loader stub to validate the compressed payload."
+        },
+        "$Info: This file is packed with the UPX executable packer": {
+            "severity": "LOW",
+            "mitre": "T1027.002",
+            "description": "UPX informational banner string embedded by default in packed binaries."
+        },
+        ".aspack": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "ASPack packer section name."
+        },
+        ".adata": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "ASPack auxiliary data section name, typically holding relocation and import information used by the unpacking stub."
+        },
+        "ASPack": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "ASPack packer identifier."
+        },
+        ".ASPack": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "ASProtect protector section name."
+        },
+        ".ccg": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "CCG Packer section name."
+        },
+        "BitArts": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "Crunch 2.0 packer identifier."
+        },
+        "DAStub": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "Dragon Armor protector identifier."
+        },
+        "!EPack": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "EPack packer identifier."
+        },
+        "PECompact2": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "PECompact packer version marker string."
+        },
+        "PEC2": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "PECompact packer section/marker abbreviation."
+        },
+        "PEC2TO": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "PECompact packer marker."
+        },
+        "PEC2MO": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "PECompact packer marker."
+        },
+        "pec": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "PECompact packer section name."
+        },
+        "pec1": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "PECompact packer section name."
+        },
+        "pec2": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "PECompact packer section name."
+        },
+        "pec3": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "PECompact packer section name."
+        },
+        "pec4": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "PECompact packer section name."
+        },
+        "pec5": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "PECompact packer section name."
+        },
+        "pec6": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "PECompact packer section name."
+        },
+        "petite": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "Petite packer section name or marker string."
+        },
+        ".petite": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "Petite packer section name."
+        },
+        "FSG!": {
+            "severity": "HIGH",
+            "mitre": "T1027.002",
+            "description": "FSG (Fast Small Good) packer magic marker."
+        },
+        "kkrunchy": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "kkrunchy packer marker string."
+        },
+        "lz32.dll": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "Crinkler-related identifier."
+        },
+        ".MaskPE": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "MaskPE packer section name."
+        },
+        "MEW": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "MEW packer marker string."
+        },
+        "MPRESS1": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "MPRESS packer section name."
+        },
+        "MPRESS2": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "MPRESS packer section name (second section)."
+        },
+        ".MPRESS1": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "MPRESS packer section name."
+        },
+        ".MPRESS2": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "MPRESS packer section name."
+        },
+        ".neolite": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "Neolite packer section name."
+        },
+        ".neolit": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "Neolite packer section name."
+        },
+        ".nsp0": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "NsPack packer section name."
+        },
+        ".nsp1": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "NsPack packer section name (second section)."
+        },
+        ".nsp2": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "NsPack packer section name (third section)."
+        },
+        "nsp0": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "NsPack packer section name."
+        },
+        "nsp1": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "NsPack packer section name."
+        },
+        "nsp2": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "NsPack packer section name."
+        },
+        ".packed": {
+            "severity": "LOW",
+            "mitre": "T1027.002",
+            "description": "Generic packed section name; packer family unknown."
+        },
+        "PEPACK!!": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "PEPack packer marker."
+        },
+        "pebundle": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "PEBundle packer identifier."
+        },
+        "PEBundle": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "PEBundle packer identifier."
+        },
+        "PELOCKnt": {
+            "severity": "HIGH",
+            "mitre": "T1027.002",
+            "description": "PELock protector identifier."
+        },
+        ".perplex": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "Perplex PE-Protector section name."
+        },
+        "PESHiELD": {
+            "severity": "HIGH",
+            "mitre": "T1027.002",
+            "description": "PEShield packer marker."
+        },
+        "ProCrypt": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "ProCrypt packer marker."
+        },
+        ".RLPack": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "RLPack packer section name."
+        },
+        "RCryptor": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "RPCrypt packer marker."
+        },
+        ".RPCrypt": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "RPCrypt packer section name."
+        },
+        ".seau": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "SeauSFX packer section name."
+        },
+        ".sforce3": {
+            "severity": "HIGH",
+            "mitre": "T1027.002",
+            "description": "StarForce protection section name."
+        },
+        ".shrink1": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "Shrinker packer section name."
+        },
+        ".shrink2": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "Shrinker packer section name."
+        },
+        ".shrink3": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "Shrinker packer section name."
+        },
+        ".spack": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "Simple Pack section name."
+        },
+        ".svkp": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "SVKP packer section name."
+        },
+        ".Themida": {
+            "severity": "HIGH",
+            "mitre": "T1027.002",
+            "description": "Themida protector section name."
+        },
+        "Themida": {
+            "severity": "HIGH",
+            "mitre": "T1027.002",
+            "description": "Themida commercial protector marker string."
+        },
+        ".taz": {
+            "severity": "HIGH",
+            "mitre": "T1027.002",
+            "description": "PESpin-related section name."
+        },
+        ".tsuarch": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "TSULoader section name."
+        },
+        ".tsustub": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "TSULoader section name."
+        },
+        ".Upack": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "UPack packer section name."
+        },
+        ".ByDwing": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "UPack packer section name."
+        },
+        ".vmp0": {
+            "severity": "HIGH",
+            "mitre": "T1027.002",
+            "description": "VMProtect section name."
+        },
+        ".vmp1": {
+            "severity": "HIGH",
+            "mitre": "T1027.002",
+            "description": "VMProtect section name (second section)."
+        },
+        ".vmp2": {
+            "severity": "HIGH",
+            "mitre": "T1027.002",
+            "description": "VMProtect section name (third section)."
+        },
+        "VMProtect": {
+            "severity": "HIGH",
+            "mitre": "T1027.002",
+            "description": "VMProtect product name string, sometimes left in the binary or its error/licensing messages."
+        },
+        "VProtect": {
+            "severity": "HIGH",
+            "mitre": "T1027.002",
+            "description": "VProtect packer marker."
+        },
+        "WinLicen": {
+            "severity": "HIGH",
+            "mitre": "T1027.002",
+            "description": "WinLicense protector marker."
+        },
+        "WinLicense": {
+            "severity": "HIGH",
+            "mitre": "T1027.002",
+            "description": "WinLicense marker string."
+        },
+        "_winzip_": {
+            "severity": "LOW",
+            "mitre": "T1027.002",
+            "description": "WinZip self-extractor marker."
+        },
+        ".WWPACK": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "WWPACK packer section name."
+        },
+        ".WWP32": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "WWPack32 packer section name."
+        },
+        ".yP": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "Y0da Protector section name."
+        },
+        ".y0da": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "Y0da Protector section name."
+        },
+        ".enigma1": {
+            "severity": "HIGH",
+            "mitre": "T1027.002",
+            "description": "Enigma Protector section name."
+        },
+        ".enigma2": {
+            "severity": "HIGH",
+            "mitre": "T1027.002",
+            "description": "Enigma Protector section name (second section)."
+        },
+        "Enigma Protector": {
+            "severity": "HIGH",
+            "mitre": "T1027.002",
+            "description": "Enigma Protector product identifier."
+        },
+        "PESpin": {
+            "severity": "HIGH",
+            "mitre": "T1027.002",
+            "description": "PESpin packer marker string."
+        },
+        "Armadillo": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "Armadillo protector marker string."
+        },
+        "Obsidium": {
+            "severity": "HIGH",
+            "mitre": "T1027.002",
+            "description": "Obsidium commercial protector marker string."
+        }
+    },
+    "section_names": {
+        "UPX0": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "UPX packer section name (first section, holds decompressed code at runtime)."
+        },
+        "UPX1": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "UPX packer section name (second section, typically holds the compressed data and unpacking stub)."
+        },
+        "UPX2": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "UPX packer section name (optional third section, present in some UPX-packed binaries)."
+        },
+        ".aspack": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "ASPack packer section name."
+        },
+        ".adata": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "ASPack auxiliary data section name, typically holding relocation and import information used by the unpacking stub."
+        },
+        "MPRESS1": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "MPRESS packer section name."
+        },
+        "MPRESS2": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "MPRESS packer section name (second section)."
+        },
+        ".MPRESS1": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "Other MPRESS packer section name."
+        },
+        ".MPRESS2": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "Other MPRESS packer section name (second section)."
+        },
+        ".nsp0": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "NsPack packer section name."
+        },
+        ".nsp1": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "NsPack packer section name (second section)."
+        },
+        ".nsp2": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "NsPack packer section name (third section)."
+        },
+        "petite": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "Petite packer section name or marker."
+        },
+        ".vmp0": {
+            "severity": "HIGH",
+            "mitre": "T1027.002",
+            "description": "VMProtect section name."
+        },
+        ".vmp1": {
+            "severity": "HIGH",
+            "mitre": "T1027.002",
+            "description": "VMProtect section name (second section)."
+        },
+        ".vmp2": {
+            "severity": "HIGH",
+            "mitre": "T1027.002",
+            "description": "VMProtect section name (third section)."
+        },
+        ".enigma1": {
+            "severity": "HIGH",
+            "mitre": "T1027.002",
+            "description": "Enigma Protector section name."
+        },
+        ".enigma2": {
+            "severity": "HIGH",
+            "mitre": "T1027.002",
+            "description": "Enigma Protector section name (second section)."
+        },
+        ".petite": {
+            "severity": "MEDIUM",
+            "mitre": "T1027.002",
+            "description": "Petite packer section name or marker."
+        }
+    },
+    "byte_patterns": {
+        "upx_unpack_stub_prologue": {
+            "pattern": "60 BE ?? ?? ?? ??",
+            "severity": "HIGH",
+            "mitre": "T1027.002",
+            "description": "PUSHAD followed by MOV ESI, imm32, the entry-point prologue of the UPX unpacking stub."
+        },
+        "generic_packer_stub_prologue": {
+            "pattern": "60 E8 00 00 00 00 5D",
+            "severity": "LOW",
+            "mitre": "T1027.002",
+            "description": "PUSHAD + CALL $+5 + POP EBP, a common entry-point pattern used by several packer stubs."
+        }
+    },
     "string_patterns": {},
     "combinations": []
 }

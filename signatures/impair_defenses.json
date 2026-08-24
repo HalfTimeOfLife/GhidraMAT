@@ -335,6 +335,7 @@
             "description": "Windows Update service name; targeted by some malware to disable system updates."
         }
     },
+    "section_names": {},
     "byte_patterns": {
         "amsi_scanbuffer_patch": {
             "pattern": "B8 57 00 07 80 C3",

@@ -292,6 +292,7 @@
             "description": "Generic User-Agent string; less specific than Mozilla/4.0 but still indicates potential HTTP client spoofing."
         }
     },
+    "section_names": {},
     "byte_patterns": {},
     "string_patterns": {
         "hardcoded_http_url": {

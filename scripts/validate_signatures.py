@@ -19,6 +19,7 @@ VALID_SEVERITIES = {"LOW", "MEDIUM", "HIGH", "CRITICAL"}
 REQUIRED_TOP_LEVEL = {
     "imports",
     "strings",
+    "section_names",
     "byte_patterns",
     "string_patterns",
     "combinations",

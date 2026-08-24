@@ -387,6 +387,7 @@
             "description": "CLSID of IApplicationAssociationRegistration; instantiated via CoCreateInstance to change a file or protocol association through COM instead of direct registry writes."
         }
     },
+    "section_names": {},
     "byte_patterns": {},
     "string_patterns": {},
     "combinations": [
