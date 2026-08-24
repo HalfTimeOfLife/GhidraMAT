@@ -2,26 +2,7 @@
 
 This document describes the planned release schedule for GhidraMAT. Each version ships one core feature and one signature file. Secondary features are possible in each release if they don't affect the scope.
 
-Current version: **v0.8**
-
----
-
-## v0.9 - Ghidra results panel + `packer.json`
-
-**Feature: Dedicated Ghidra results panel**
-
-Display findings directly inside Ghidra instead of only in the console and report files.
-
-- Dedicated Ghidra component (`ComponentProvider`, `GTable`) showing a findings table
-- Columns: Severity, Category, Name, Type, MITRE
-- Sortable columns, filters by severity and category
-- Double-click on a finding navigates to the corresponding address in the Ghidra listing
-
-> **Scope note:** The plan is the Ghidra panel. If the rendered output isn't readable/usable enough once built, a standalone HTML version could be considered in a future release.
-
-**Signatures: `packer.json`**
-
-Detection of packed or protected binaries (specific MITRE ATT&CK Technique IDs will be added during the development of this version).
+Current version: **v0.9**
 
 ---
 
@@ -70,14 +51,20 @@ GhidraMAT will continue to evolve after v1.2. New signatures will be added as ne
 techniques, packers, or malware behaviors are discovered or documented. Additional features may
 be added if a genuine need is identified.
 
+**Candidate feature: Structural packer analysis**
+
+- Section Shannon entropy computation (per-section, threshold ~7.2), flagging high-entropy sections as packed/protected
+- Malformed/anomalous PE header detection: entry point outside any mapped section, `SizeOfImage`/`SizeOfHeaders` inconsistent with actual section sizes
+- Out of scope for the existing signature-driven engine (`imports`/`strings`/`byte_patterns`/`string_patterns`/`combinations`): requires a new `heuristic` finding type and a dedicated `utils/structural.py` module, not a JSON signature file
+- Needs calibration against a real corpus (UPX, Themida, VMProtect, plus legitimate binaries) before the entropy threshold and header checks can be trusted -- deferred until a dedicated slot to validate properly rather than rushed alongside another core feature
+
 ---
 
 ## Summary
 
 | Version | Core feature | Small additions | Signatures | Status |
 |---|---|---|---|---|
-| v0.9 | Ghidra results panel | - | `packer.json` | Planned |
 | v1.0 | Documentation + signature review | Basic runtime string detection | - | Planned |
 | v1.1 | Full runtime string detection | - | - | Deferred |
 | v1.2 | Linux/macOS coverage | - | - | Deferred |
-| v1.2+ | Ongoing maintenance | To be determined | - | Ongoing |
+| v1.2+ | Ongoing maintenance | Structural packer analysis (entropy, header) | - | Ongoing |
