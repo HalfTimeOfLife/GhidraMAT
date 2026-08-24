@@ -164,15 +164,24 @@ class FakeFuncManager:
 
 
 class FakeMemoryBlock:
-    """Minimal stand-in for a Ghidra MemoryBlock. Not used by the current
-    scan_byte_pattern implementation (which iterates instructions instead),
-    but kept for any code path that still walks raw memory blocks."""
+    """Minimal stand-in for a Ghidra MemoryBlock."""
 
-    def __init__(self, start, content_bytes, is_execute=True, is_initialized=True):
+    def __init__(
+        self,
+        start,
+        content_bytes,
+        name=".data",
+        is_execute=True,
+        is_initialized=True,
+    ):
         self.start = start
         self._bytes = content_bytes
+        self._name = name
         self._is_execute = is_execute
         self._is_initialized = is_initialized
+
+    def getName(self):
+        return self._name
 
     def isExecute(self):
         return self._is_execute
@@ -211,15 +220,17 @@ class FakeMemory:
 
 
 class FakeProgram:
-    """Minimal stand-in for a Ghidra Program object. Only exposes getListing(),
-    which is what utils.pattern.scan_byte_pattern calls directly via
-    context.program (as opposed to context.listing, used for strings)."""
+    """Minimal stand-in for a Ghidra Program object."""
 
-    def __init__(self, listing=None):
+    def __init__(self, listing=None, memory=None):
         self._listing = listing or FakeListing()
+        self._memory = memory or FakeMemory()
 
     def getListing(self):
         return self._listing
+
+    def getMemory(self):
+        return self._memory
 
 
 class FakeMonitor:
@@ -243,11 +254,7 @@ class FakeMonitor:
 
 
 class FakeContext:
-    """Minimal stand-in for core.context.Context, built from fakes.
-
-    Every attribute defaults to an empty fake, so a test only needs to
-    provide the specific manager(s) relevant to what it's exercising.
-    """
+    """Minimal stand-in for a Ghidra Program object."""
 
     def __init__(
         self,
@@ -266,3 +273,6 @@ class FakeContext:
         self.memory = memory or FakeMemory()
         self.monitor = monitor
         self.program = program or FakeProgram()
+
+        if memory is not None:
+            self.program._memory = self.memory

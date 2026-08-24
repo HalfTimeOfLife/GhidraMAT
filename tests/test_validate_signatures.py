@@ -27,6 +27,7 @@ def minimal_valid_json():
         "sig_version": 1,
         "imports": {},
         "strings": {},
+        "section_names": {},
         "byte_patterns": {},
         "string_patterns": {},
         "combinations": [],

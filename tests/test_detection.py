@@ -54,6 +54,7 @@ def test_analyze_detects_import(tmp_path, monkeypatch):
             }
         },
         "strings": {},
+        "section_names": {},
         "byte_patterns": {},
         "string_patterns": {},
         "combinations": [],
@@ -98,6 +99,7 @@ def test_analyze_skips_import_not_present(tmp_path, monkeypatch):
             }
         },
         "strings": {},
+        "section_names": {},
         "byte_patterns": {},
         "string_patterns": {},
         "combinations": [],
@@ -125,6 +127,7 @@ def test_analyze_import_combo_only_flag_set(tmp_path, monkeypatch):
             }
         },
         "strings": {},
+        "section_names": {},
         "byte_patterns": {},
         "string_patterns": {},
         "combinations": [],
@@ -171,6 +174,7 @@ def test_analyze_detects_string(tmp_path, monkeypatch):
                 "description": "VMware vendor string.",
             }
         },
+        "section_names": {},
         "byte_patterns": {},
         "string_patterns": {},
         "combinations": [],
@@ -210,6 +214,7 @@ def test_analyze_skips_string_not_present(tmp_path, monkeypatch):
                 "description": "VMware vendor string.",
             }
         },
+        "section_names": {},
         "byte_patterns": {},
         "string_patterns": {},
         "combinations": [],
@@ -235,6 +240,7 @@ def test_analyze_detects_string_pattern(tmp_path, monkeypatch):
         "sig_version": 1,
         "imports": {},
         "strings": {},
+        "section_names": {},
         "byte_patterns": {},
         "string_patterns": {
             "hardcoded_url": {
@@ -273,6 +279,7 @@ def test_analyze_skips_string_pattern_not_matched(tmp_path, monkeypatch):
         "sig_version": 1,
         "imports": {},
         "strings": {},
+        "section_names": {},
         "byte_patterns": {},
         "string_patterns": {
             "hardcoded_url": {
@@ -304,6 +311,7 @@ def test_analyze_string_pattern_groups_all_matches_into_one_finding(
         "sig_version": 1,
         "imports": {},
         "strings": {},
+        "section_names": {},
         "byte_patterns": {},
         "string_patterns": {
             "hardcoded_url": {
@@ -340,6 +348,7 @@ def test_analyze_string_pattern_finding_has_no_xrefs(tmp_path, monkeypatch):
         "sig_version": 1,
         "imports": {},
         "strings": {},
+        "section_names": {},
         "byte_patterns": {},
         "string_patterns": {
             "hardcoded_url": {
@@ -372,6 +381,7 @@ def test_analyze_detects_byte_pattern(tmp_path, monkeypatch):
         "sig_version": 1,
         "imports": {},
         "strings": {},
+        "section_names": {},
         "byte_patterns": {
             "rdtsc_timing": {
                 "pattern": "0F 31",
@@ -417,6 +427,7 @@ def test_analyze_byte_pattern_groups_multiple_matches_into_one_finding(
         "sig_version": 1,
         "imports": {},
         "strings": {},
+        "section_names": {},
         "byte_patterns": {
             "rdtsc_timing": {
                 "pattern": "0F 31",
@@ -463,6 +474,7 @@ def test_analyze_skips_byte_pattern_not_present(tmp_path, monkeypatch):
         "sig_version": 1,
         "imports": {},
         "strings": {},
+        "section_names": {},
         "byte_patterns": {
             "rdtsc_timing": {
                 "pattern": "0F 31",
@@ -515,6 +527,7 @@ def test_analyze_detects_combination_when_all_requires_present(tmp_path, monkeyp
             "Sleep": {"severity": "LOW", "combo_only": True, "description": "..."},
         },
         "strings": {},
+        "section_names": {},
         "byte_patterns": {},
         "string_patterns": {},
         "combinations": [
@@ -582,6 +595,7 @@ def test_analyze_skips_combination_when_partial_requires_present(tmp_path, monke
             }
         },
         "strings": {},
+        "section_names": {},
         "byte_patterns": {},
         "string_patterns": {},
         "combinations": [
@@ -632,6 +646,7 @@ def test_analyze_combination_finding_has_no_xrefs(tmp_path, monkeypatch):
             "Sleep": {"severity": "LOW", "combo_only": True, "description": "..."},
         },
         "strings": {},
+        "section_names": {},
         "byte_patterns": {},
         "string_patterns": {},
         "combinations": [
@@ -675,6 +690,7 @@ def test_analyze_uses_correct_category_in_findings(tmp_path, monkeypatch):
             }
         },
         "strings": {"VMware, Inc.": {"severity": "HIGH", "description": "..."}},
+        "section_names": {},
         "byte_patterns": {
             "rdtsc_timing": {
                 "pattern": "0F 31",
@@ -735,6 +751,7 @@ def test_analyze_empty_signatures_produces_no_findings(tmp_path, monkeypatch):
         "sig_version": 1,
         "imports": {},
         "strings": {},
+        "section_names": {},
         "byte_patterns": {},
         "string_patterns": {},
         "combinations": [],
@@ -761,6 +778,7 @@ def test_analyze_sets_monitor_message_when_monitor_present(tmp_path, monkeypatch
         "sig_version": 1,
         "imports": {},
         "strings": {},
+        "section_names": {},
         "byte_patterns": {},
         "string_patterns": {},
         "combinations": [],
@@ -784,6 +802,7 @@ def test_analyze_skips_monitor_message_when_monitor_none(tmp_path, monkeypatch):
         "sig_version": 1,
         "imports": {},
         "strings": {},
+        "section_names": {},
         "byte_patterns": {},
         "string_patterns": {},
         "combinations": [],
@@ -810,6 +829,7 @@ def test_scan_byte_pattern_finds_pattern_in_data_section(tmp_path, monkeypatch):
         "sig_version": 1,
         "imports": {},
         "strings": {},
+        "section_names": {},
         "byte_patterns": {
             "aes_sbox": {
                 "pattern": "63 7C 77 7B",
@@ -852,6 +872,7 @@ def test_scan_byte_pattern_skips_uninitialized_block(tmp_path, monkeypatch):
         "sig_version": 1,
         "imports": {},
         "strings": {},
+        "section_names": {},
         "byte_patterns": {
             "aes_sbox": {
                 "pattern": "63 7C 77 7B",
@@ -890,6 +911,7 @@ def test_scan_byte_pattern_skips_executable_block_in_memory_scan(tmp_path, monke
         "sig_version": 1,
         "imports": {},
         "strings": {},
+        "section_names": {},
         "byte_patterns": {
             "aes_sbox": {
                 "pattern": "63 7C 77 7B",
@@ -930,6 +952,7 @@ def test_scan_byte_pattern_finds_pattern_in_data_and_instructions(
         "sig_version": 1,
         "imports": {},
         "strings": {},
+        "section_names": {},
         "byte_patterns": {
             "aes_sbox": {
                 "pattern": "63 7C 77 7B",
